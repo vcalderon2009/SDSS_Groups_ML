@@ -1,0 +1,20 @@
+name: sdss_groups_ml
+
+channels:
+  - defaults
+
+dependencies:
+  - python>=3.6
+  - ipython
+  - anaconda
+  - astropy
+  - h5py
+  - numpy
+  - pandas>=0.19.0
+  - scipy
+  - seaborn>=0.8.1
+  - scikit-learn>=0.19.1
+  - pip
+  - pip:
+    - GitPython
+    - progressbar2
