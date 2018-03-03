@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # SDSS_Groups_ML documentation build configuration file, created by
