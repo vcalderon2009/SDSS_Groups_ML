@@ -4,6 +4,13 @@
 Project Organization
 ====================
 
+Project based on a modified version of 
+`cookiecutter data science project template
+<https://drivendata.github.io/cookiecutter-data-science/>`_.
+
+The functions used throughout the project can be found in the 
+:code:`src/data/utilities_python` python module.
+
 .. code::
 
     ├── LICENSE
@@ -43,5 +50,3 @@ Project Organization
     │
     └── tox.ini            <- tox file with settings for running tox; see tox.testrun.org
 
-Project based on the `cookiecutter data science project template
-<https://drivendata.github.io/cookiecutter-data-science/>`_
