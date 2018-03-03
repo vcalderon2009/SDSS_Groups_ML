@@ -26,10 +26,10 @@ The **main** repository of this project can be found at:
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   getting-started
+   getting_started_files/getting-started
    commands_files/commands
-   project_description/SDSS_ML_project_description
+   methods_files/mock_catalogues
    project_organization
 
