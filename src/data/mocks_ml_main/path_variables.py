@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Victor Calderon
-# Created      : DATE
-# Last Modified: DATE
+# Created      : 03/03/2018
+# Last Modified: 03/03/2018
 # Vanderbilt University
 from __future__ import (print_function, division, 
                             absolute_import)
