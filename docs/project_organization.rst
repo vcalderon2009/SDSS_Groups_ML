@@ -38,10 +38,6 @@ Project Organization
     │   └── data           <- Scripts to download or generate data
     │       ├── make_dataset.py
     │       │
-    │       ├── One_halo_conformity <- Scripts to analyze 1-halo conformity
-    │       │
-    │       ├── Two_halo_conformity <- Scripts to analyze 2-halo conformity
-    │       │
     │       └── utilities_python    <- Scripts to analyze 1-halo conformity
     │           └── pair_counter_rp <- Scripts used throughout both analyses.
     │
