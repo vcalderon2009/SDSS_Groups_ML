@@ -7,8 +7,8 @@
 SDSS Groups ML documentation!
 ==============================================
 
-Estimation of *dark matter halo mass* of galaxy groups in SDSS DR7 using 
-a **machine learning** approach.
+**Estimation of dark matter halo mass of galaxy groups in SDSS DR7 using 
+a machine learning approach.**
 
 ------------------------
 Project Description
