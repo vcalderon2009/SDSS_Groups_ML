@@ -28,8 +28,8 @@ from . import pandas_hdf5    as phd
 from   collections import Counter
 
 def catl_sdss_dir(catl_kind='data', catl_type='mr', sample_s='19',
-    catl_info='members', perf_opt=False, print_filedir=True,
-    Program_Msg=fd.Program_Msg(__file__)):
+    catl_info='members', halotype='fof', clf_method=3, hod_n=0,
+    perf_opt=False, print_filedir=True, Program_Msg=fd.Program_Msg(__file__)):
     """
     Extracts the path to the catalogues
 
@@ -60,6 +60,26 @@ def catl_sdss_dir(catl_kind='data', catl_type='mr', sample_s='19',
         Options:
             - 'members': member galaxies of group catalogues
             - 'groups' : catalogues with group information
+
+    halotype: string, optional (default = 'fof')
+        Type of the DM halo.
+        Options:
+            - 'fof': Friends-of-Friends halos
+            - 'so' : Spherical Overdensity halos
+
+    clf_method: int, optional (default = 3)
+        Method for assigning galaxy properties to mock galaxies. 
+        Options:
+            - '1' : Independent assignment of (g-r), sersic, logssfr
+            - '2' : (g-r) decides active/passive designation and 
+                    draws values independently.
+            - '3' : (g-r) decides active/passive designation, and 
+                    assigns other galaxy properties for that given 
+                    galaxy.
+    
+    hod_n: int, optional (default = 0)
+        HOD model to use.
+        Only relevant when "catl_kind == `mocks`".
 
     perf_opt: boolean, optional (default = False)
         option for choosing 'perfect' catalogues
@@ -99,12 +119,23 @@ def catl_sdss_dir(catl_kind='data', catl_type='mr', sample_s='19',
     else:
         catl_info_str_mod = catl_info_str
     ## Extracting URL of the files
-    filedir = os.path.join( gp.get_output_path(),
-                            'SDSS',
-                            catl_kind,
-                            catl_type,
-                            'Mr'+sample_s,
-                            catl_info_str_mod)
+    if catl_kind == 'data':
+        filedir = os.path.join( gp.get_output_path(),
+                                'SDSS',
+                                catl_kind,
+                                catl_type,
+                                'Mr'+sample_s,
+                                catl_info_str_mod)
+    elif catl_kind == 'mocks':
+        filedir = os.path.join( gp.get_output_path(),
+                                'SDSS',
+                                catl_kind,
+                                'halos_{0}'.format(halotype),
+                                'hod_model_{0}'.format(hod_n),
+                                'clf_method_{0}'.format(clf_method),
+                                catl_type,
+                                'Mr'+sample_s,
+                                catl_info_str_mod)
     try:
         assert(os.path.exists(filedir))
     except:
