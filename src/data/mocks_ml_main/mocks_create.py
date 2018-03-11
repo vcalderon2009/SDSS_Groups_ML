@@ -302,7 +302,16 @@ def directory_skeleton(param_dict, proj_dict):
     proj_dict: python dictionary
         Dictionary with current and new paths to project directories
     """
-    ## In here, you define the directories of your project
+    ##
+    ## Output directory for synthetic catalogues
+    catl_outdir = os.path.join( proj_dict['data_dir'],
+                                'processed',
+                                'SDSS',
+                                'mocks',
+                                param_dict[''])
+
+
+
 
     return proj_dict
 
