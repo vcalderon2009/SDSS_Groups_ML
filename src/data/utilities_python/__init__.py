@@ -1,3 +1,7 @@
+## Future Warnings 
+import warnings
+warnings.filterwarnings("ignore",category=FutureWarning)
+
 from .abundance_matching_vc import *
 from .file_dir_check        import *
 from .file_readers          import *
