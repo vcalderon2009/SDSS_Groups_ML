@@ -147,7 +147,8 @@ def catl_sdss_dir(catl_kind='data', catl_type='mr', sample_s='19',
     return filedir
 
 def extract_catls(catl_kind='data', catl_type='mr', sample_s='19',
-    datatype='.hdf5', catl_info='members', perf_opt=False, 
+    datatype='.hdf5', catl_info='members', 
+    halotype='fof', clf_method=3, hod_n=0, perf_opt=False, 
     return_len=False, print_filedir=True,
     Program_Msg=fd.Program_Msg(__file__)):
     """
@@ -184,6 +185,26 @@ def extract_catls(catl_kind='data', catl_type='mr', sample_s='19',
             - 'members': member galaxies of group catalogues
             - 'groups' : catalogues with group information
 
+    halotype: string, optional (default = 'fof')
+        Type of the DM halo.
+        Options:
+            - 'fof': Friends-of-Friends halos
+            - 'so' : Spherical Overdensity halos
+
+    clf_method: int, optional (default = 3)
+        Method for assigning galaxy properties to mock galaxies. 
+        Options:
+            - '1' : Independent assignment of (g-r), sersic, logssfr
+            - '2' : (g-r) decides active/passive designation and 
+                    draws values independently.
+            - '3' : (g-r) decides active/passive designation, and 
+                    assigns other galaxy properties for that given 
+                    galaxy.
+    
+    hod_n: int, optional (default = 0)
+        HOD model to use.
+        Only relevant when "catl_kind == `mocks`".
+
     perf_opt: boolean, optional (default = False)
         option for choosing 'perfect' catalogues
         Options:
@@ -210,6 +231,9 @@ def extract_catls(catl_kind='data', catl_type='mr', sample_s='19',
                             catl_type=catl_type,
                             sample_s=sample_s,
                             catl_info=catl_info,
+                            halotype=halotype,
+                            clf_method=clf_method,
+                            hod_n=hod_n,
                             perf_opt=perf_opt,
                             print_filedir=print_filedir)
     ## Converting to numpy arrays
@@ -536,7 +560,8 @@ def catl_keys_prop(catl_kind, catl_info='members', return_type='list',
 
     return catl_dict
 
-def catl_sdss_merge(catl_pd_ii, catl_kind='data', catl_type='mr', sample_s='19',
+def catl_sdss_merge(catl_pd_ii, catl_kind='data', catl_type='mr', 
+    sample_s='19', halotype='fof', clf_method=3, hod_n=0,
     perf_opt=False, return_memb_group=False, print_filedir=False,
     Program_Msg=fd.Program_Msg(__file__)):
     """
@@ -568,6 +593,26 @@ def catl_sdss_merge(catl_pd_ii, catl_kind='data', catl_type='mr', sample_s='19',
             - '19': Uses the -19 volume-limited 'Consuelo' sample
             - '20': Uses the -20 volume-limited 'Esmeralda' sample
             - '21': Uses the -21 volume-limited 'Carmen' sample
+
+    halotype: string, optional (default = 'fof')
+        Type of the DM halo.
+        Options:
+            - 'fof': Friends-of-Friends halos
+            - 'so' : Spherical Overdensity halos
+
+    clf_method: int, optional (default = 3)
+        Method for assigning galaxy properties to mock galaxies. 
+        Options:
+            - '1' : Independent assignment of (g-r), sersic, logssfr
+            - '2' : (g-r) decides active/passive designation and 
+                    draws values independently.
+            - '3' : (g-r) decides active/passive designation, and 
+                    assigns other galaxy properties for that given 
+                    galaxy.
+    
+    hod_n: int, optional (default = 0)
+        HOD model to use.
+        Only relevant when "catl_kind == `mocks`".
 
     perf_opt: boolean, optional (default = False)
         option for choosing 'perfect' catalogues
@@ -603,6 +648,9 @@ def catl_sdss_merge(catl_pd_ii, catl_kind='data', catl_type='mr', sample_s='19',
     memb_arr, memb_len = extract_catls( catl_kind=catl_kind,
                                 catl_type=catl_type,
                                 sample_s=sample_s,
+                                halotype=halotype,
+                                clf_method=clf_method,
+                                hod_n=hod_n,
                                 perf_opt=perf_opt,
                                 catl_info=catl_info_arr[0],
                                 return_len=True,
