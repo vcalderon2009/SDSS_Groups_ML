@@ -13,6 +13,18 @@ PYTHON_INTERPRETER = python3
 ENVIRONMENT_FILE = environment.yml
 ENVIRONMENT_NAME = sdss_groups_ml
 
+DATA_DIR           = $(PROJECT_DIR)/data
+SRC_DIR            = $(PROJECT_DIR)/src/data
+MOCKS_CATL_DIR     = $(DATA_DIR)/processed/SDSS/mocks
+
+# CPU-Fraction
+CPU_FRAC     = 0.5
+REMOVE_FILES = "True"
+CLF_METHOD   = 3
+SAMPLE       = "all"
+HALOTYPE     = 'fof'
+HOD_N        = 0
+
 ifeq (,$(shell which conda))
 HAS_CONDA=False
 else
@@ -61,7 +73,32 @@ endif
 # PROJECT RULES                                                                 #
 #################################################################################
 
+## Run tests to see if all files (Halobias, catalogues) are in order
+test_files:
+	@pytest
 
+## Delete existing `mock` catalogues
+delete_mock_catls:
+	find $(MOCKS_CATL_DIR) -type f -name '*.hdf5' -delete
+
+## Delete existing `data` catalogues
+delete_data_catls:
+	find $(DATA_CATL_DIR) -type f -name '*.hdf5' -delete
+	find $(DATA_CATL_DIR) -type f -name '*.tex' -delete
+	find $(DATA_CATL_DIR) -type f -name '*.csv' -delete
+
+## Delete all files, except for `raw` files
+delete_all_but_raw:
+	@rm -rf $(DATA_DIR)/external/*
+	@rm -rf $(DATA_DIR)/interim/*
+	@rm -rf $(DATA_DIR)/processed/*
+
+## Clean the `./data` folder and remove all of the files
+clean_data_dir:
+	@rm -rf $(DATA_DIR)/external/*
+	@rm -rf $(DATA_DIR)/interim/*
+	@rm -rf $(DATA_DIR)/processed/*
+	@rm -rf $(DATA_DIR)/raw/*
 
 #################################################################################
 # Self Documenting Commands                                                     #
