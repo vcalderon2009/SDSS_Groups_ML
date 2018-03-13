@@ -359,26 +359,24 @@ def directory_skeleton(param_dict, proj_dict):
                                     param_dict['sample_Mr'],
                                     'merged_vac')
     ## Creating output folders for the catalogues
-    mock_cat_mc      = os.path.join(catl_outdir, 'member_galaxy_catalogues')
-    mock_cat_gc      = os.path.join(catl_outdir, 'group_galaxy_catalogues' )
-    mock_cat_mc_perf = os.path.join(catl_outdir, 'perfect_member_galaxy_catalogues')
-    mock_cat_gc_perf = os.path.join(catl_outdir, 'perfect_group_galaxy_catalogues' )
+    merged_gal_dir          = os.path.join(catl_outdir, 'merged_vac'         )
+    merged_gal_perf_dir     = os.path.join(catl_outdir, 'merged_vac_perf'    )
+    merged_gal_all_dir      = os.path.join(catl_outdir, 'merged_vac_all'     )
+    merged_gal_perf_all_dir = os.path.join(catl_outdir, 'merged_vac_perf_all')
     ##
     ## Creating Directories
     cu.Path_Folder(catl_outdir)
-    cu.Path_Folder(mock_cat_mgc)
-    cu.Path_Folder(mock_cat_mc)
-    cu.Path_Folder(mock_cat_gc)
-    cu.Path_Folder(mock_cat_mc_perf)
-    cu.Path_Folder(mock_cat_gc_perf)
+    cu.Path_Folder(merged_gal_dir)
+    cu.Path_Folder(merged_gal_perf_dir)
+    cu.Path_Folder(merged_gal_all_dir)
+    cu.Path_Folder(merged_gal_perf_all_dir)
     ##
     ## Adding to `proj_dict`
-    proj_dict['catl_outdir'     ] = catl_outdir
-    proj_dict['mock_cat_mgc'    ] = mock_cat_mgc
-    proj_dict['mock_cat_mc'     ] = mock_cat_mc
-    proj_dict['mock_cat_gc'     ] = mock_cat_gc
-    proj_dict['mock_cat_mc_perf'] = mock_cat_mc_perf
-    proj_dict['mock_cat_gc_perf'] = mock_cat_gc_perf
+    proj_dict['catl_outdir'            ] = catl_outdir
+    proj_dict['merged_gal_dir'         ] = merged_gal_dir
+    proj_dict['merged_gal_perf_dir'    ] = merged_gal_perf_dir
+    proj_dict['merged_gal_all_dir'     ] = merged_gal_all_dir
+    proj_dict['merged_gal_perf_all_dir'] = merged_gal_perf_all_dir
 
     return proj_dict
 
@@ -456,6 +454,26 @@ def main(args):
         if key !='Prog_msg':
             print('{0} `{1}`: {2}'.format(Prog_msg, key, key_val))
     print('\n'+50*'='+'\n')
+    ##
+    ## Looping over all galaxy catalogues
+    # Paths to catalogues being analyzed
+    (   mocks_catls_arr,
+        n_mocks        ) = cu.extract_catls(catl_kind='mocks',
+                                            catl_type=param_dict['catl_type'],
+                                            sample_s=param_dict['sample_s'],
+                                            halotype=param_dict['halotype'],
+                                            clf_method=param_dict['clf_method'],
+                                            hod_n=param_dict['hod_n'],
+                                            return_len=True,
+                                            print_filedir=False)
+    
+
+
+
+
+
+
+
     ##
     ## End time for running the catalogues
     end_time   = datetime.now()
