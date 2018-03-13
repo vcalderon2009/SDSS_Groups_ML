@@ -60,6 +60,8 @@ import astropy.table     as astro_table
 
 
 ## Functions
+
+## --------- General functions ------------##
 class SortingHelpFormatter(HelpFormatter):
     def add_arguments(self, actions):
         """
@@ -422,6 +424,164 @@ def cosmo_create(cosmo_choice='Planck', H0=100., Om0=0.25, Ob0=0.04,
 
     return cosmo_model
 
+## --------- Catalogue Analysis ------------##
+
+def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
+    """
+    Function to analyze the catalogue and compute all of the group/galaxy 
+    properties, and saves the resulting merged catalogue
+
+    Parameters
+    -----------
+    ii: int
+        integer of the catalogue being analyzed, after having order the 
+        list of catalogues alphabetically.
+
+    catl_ii_name: string
+        name of the catalogue file being analyzed
+
+    param_dict: python dictionary
+        dictionary with `project` variables
+
+    proj_dict: python dictionary
+        Dictionary with current and new paths to project directories
+    """
+    ##
+    ## Reading in `galaxy` and `group` catalogues, and merging 
+    ## into a single DataFrame
+    (   merged_gal_pd,
+        memb_ii_pd   ,
+        group_ii_pd  ) = cu.catl_sdss_merge(ii,
+                                            catl_kind='mocks',
+                                            catl_type=param_dict['catl_type'],
+                                            sample_s=param_dict['sample_s'],
+                                            halotype=param_dict['halotype'],
+                                            clf_method=param_dict['clf_method'],
+                                            hod_n=param_dict['hod_n'],
+                                            perf_opt=param_dict['perfect_catl_opt'],
+                                            print_filedir=False,
+                                            return_memb_group=True)
+    ##
+    ## Constants
+    n_gals   = len(memb_ii_pd )
+    n_groups = len(group_ii_pd)
+    ## Creating new DataFrames
+    group_mod_pd = pd.DataFrame({'groupid':num.sort(group_ii_pd['groupid'])})
+    ## Indices for each galaxy group
+    group_gals_dict = group_gals_idx(memb_ii_pd, group_ii_pd)
+    ##
+    ## Group Properties
+    group_mod_pd = 
+
+def group_gals_idx(memb_ii_pd, group_ii_pd):
+    """
+    Gets the indices of galaxies for each galaxy group
+
+    Parameters
+    ------------
+    memb_ii_pd: pandas DataFrame
+        DataFrame with info about galaxy members
+
+    group_ii_pd: pandas DataFrame
+        DataFrame with group properties
+
+    Returns
+    ------------
+    group_gals_dict: python dictionary
+        dictionary with indices of galaxies for each galaxy group
+    """
+    group_gals_dict = {}
+    ## Looping over groups
+    for group_kk in tqdm(range(len(group_ii_pd))):
+        group_idx = memb_ii_pd.loc[memb_ii_pd['groupid']==group_kk].index.values
+        group_gals_dict[group_kk] = group_idx
+
+    return group_gals_dict
+
+
+
+
+
+
+## --------- Galaxy Properties ------------##
+
+
+## --------- Group Properties ------------##
+
+## Brightness of the brightest galaxy
+def group_brightest_gal(memb_ii_pd, group_ii_pd, group_mod_pd, 
+    group_gals_dict):
+    """
+    Determines the brightness of the brightest galaxy in the galaxy group
+
+    Parameters
+    ------------
+    memb_ii_pd: pandas DataFrame
+        DataFrame with info about galaxy members
+
+    group_ii_pd: pandas DataFrame
+        DataFrame with group properties
+
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+
+    group_gals_dict: python dictionary
+        dictionary with indices of galaxies for each galaxy group
+
+    Returns
+    ------------
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+    """
+    ## Creating array for brightest galaxy
+    group_mr_max_arr = num.zeros(len(group_ii_pd))
+    ## Looping over all groups
+    for group_kk in tqdm(range(len(group_mod_pd))):
+        ## Group indices
+        group_idx = group_gals_dict[group_kk]
+        group_mr_max_arr[group_kk] = memb_ii_pd.loc[group_idx,'M_r'].min()
+    ##
+    ## Assigning it to DataFrame
+    group_mod_pd.loc[:,'mr_brightest'] = group_mr_max_arr
+
+    return group_mod_pd
+
+## --------- Multiprocessing ------------##
+
+def multiprocessing_catls(catl_arr, param_dict, proj_dict, memb_tuples_ii):
+    """
+    Distributes the analysis of the catalogues into more than 1 processor
+
+    Parameters:
+    -----------
+    catl_arr: numpy.ndarray, shape(n_catls,)
+        array of paths to the catalogues files to analyze
+
+    param_dict: python dictionary
+        dictionary with `project` variables
+
+    proj_dict: python dictionary
+        Dictionary with current and new paths to project directories
+
+    memb_tuples_ii: tuple
+        tuple of catalogue indices to be analyzed
+    """
+    ## Program Message
+    Prog_msg = param_dict['Prog_msg']
+    ## Reading in Catalogue IDs
+    start_ii, end_ii = memb_tuples_ii
+    ##
+    ## Looping the desired catalogues
+    for ii, catl_ii in enumerate(catl_arr[start_ii : end_ii]):
+        ## Choosing 1st catalogue
+        if param_dict['verbose']:
+            print('{0} Analyzing `{1}`\n'.format(Prog_msg, catl_ii))
+        ## Extracting `name` of the catalogue
+        catl_ii_name = os.path.splitext(os.path.split(catl_ii)[1])[0]
+        ## Analaysis for the Halobias file
+        catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict)
+
+## --------- Main Function ------------##
 
 def main(args):
     """
@@ -457,23 +617,50 @@ def main(args):
     ##
     ## Looping over all galaxy catalogues
     # Paths to catalogues being analyzed
-    (   mocks_catls_arr,
-        n_mocks        ) = cu.extract_catls(catl_kind='mocks',
-                                            catl_type=param_dict['catl_type'],
-                                            sample_s=param_dict['sample_s'],
-                                            halotype=param_dict['halotype'],
-                                            clf_method=param_dict['clf_method'],
-                                            hod_n=param_dict['hod_n'],
-                                            return_len=True,
-                                            print_filedir=False)
-    
-
-
-
-
-
-
-
+    (   catl_arr,
+        n_catls ) = cu.extract_catls(   catl_kind='mocks',
+                                        catl_type=param_dict['catl_type'],
+                                        sample_s=param_dict['sample_s'],
+                                        halotype=param_dict['halotype'],
+                                        clf_method=param_dict['clf_method'],
+                                        hod_n=param_dict['hod_n'],
+                                        return_len=True,
+                                        print_filedir=False )
+    ##
+    ## Changing `prog_bar` to `False`
+    param_dict['prog_bar'] = False
+    ##
+    ### ---- Analyzing Catalogues ---- ###
+    ##
+    ## Using `multiprocessing` to analyze merged catalogues files
+    ## Number of CPU's to use
+    cpu_number = int(cpu_count() * param_dict['cpu_frac'])
+    ## Defining step-size for each CPU
+    if cpu_number <= n_catls:
+        catl_step = int(n_catls / cpu_number)
+        memb_arr = num.arange(0, n_catls+1, catl_step)
+    else:
+        catl_step = int((n_catls / cpu_number)**-1)
+        memb_arr = num.arange(0, n_catls+1)
+    ## Array with designated catalogue numbers for each CPU
+    memb_arr[-1] = n_catls
+    ## Tuples of the ID of each catalogue
+    memb_tuples  = num.asarray([(memb_arr[xx], memb_arr[xx+1])
+                            for xx in range(memb_arr.size-1)])
+    ## Assigning `memb_tuples` to function `multiprocessing_catls`
+    procs = []
+    for ii in range(len(memb_tuples)):
+        # Defining `proc` element
+        proc = Process(target=multiprocessing_catls, 
+                        args=(catl_arr, param_dict, 
+                            proj_dict, memb_tuples[ii]))
+        # Appending to main `procs` list
+        procs.append(proc)
+        proc.start()
+    ##
+    ## Joining `procs`
+    for proc in procs:
+        proc.join()
     ##
     ## End time for running the catalogues
     end_time   = datetime.now()
