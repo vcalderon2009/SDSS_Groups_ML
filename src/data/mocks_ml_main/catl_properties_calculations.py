@@ -469,6 +469,13 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
     group_mod_pd = pd.DataFrame({'groupid':num.sort(group_ii_pd['groupid'])})
     ## Indices for each galaxy group
     group_gals_dict = group_gals_idx(memb_ii_pd, group_ii_pd)
+    ## Brightness of brightness galaxy
+    group_mod_pd = group_brightest_gal( memb_ii_pd  , group_ii_pd    , 
+                                        group_mod_pd, group_gals_dict)
+    ## Brighness ratio between 1st and 2nd brightest galaxies in galaxy group
+    group_mod_pd = group_brightness_gal_ratio(  memb_ii_pd  , group_ii_pd    , 
+                                                group_mod_pd, group_gals_dict)
+
     ##
     ## Group Properties
     group_mod_pd = 
@@ -539,12 +546,61 @@ def group_brightest_gal(memb_ii_pd, group_ii_pd, group_mod_pd,
     for group_kk in tqdm(range(len(group_mod_pd))):
         ## Group indices
         group_idx = group_gals_dict[group_kk]
+        ## Brightest galaxy
         group_mr_max_arr[group_kk] = memb_ii_pd.loc[group_idx,'M_r'].min()
     ##
     ## Assigning it to DataFrame
     group_mod_pd.loc[:,'mr_brightest'] = group_mr_max_arr
 
     return group_mod_pd
+
+## Brightness ratio of 1st and 2nd brightest galaxies in group
+def group_brightness_gal_ratio(memb_ii_pd, group_ii_pd, group_mod_pd, 
+    group_gals_dict, nmin=2):
+    """
+    Determines the brightness ratio of the 1st and 2nd brightest 
+    galaxies in galaxy group
+
+    Parameters
+    ------------
+    memb_ii_pd: pandas DataFrame
+        DataFrame with info about galaxy members
+
+    group_ii_pd: pandas DataFrame
+        DataFrame with group properties
+
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+
+    group_gals_dict: python dictionary
+        dictionary with indices of galaxies for each galaxy group
+
+    Returns
+    ------------
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+    """
+    ## Array for brightness ratio
+    group_lum_ratio_arr = num.zeros(len(group_ii_pd))
+    ## Groups with number of galaxies larger than `nmin`
+    groups_nmin_arr = group_ii_pd.loc[group_ii_pd['GG_ngals']>=nmin,'groupid']
+    ## Looping over all groups
+    for kk, group_kk in enumerate(tqdm(groups_nmin_arr)):
+        ## Group indices
+        group_idx = group_gals_dict[group_kk]
+        ## Brightness ratio
+        group_lum_arr = num.sort(cu.absolute_magnitude_to_luminosity(
+                    memb_ii_pd.loc[group_idx,'M_r'].values, 'r'))[::-1]
+        ## Ratio of Brightnesses
+        group_lum_ratio_arr[group_kk] = 10**(group_lum_arr[0]-group_lum_arr[1])
+    ##
+    ## Assigning it to DataFrame
+    group_mod_pd.loc[:,'mr_ratio'] = group_lum_ratio_arr
+
+    return group_mod_pd
+
+
+
 
 ## --------- Multiprocessing ------------##
 
