@@ -916,11 +916,15 @@ def group_sigma_rmed(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
         memb_rmed_mask = (memb_dist_sq_arr <= group_rmed_arr_sq[group_kk])
         ## Calculating velocity dispersion
         memb_rmed_kk = memb_gals_kk[memb_rmed_mask]
+        # Checking if more than 1 galaxy is in the `r_med` range
         ## Velocity dispersion of galaxies within group's `r_med`
-        memb_dz2   = num.sum((memb_rmed_kk[:,0] - group_kk_pd[0])**2)
-        czdisp_num = (memb_dz2/(memb_rmed_kk.shape[0] - 1))**(.5)
-        czdisp_den = 1. + (group_kk_pd[0]/param_dict['speed_c'])
-        czdisp_rmed = czdisp_num / czdisp_den
+        if len(memb_rmed_kk) > 1:
+            memb_dz2   = num.sum((memb_rmed_kk[:,0] - group_kk_pd[0])**2)
+            czdisp_num = (memb_dz2/(memb_rmed_kk.shape[0] - 1))**(.5)
+            czdisp_den = 1. + (group_kk_pd[0]/param_dict['speed_c'])
+            czdisp_rmed = czdisp_num / czdisp_den
+        else:
+            czdisp_rmed = 0.
         ## Saving to array
         group_sigma_rmed_arr[group_kk] = czdisp_rmed
     ##
