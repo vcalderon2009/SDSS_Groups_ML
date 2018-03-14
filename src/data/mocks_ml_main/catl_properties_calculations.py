@@ -57,6 +57,7 @@ import astropy.cosmology as astrocosmo
 import astropy.constants as ac
 import astropy.units     as u
 import astropy.table     as astro_table
+from   astropy.coordinates import SkyCoord
 
 
 ## Functions
@@ -204,12 +205,12 @@ def get_parser():
                         help='Option to print out project parameters',
                         type=_str2bool,
                         default=False)
-    ## Create `perfect catalogues` option
-    parser.add_argument('-perf','--perf',
-                        dest='perfect_catl_opt',
-                        help='Option for creating perfect catalogues as well',
+    ## `Perfect Catalogue` Option
+    parser.add_argument('-perf',
+                        dest='perf_opt',
+                        help='Option for using a `Perfect` catalogue',
                         type=_str2bool,
-                        default=True)
+                        default=False)
     ## Random Seed
     parser.add_argument('-seed',
                         dest='seed',
@@ -458,13 +459,16 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
                                             halotype=param_dict['halotype'],
                                             clf_method=param_dict['clf_method'],
                                             hod_n=param_dict['hod_n'],
-                                            perf_opt=param_dict['perfect_catl_opt'],
+                                            perf_opt=param_dict['perf_opt'],
                                             print_filedir=False,
                                             return_memb_group=True)
     ##
     ## Constants
     n_gals   = len(memb_ii_pd )
     n_groups = len(group_ii_pd)
+    ## Cartesian Coordinates for both `memb_ii_pd` and `group_ii_pd`
+    (   memb_ii_pd ,
+        group_ii_pd) = gals_cartesian(memb_ii_pd, group_ii_pd, param_dict)
     ## Creating new DataFrames
     group_mod_pd = pd.DataFrame({'groupid':num.sort(group_ii_pd['groupid'])})
     ## Indices for each galaxy group
@@ -473,12 +477,14 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
     group_mod_pd = group_brightest_gal( memb_ii_pd  , group_ii_pd    , 
                                         group_mod_pd, group_gals_dict)
     ## Brighness ratio between 1st and 2nd brightest galaxies in galaxy group
-    group_mod_pd = group_brightness_gal_ratio(  memb_ii_pd  , group_ii_pd    , 
-                                                group_mod_pd, group_gals_dict)
+    group_mod_pd = group_brightness_gal_ratio(  memb_ii_pd  , group_ii_pd    ,
+                                    group_mod_pd, group_gals_dict,
+                                    nmin=param_dict['nmin'])
+    ## Group Shape
+    group_mod_pd = group_shape(memb_ii_pd, group_ii_pd, group_mod_pd, 
+        group_gals_dict, nmin=param_dict['nmin'])
 
-    ##
-    ## Group Properties
-    group_mod_pd = 
+
 
 def group_gals_idx(memb_ii_pd, group_ii_pd):
     """
@@ -504,6 +510,66 @@ def group_gals_idx(memb_ii_pd, group_ii_pd):
         group_gals_dict[group_kk] = group_idx
 
     return group_gals_dict
+
+def gals_cartesian(memb_ii_pd, group_ii_pd, param_dict):
+    """
+    Computes the Cartesian coordinates of galaxies from the observer's 
+    perspective
+
+    Parameters
+    -----------
+    memb_ii_pd: pandas DataFrame
+        DataFrame with info about galaxy members
+
+    group_ii_pd: pandas DataFrame
+        DataFrame with group properties
+
+    param_dict: python dictionary
+        dictionary with `project` variables
+
+    Returns
+    -----------
+    memb_ii_pd: pandas DataFrame
+        DataFrame with info about galaxy members + cartesian coordinates for 
+        galaxies
+
+    group_ii_pd: pandas DataFrame
+        DataFrame with group properties + cartesian coordinates for 
+        galaxies
+
+    """
+    ## Constants
+    cosmo_model = param_dict['cosmo_model']
+    speed_c     = param_dict['speed_c']
+    ## Galaxy distances
+    # Galaxies
+    gals_dist = cosmo_model.comoving_distance(memb_ii_pd['cz']/speed_c).to(u.Mpc)
+    # gals_dist = gals_dist.value
+    # Groups
+    groups_dist = cosmo_model.comoving_distance(group_ii_pd['GG_cen_cz']/speed_c).to(u.Mpc)
+    # groups_dist = groups_dist.value
+    ## Spherical to Cartesian coordinates
+    # Galaxies
+    gals_cart = SkyCoord(   ra=memb_ii_pd['ra'].values*u.deg,
+                            dec=memb_ii_pd['dec'].values*u.deg,
+                            distance=gals_dist).cartesian.xyz.value
+    # Groups
+    group_cart = SkyCoord(  ra=group_ii_pd['GG_cen_ra'].values*u.deg,
+                            dec=group_ii_pd['GG_cen_dec'].values*u.deg,
+                            distance=groups_dist).cartesian.xyz.value
+    ## Saving to DataFrame
+    # Galaxies
+    memb_ii_pd.loc[:,'x'] = gals_cart[0]
+    memb_ii_pd.loc[:,'x'] = gals_cart[1]
+    memb_ii_pd.loc[:,'x'] = gals_cart[2]
+    # Groups
+    group_ii_pd.loc[:,'GG_x'] = group_cart[0]
+    group_ii_pd.loc[:,'GG_x'] = group_cart[1]
+    group_ii_pd.loc[:,'GG_x'] = group_cart[2]
+
+    return memb_ii_pd, group_ii_pd
+
+
 
 
 
@@ -584,8 +650,9 @@ def group_brightness_gal_ratio(memb_ii_pd, group_ii_pd, group_mod_pd,
     group_lum_ratio_arr = num.zeros(len(group_ii_pd))
     ## Groups with number of galaxies larger than `nmin`
     groups_nmin_arr = group_ii_pd.loc[group_ii_pd['GG_ngals']>=nmin,'groupid']
+    groups_nmin_arr = groups_nmin_arr.values
     ## Looping over all groups
-    for kk, group_kk in enumerate(tqdm(groups_nmin_arr)):
+    for group_kk in tqdm(groups_nmin_arr):
         ## Group indices
         group_idx = group_gals_dict[group_kk]
         ## Brightness ratio
@@ -599,6 +666,91 @@ def group_brightness_gal_ratio(memb_ii_pd, group_ii_pd, group_mod_pd,
 
     return group_mod_pd
 
+## Shape of the group
+def group_shape(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict, 
+    nmin=2):
+    """
+    Determines the brightness ratio of the 1st and 2nd brightest 
+    galaxies in galaxy group
+
+    Parameters
+    ------------
+    memb_ii_pd: pandas DataFrame
+        DataFrame with info about galaxy members
+
+    group_ii_pd: pandas DataFrame
+        DataFrame with group properties
+
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+
+    group_gals_dict: python dictionary
+        dictionary with indices of galaxies for each galaxy group
+
+    Returns
+    ------------
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+    """
+    ## Cosmology
+    cosmo_model = param_dict['cosmo_model']
+    speed_c     = param_dict['speed_c']
+    ## Array for brightness ratio
+    group_shape_arr = num.zeros(len(group_ii_pd))
+    ## Groups with number of galaxies larger than `nmin`
+    groups_nmin_arr = group_ii_pd.loc[group_ii_pd['GG_ngals']>=nmin,'groupid']
+    groups_nmin_arr = groups_nmin_arr.values
+    ## Galaxy distances
+    # Galaxies
+    gals_dist = cosmo_model.comoving_distance(memb_ii_pd['cz']/speed_c).to(u.Mpc)
+    gals_dist = gals_dist.value
+    # Groups
+    group_dist = cosmo_model.comoving_distance(group_ii_pd['GG_cen_cz']/speed_c).to(u.Mpc)
+    group_dist = group_dist.value
+    ## Coordinates of galaxies and groups
+    gals_coords   = num.column_stack((  memb_ii_pd['ra' ],
+                                        memb_ii_pd['dec'],
+                                        gals_dist))
+    groups_coords = num.column_stack((  group_ii_pd['GG_cen_ra' ],
+                                        group_ii_pd['GG_cen_dec'],
+                                        group_dist))
+    ## Looping over all groups
+    for group_kk in tqdm(groups_nmin_arr):
+        ## Group indices
+        group_idx    = group_gals_dict[group_kk]
+        ## Galaxies in group
+        memb_gals_kk = gals_coords[group_idx].T
+        group_kk_pd  = groups_coords[group_kk]
+        ## Cartian Coordinates
+        (   sph_dict  ,
+            coord_dict) = cu.Coord_Transformation(  memb_gals_kk[0],
+                                                    memb_gals_kk[1],
+                                                    memb_gals_kk[2],
+                                                    group_kk_pd [0] ,
+                                                    group_kk_pd [1] ,
+                                                    group_kk_pd [2] ,
+                                                    trans_opt = 4  )
+        ## Joining cartesian coordinates
+        x_kk = coord_dict['X'] - num.mean(coord_dict['X'])
+        y_kk = coord_dict['Y'] - num.mean(coord_dict['Y'])
+        z_kk = coord_dict['Z'] - num.mean(coord_dict['Z'])
+        #
+        gals_cart_arr = num.vstack((x_kk, y_kk, z_kk))
+        ## Covariance matrix and eigenvectors
+        cov           = num.cov(gals_cart_arr)
+        evals, evecs  = num.linalg.eig(cov)
+        ## Sort eigenvalues in decreasing order
+        sort_indices  = num.argsort(evals)[::-1]
+        evals_sorted  = num.real(evals[num.argsort(evals)[::-1]])
+        ## Ratio of eigenvalues
+        evals_ratio   = evals_sorted[-1]/evals_sorted[0]
+        ## Saving elongation
+        group_shape_arr[group_kk] = evals_ratio
+    ##
+    ## Assigning it to DataFrame
+    group_mod_pd.loc[:,'shape'] = group_shape_arr
+
+    return group_mod_pd
 
 
 
