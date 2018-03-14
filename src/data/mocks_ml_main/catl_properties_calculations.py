@@ -184,9 +184,9 @@ def get_parser():
                         dest='nmin',
                         help='Minimum number of galaxies in a galaxy group',
                         type=int,
-                        choices=range(1,1000),
+                        choices=range(2,1000),
                         metavar='[1-1000]',
-                        default=1)
+                        default=2)
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -565,7 +565,7 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
                                     nmin=param_dict['nmin'])
     ## Group Shape
     group_mod_pd = group_shape(memb_ii_pd, group_ii_pd, group_mod_pd, 
-        group_gals_dict, nmin=param_dict['nmin'])
+        group_gals_dict, param_dict, nmin=param_dict['nmin'])
     ## Total and median radius of the group
     group_mod_pd = group_radii(memb_ii_pd, group_ii_pd, group_mod_pd, 
         group_gals_dict, nmin=param_dict['nmin'])
@@ -669,7 +669,7 @@ def group_brightness_gal_ratio(memb_ii_pd, group_ii_pd, group_mod_pd,
 
 ## Shape of the group
 def group_shape(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict, 
-    nmin=2):
+    param_dict, nmin=2):
     """
     Determines the brightness ratio of the 1st and 2nd brightest 
     galaxies in galaxy group
@@ -880,9 +880,13 @@ def multiprocessing_catls(catl_arr, param_dict, proj_dict, memb_tuples_ii):
     Prog_msg = param_dict['Prog_msg']
     ## Reading in Catalogue IDs
     start_ii, end_ii = memb_tuples_ii
+    ## Index value
+    idx_arr  = num.array(range(start_ii, end_ii))
+    ## Catalogue array
+    catl_arr_ii = catl_arr[start_ii : end_ii]
     ##
     ## Looping the desired catalogues
-    for ii, catl_ii in enumerate(catl_arr[start_ii : end_ii]):
+    for (ii, catl_ii) in zip(idx_arr, catl_arr_ii):
         ## Choosing 1st catalogue
         if param_dict['verbose']:
             print('{0} Analyzing `{1}`\n'.format(Prog_msg, catl_ii))
