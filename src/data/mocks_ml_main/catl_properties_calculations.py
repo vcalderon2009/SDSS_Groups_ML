@@ -493,20 +493,22 @@ def gals_cartesian(memb_ii_pd, group_ii_pd, param_dict):
     # Galaxies
     gals_cart = SkyCoord(   ra=memb_ii_pd['ra'].values*u.deg,
                             dec=memb_ii_pd['dec'].values*u.deg,
-                            distance=gals_dist).cartesian.xyz.value
+                            distance=gals_dist).cartesian.xyz.to(u.Mpc).value
     # Groups
     group_cart = SkyCoord(  ra=group_ii_pd['GG_cen_ra'].values*u.deg,
                             dec=group_ii_pd['GG_cen_dec'].values*u.deg,
-                            distance=groups_dist).cartesian.xyz.value
+                            distance=groups_dist).cartesian.xyz.to(u.Mpc).value
     ## Saving to DataFrame
     # Galaxies
-    memb_ii_pd.loc[:,'x'] = gals_cart[0]
-    memb_ii_pd.loc[:,'y'] = gals_cart[1]
-    memb_ii_pd.loc[:,'z'] = gals_cart[2]
+    memb_ii_pd.loc[:,'x'     ] = gals_cart[0]
+    memb_ii_pd.loc[:,'y'     ] = gals_cart[1]
+    memb_ii_pd.loc[:,'z'     ] = gals_cart[2]
+    memb_ii_pd.loc[:,'dist_c'] = gals_dist
     # Groups
-    group_ii_pd.loc[:,'GG_x'] = group_cart[0]
-    group_ii_pd.loc[:,'GG_y'] = group_cart[1]
-    group_ii_pd.loc[:,'GG_z'] = group_cart[2]
+    group_ii_pd.loc[:,'GG_x'     ] = group_cart[0]
+    group_ii_pd.loc[:,'GG_y'     ] = group_cart[1]
+    group_ii_pd.loc[:,'GG_z'     ] = group_cart[2]
+    group_ii_pd.loc[:,'GG_dist_c'] = groups_dist
 
     return memb_ii_pd, group_ii_pd
 
@@ -571,6 +573,10 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
         group_gals_dict, nmin=param_dict['nmin'])
     ## Abundance matched mass of group
     group_mod_pd = group_general_prop(group_ii_pd, group_mod_pd)
+    # Velocity dispersion
+    group_mod_pd = group_sigma_rmed(memb_ii_pd, group_ii_pd, group_mod_pd, 
+        group_gals_dict, nmin=param_dict['nmin'])
+
 
 
 
@@ -786,8 +792,8 @@ def group_radii(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
     groups_nmin_arr = group_ii_pd.loc[group_ii_pd['GG_ngals']>=nmin,'groupid']
     groups_nmin_arr = groups_nmin_arr.values
     ## Coordinates
-    memb_coords = memb_ii_pd[['x','y','z']].values
-    group_coords = group_ii_pd[['GG_x','GG_y','GG_z']].values
+    memb_coords     = memb_ii_pd[['x','y','z']].values
+    group_coords    = group_ii_pd[['GG_x','GG_y','GG_z']].values
     ## Looping over all groups
     for group_kk in tqdm(groups_nmin_arr):
         ## Group indices
@@ -814,7 +820,7 @@ def group_radii(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
 
     return group_mod_pd
 
-## Abundance matched mass
+## General properties for groups
 def group_general_prop(group_ii_pd, group_mod_pd):
     """
     Assigns `general` group properties to `group_mod_pd`.
@@ -854,6 +860,75 @@ def group_general_prop(group_ii_pd, group_mod_pd):
                             on='groupid',how='left')
 
     return group_mod_pd
+
+## Total and median radii of galaxy group
+def group_sigma_rmed(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict, 
+    nmin=2):
+    """
+    Determines the total and median radii of the galaxy groups with 
+    group richness of "ngal > `nmin`"
+
+    Parameters
+    ------------
+    memb_ii_pd: pandas DataFrame
+        DataFrame with info about galaxy members
+
+    group_ii_pd: pandas DataFrame
+        DataFrame with group properties
+
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+
+    group_gals_dict: python dictionary
+        dictionary with indices of galaxies for each galaxy group
+
+    Returns
+    ------------
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+    """
+    ## Array for total and median radii of galaxy group
+    group_sigma_rmed_arr = num.zeros(len(group_ii_pd))
+    ## Groups with number of galaxies larger than `nmin`
+    groups_nmin_arr = group_ii_pd.loc[group_ii_pd['GG_ngals']>=nmin,'groupid']
+    groups_nmin_arr = groups_nmin_arr.values
+    ## Median radius of groups
+    group_rmed_arr_sq  = group_mod_pd['r_med'].values**2
+    # Galaxy columns
+    gals_cols    = ['cz','x','y','z']
+    memb_coords  = memb_ii_pd[gals_cols].values
+    # Group Columns
+    group_cols   = ['GG_cen_cz', 'GG_ngals', 'GG_x', 'GG_y', 'GG_z']
+    group_coords = group_ii_pd[group_cols].values
+    ## Looping over all groups
+    for group_kk in tqdm(groups_nmin_arr):
+        ## Group indices
+        group_idx    = group_gals_dict[group_kk]
+        ## Galaxies in group
+        memb_gals_kk = memb_coords [group_idx]
+        group_kk_pd  = group_coords[group_kk ]
+        ## Cartesian Coordinates
+        memb_cart_arr  = memb_gals_kk[:,1:]
+        group_cart_rsh = group_kk_pd[2:].reshape(1,3)
+        ## If within `r_med`
+        memb_dist_sq_arr = num.sum((memb_cart_arr - group_cart_rsh)**2,axis=1)
+        ## Selecting dispersion of galaxies
+        memb_rmed_mask = (memb_dist_sq_arr <= group_rmed_arr_sq[group_kk])
+        ## Calculating velocity dispersion
+        memb_rmed_kk = memb_gals_kk[memb_rmed_mask]
+        ## Velocity dispersion of galaxies within group's `r_med`
+        memb_dz2   = num.sum((memb_rmed_kk[:,0] - group_kk_pd[0])**2)
+        czdisp_num = (memb_dz2/(memb_rmed_kk.shape[0] - 1))**(.5)
+        czdisp_den = 1. + (group_kk_pd[0]/param_dict['speed_c'])
+        czdisp_rmed = czdisp_num / czdisp_den
+        ## Saving to array
+        group_sigma_rmed_arr[group_kk] = czdisp_rmed
+    ##
+    ## Assigning it to DataFrame
+    group_mod_pd.loc[:,'sigma_v_rmed'] = group_sigma_rmed_arr
+
+    return group_mod_pd
+
 
 
 ## --------- Multiprocessing ------------##
