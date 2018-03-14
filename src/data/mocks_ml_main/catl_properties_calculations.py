@@ -3,7 +3,7 @@
 
 # Victor Calderon
 # Created      : 03/12/2018
-# Last Modified: 03/12/2018
+# Last Modified: 03/14/2018
 # Vanderbilt University
 from __future__ import print_function, division, absolute_import
 __author__     =['Victor Calderon']
@@ -427,65 +427,6 @@ def cosmo_create(cosmo_choice='Planck', H0=100., Om0=0.25, Ob0=0.04,
 
 ## --------- Catalogue Analysis ------------##
 
-def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
-    """
-    Function to analyze the catalogue and compute all of the group/galaxy 
-    properties, and saves the resulting merged catalogue
-
-    Parameters
-    -----------
-    ii: int
-        integer of the catalogue being analyzed, after having order the 
-        list of catalogues alphabetically.
-
-    catl_ii_name: string
-        name of the catalogue file being analyzed
-
-    param_dict: python dictionary
-        dictionary with `project` variables
-
-    proj_dict: python dictionary
-        Dictionary with current and new paths to project directories
-    """
-    ##
-    ## Reading in `galaxy` and `group` catalogues, and merging 
-    ## into a single DataFrame
-    (   merged_gal_pd,
-        memb_ii_pd   ,
-        group_ii_pd  ) = cu.catl_sdss_merge(ii,
-                                            catl_kind='mocks',
-                                            catl_type=param_dict['catl_type'],
-                                            sample_s=param_dict['sample_s'],
-                                            halotype=param_dict['halotype'],
-                                            clf_method=param_dict['clf_method'],
-                                            hod_n=param_dict['hod_n'],
-                                            perf_opt=param_dict['perf_opt'],
-                                            print_filedir=False,
-                                            return_memb_group=True)
-    ##
-    ## Constants
-    n_gals   = len(memb_ii_pd )
-    n_groups = len(group_ii_pd)
-    ## Cartesian Coordinates for both `memb_ii_pd` and `group_ii_pd`
-    (   memb_ii_pd ,
-        group_ii_pd) = gals_cartesian(memb_ii_pd, group_ii_pd, param_dict)
-    ## Creating new DataFrames
-    group_mod_pd = pd.DataFrame({'groupid':num.sort(group_ii_pd['groupid'])})
-    ## Indices for each galaxy group
-    group_gals_dict = group_gals_idx(memb_ii_pd, group_ii_pd)
-    ## Brightness of brightness galaxy
-    group_mod_pd = group_brightest_gal( memb_ii_pd  , group_ii_pd    , 
-                                        group_mod_pd, group_gals_dict)
-    ## Brighness ratio between 1st and 2nd brightest galaxies in galaxy group
-    group_mod_pd = group_brightness_gal_ratio(  memb_ii_pd  , group_ii_pd    ,
-                                    group_mod_pd, group_gals_dict,
-                                    nmin=param_dict['nmin'])
-    ## Group Shape
-    group_mod_pd = group_shape(memb_ii_pd, group_ii_pd, group_mod_pd, 
-        group_gals_dict, nmin=param_dict['nmin'])
-
-
-
 def group_gals_idx(memb_ii_pd, group_ii_pd):
     """
     Gets the indices of galaxies for each galaxy group
@@ -569,9 +510,67 @@ def gals_cartesian(memb_ii_pd, group_ii_pd, param_dict):
 
     return memb_ii_pd, group_ii_pd
 
+def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
+    """
+    Function to analyze the catalogue and compute all of the group/galaxy 
+    properties, and saves the resulting merged catalogue
 
+    Parameters
+    -----------
+    ii: int
+        integer of the catalogue being analyzed, after having order the 
+        list of catalogues alphabetically.
 
+    catl_ii_name: string
+        name of the catalogue file being analyzed
 
+    param_dict: python dictionary
+        dictionary with `project` variables
+
+    proj_dict: python dictionary
+        Dictionary with current and new paths to project directories
+    """
+    ##
+    ## Reading in `galaxy` and `group` catalogues, and merging 
+    ## into a single DataFrame
+    (   merged_gal_pd,
+        memb_ii_pd   ,
+        group_ii_pd  ) = cu.catl_sdss_merge(ii,
+                                            catl_kind='mocks',
+                                            catl_type=param_dict['catl_type'],
+                                            sample_s=param_dict['sample_s'],
+                                            halotype=param_dict['halotype'],
+                                            clf_method=param_dict['clf_method'],
+                                            hod_n=param_dict['hod_n'],
+                                            perf_opt=param_dict['perf_opt'],
+                                            print_filedir=False,
+                                            return_memb_group=True)
+    ##
+    ## Constants
+    n_gals   = len(memb_ii_pd )
+    n_groups = len(group_ii_pd)
+    ## Cartesian Coordinates for both `memb_ii_pd` and `group_ii_pd`
+    (   memb_ii_pd ,
+        group_ii_pd) = gals_cartesian(memb_ii_pd, group_ii_pd, param_dict)
+    ## Creating new DataFrames
+    group_mod_pd = pd.DataFrame({'groupid':num.sort(group_ii_pd['groupid'])})
+    ## Indices for each galaxy group
+    group_gals_dict = group_gals_idx(memb_ii_pd, group_ii_pd)
+    ## Brightness of brightness galaxy
+    group_mod_pd = group_brightest_gal( memb_ii_pd  , group_ii_pd    , 
+                                        group_mod_pd, group_gals_dict)
+    ## Brighness ratio between 1st and 2nd brightest galaxies in galaxy group
+    group_mod_pd = group_brightness_gal_ratio(  memb_ii_pd  , group_ii_pd    ,
+                                    group_mod_pd, group_gals_dict,
+                                    nmin=param_dict['nmin'])
+    ## Group Shape
+    group_mod_pd = group_shape(memb_ii_pd, group_ii_pd, group_mod_pd, 
+        group_gals_dict, nmin=param_dict['nmin'])
+    ## Total and median radius of the group
+    group_mod_pd = group_radii(memb_ii_pd, group_ii_pd, group_mod_pd, 
+        group_gals_dict, nmin=param_dict['nmin'])
+    ## Abundance matched mass of group
+    
 
 
 
@@ -752,6 +751,66 @@ def group_shape(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
 
     return group_mod_pd
 
+## Total and median radii of galaxy group
+def group_radii(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict, 
+    nmin=2):
+    """
+    Determines the total and median radii of the galaxy groups with 
+    group richness of "ngal > `nmin`"
+
+    Parameters
+    ------------
+    memb_ii_pd: pandas DataFrame
+        DataFrame with info about galaxy members
+
+    group_ii_pd: pandas DataFrame
+        DataFrame with group properties
+
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+
+    group_gals_dict: python dictionary
+        dictionary with indices of galaxies for each galaxy group
+
+    Returns
+    ------------
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+    """
+    ## Array for total and median radii of galaxy group
+    group_tot_r_arr = num.zeros(len(group_ii_pd))
+    group_med_r_arr = num.zeros(len(group_ii_pd))
+    ## Groups with number of galaxies larger than `nmin`
+    groups_nmin_arr = group_ii_pd.loc[group_ii_pd['GG_ngals']>=nmin,'groupid']
+    groups_nmin_arr = groups_nmin_arr.values
+    ## Coordinates
+    memb_coords = memb_ii_pd[['x','y','z']].values
+    group_coords = group_ii_pd[['GG_x','GG_y','GG_z']].values
+    ## Looping over all groups
+    for group_kk in tqdm(groups_nmin_arr):
+        ## Group indices
+        group_idx    = group_gals_dict[group_kk]
+        ## Galaxies in group
+        memb_gals_kk = memb_coords [group_idx]
+        group_kk_pd  = group_coords[group_kk ]
+        # Reshaped `group_kk_pd`
+        group_kk_pd_rsh = group_kk_pd.reshape(1,3)
+        ## Calculating total and median distances
+        # Distances
+        gals_cen_dist_sq = num.sum((memb_gals_kk - group_kk_pd_rsh)**2, axis=1)
+        gals_cen_dist    = gals_cen_dist_sq**(.5)
+        # Total distance
+        r_tot = num.max(gals_cen_dist)
+        r_med = num.median(gals_cen_dist)
+        ## Saving to array
+        group_tot_r_arr[group_kk] = r_tot
+        group_med_r_arr[group_kk] = r_med
+    ##
+    ## Assigning it to DataFrame
+    group_mod_pd.loc[:,'r_tot'] = group_tot_r_arr
+    group_mod_pd.loc[:,'r_med'] = group_med_r_arr
+
+    return group_mod_pd
 
 
 ## --------- Multiprocessing ------------##
