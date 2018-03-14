@@ -570,7 +570,9 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
     group_mod_pd = group_radii(memb_ii_pd, group_ii_pd, group_mod_pd, 
         group_gals_dict, nmin=param_dict['nmin'])
     ## Abundance matched mass of group
-    
+    group_mod_pd = group_general_prop(group_ii_pd, group_mod_pd)
+
+
 
 
 
@@ -809,6 +811,47 @@ def group_radii(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
     ## Assigning it to DataFrame
     group_mod_pd.loc[:,'r_tot'] = group_tot_r_arr
     group_mod_pd.loc[:,'r_med'] = group_med_r_arr
+
+    return group_mod_pd
+
+## Abundance matched mass
+def group_general_prop(group_ii_pd, group_mod_pd):
+    """
+    Assigns `general` group properties to `group_mod_pd`.
+    It assigns:
+        - Abundance matched mass
+        - Group richness
+        - Sigma_v (total velocity dispersion)
+        - Total Brightness
+    
+    Parameters
+    ------------
+    group_ii_pd: pandas DataFrame
+        DataFrame with group properties
+
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+    
+    Returns
+    ------------
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+    """
+    ## Group properties
+    groups_cols = [ 'GG_ngals'  , 'GG_sigma_v', 
+                    'GG_rproj'  , 'GG_M_r'    ,
+                    'GG_M_group', 'GG_logssfr',
+                    'groupid'   ]
+    groups_cols_mod = [xx.replace('GG_','') for xx in groups_cols]
+    ## Copy of `group_ii_pd`
+    group_ii_pd_copy = (group_ii_pd.copy())[groups_cols]
+    ## Renaming columns
+    groups_cols_dict = dict(zip(groups_cols,
+                                [xx.replace('GG_','') for xx in groups_cols]))
+    group_ii_pd_copy = group_ii_pd_copy.rename(columns=groups_cols_dict)
+    ## Merging both DataFrames
+    group_mod_pd = pd.merge(group_mod_pd, group_ii_pd_copy[groups_cols_mod], 
+                            on='groupid',how='left')
 
     return group_mod_pd
 
