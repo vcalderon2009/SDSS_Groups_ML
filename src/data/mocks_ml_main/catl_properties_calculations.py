@@ -560,12 +560,12 @@ def gals_cartesian(memb_ii_pd, group_ii_pd, param_dict):
     ## Saving to DataFrame
     # Galaxies
     memb_ii_pd.loc[:,'x'] = gals_cart[0]
-    memb_ii_pd.loc[:,'x'] = gals_cart[1]
-    memb_ii_pd.loc[:,'x'] = gals_cart[2]
+    memb_ii_pd.loc[:,'y'] = gals_cart[1]
+    memb_ii_pd.loc[:,'z'] = gals_cart[2]
     # Groups
     group_ii_pd.loc[:,'GG_x'] = group_cart[0]
-    group_ii_pd.loc[:,'GG_x'] = group_cart[1]
-    group_ii_pd.loc[:,'GG_x'] = group_cart[2]
+    group_ii_pd.loc[:,'GG_y'] = group_cart[1]
+    group_ii_pd.loc[:,'GG_z'] = group_cart[2]
 
     return memb_ii_pd, group_ii_pd
 
