@@ -580,14 +580,16 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
         group_gals_dict, nmin=param_dict['nmin'])
     ## Abundance matched mass of group
     group_mod_pd = group_general_prop(group_ii_pd, group_mod_pd)
-    # Velocity dispersion
+    ## Velocity dispersion
     group_mod_pd = group_sigma_rmed(memb_ii_pd, group_ii_pd, group_mod_pd, 
         group_gals_dict, nmin=param_dict['nmin'])
-    # Density of galaxies around group/cluster
+    ## Density of galaxies around group/cluster
     group_mod_pd = group_galaxy_density(memb_ii_pd, group_ii_pd, group_mod_pd,
         group_gals_dict, remove_group=param_dict['remove_group'],
         dist_scales=param_dict['dist_scales'], 
         remove_group=param_dict['remove_group'])
+    ## Dynamical mass estimates
+    group_mod_pd = group_dynamical_mass(group_ii_pd, group_mod_pd)
 
 
 
@@ -1024,6 +1026,38 @@ def group_galaxy_density(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
         group_mod_pd.loc[:,'dens_{0}'.format(r_zz)] = group_density_arr.T[zz]
 
     return group_mod_pd
+
+## Dynamical mass estimate
+def group_dynamical_mass(group_ii_pd, group_mod_pd):
+    """
+    Calculated the dynamical mass of galaxy groups.
+    Formula from:   Girardi et al. (1998)
+                        http://adsabs.harvard.edu/abs/1998ApJ...505...74G
+    
+    Parameters
+    ------------
+    group_ii_pd: pandas DataFrame
+        DataFrame with group properties
+
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+    
+    Returns
+    ------------
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+    """
+    ## Dynamical mass at the median radius
+    mdyn_med = ((group_mod_pd['sigma_v_rmed']**2)*group_mod_pd['r_med']).values
+    ## Dynamical mass at the virial radius
+    mdyn_proj = ((group_ii_pd['GG_sigma_v']**2)*group_ii_pd['GG_rproj']).values
+    ##
+    ## Assigning to `group_mod_pd`
+    group_mod_pd.loc[:,'mdyn_rmed' ] = mdyn_med
+    group_mod_pd.loc[:,'mdyn_rproj'] = mdyn_proj
+
+    return group_mod_pd
+
 
 
 ## --------- Multiprocessing ------------##
