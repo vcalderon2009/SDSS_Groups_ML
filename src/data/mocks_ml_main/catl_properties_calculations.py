@@ -30,17 +30,6 @@ import os
 import sys
 import pandas as pd
 import pickle
-import matplotlib
-matplotlib.use( 'Agg' )
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
-plt.rc('text', usetex=True)
-from astropy.visualization import astropy_mpl_style
-plt.style.use(astropy_mpl_style)
-import seaborn as sns
-#sns.set()
-from progressbar import (Bar, ETA, FileTransferSpeed, Percentage, ProgressBar,
-                        ReverseBar, RotatingMarker)
 from tqdm import tqdm
 
 # Extra-modules
@@ -58,6 +47,7 @@ import astropy.constants as ac
 import astropy.units     as u
 import astropy.table     as astro_table
 from   astropy.coordinates import SkyCoord
+from scipy.spatial import cKDTree
 
 
 ## Functions
@@ -187,6 +177,23 @@ def get_parser():
                         choices=range(2,1000),
                         metavar='[1-1000]',
                         default=2)
+    ## Removing group for when determining density
+    parser.add_argument('-remove_group',
+                        dest='remove_group',
+                        help="""
+                        Option for removing the group when calculating 
+                        densities at different radii""",
+                        type=_str2bool,
+                        default=True)
+    ## Radii used for estimating densities
+    parser.add_argument('-dist_scales',
+                        dest='dist_scales',
+                        help="""
+                        List of distance scales to use when calculating 
+                        densities""",
+                        type=float,
+                        nargs='+',
+                        default=[2, 5, 10])
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -576,6 +583,12 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
     # Velocity dispersion
     group_mod_pd = group_sigma_rmed(memb_ii_pd, group_ii_pd, group_mod_pd, 
         group_gals_dict, nmin=param_dict['nmin'])
+    # Density of galaxies around group/cluster
+    group_mod_pd = group_galaxy_density(memb_ii_pd, group_ii_pd, group_mod_pd,
+        group_gals_dict, remove_group=param_dict['remove_group'],
+        dist_scales=param_dict['dist_scales'], 
+        remove_group=param_dict['remove_group'])
+
 
 
 
@@ -933,6 +946,84 @@ def group_sigma_rmed(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
 
     return group_mod_pd
 
+## Density of galaxies around group/cluster
+def group_galaxy_density(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict, 
+    dist_scales=[2, 5, 10], remove_group=True):
+    """
+    Determines the total and median radii of the galaxy groups with 
+    group richness of "ngal > `nmin`"
+
+    Parameters
+    ------------
+    memb_ii_pd: pandas DataFrame
+        DataFrame with info about galaxy members
+
+    group_ii_pd: pandas DataFrame
+        DataFrame with group properties
+
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+
+    group_gals_dict: python dictionary
+        dictionary with indices of galaxies for each galaxy group
+
+    dist_scale: int, optional (default = 2)
+        scale, at which to measure the density (number of galaxy over 
+        volume) around the galaxy cluster
+
+    remove_group: boolean, optional (default = True)
+        option for removing the group being analyzed for when determining 
+        the galaxy density around the group/cluster.
+
+    Returns
+    ------------
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+    """
+    ## Distance scale
+    dist_scales = num.array(dist_scales)
+    ## Array for number of neighbours at some distance scale
+    group_counts_r_scale_arr = num.zeros((len(group_ii_pd),len(dist_scales)))
+    ## Group ID's array
+    groupid_arr  = num.sort(group_ii_pd['groupid'].values)
+    ## Galaxy ID array
+    memb_id_arr  = memb_ii_pd.index.values
+    # Galaxy columns
+    gals_cols    = ['x','y','z']
+    memb_coords  = memb_ii_pd[gals_cols].values
+    # Group Columns
+    group_cols   = ['GG_x', 'GG_y', 'GG_z']
+    group_coords = group_ii_pd[group_cols].values
+    ## Looping over all groups
+    for group_kk in tqdm(groupid_arr):
+        ## Group indices
+        group_idx    = group_gals_dict[group_kk]
+        # Indices of galaxies NOT in the galaxy group
+        if remove_group:
+            gals_idx = num.delete(memb_id_arr, group_idx)
+        else:
+            gals_idx = memb_id_arr
+        ## Galaxies in group
+        memb_gals_kk = memb_coords [gals_idx]
+        group_kk_pd  = group_coords[group_kk ].reshape(1,3)
+        ## KDTree object
+        memb_kdtree  = cKDTree(memb_gals_kk)
+        group_kdtree = cKDTree(group_kk_pd)
+        # Galaxies within radius
+        group_counts_arr = group_kdtree.count_neighbors(memb_kdtree,
+                                                        dist_scales)
+        ## Saving to array
+        group_counts_r_scale_arr[group_kk] = group_counts_arr
+    ##
+    ## Volumes of each sphere
+    vol_scales = (4*num.pi / 3.)*num.array(dist_scales)**3
+    ## Densities at those scales
+    group_density_arr = group_counts_r_scale_arr / vol_scales
+    ## Assigning to DataFrame
+    for zz, r_zz in enumerate(dist_scales):
+        group_mod_pd.loc[:,'dens_{0}'.format(r_zz)] = group_density_arr.T[zz]
+
+    return group_mod_pd
 
 
 ## --------- Multiprocessing ------------##
