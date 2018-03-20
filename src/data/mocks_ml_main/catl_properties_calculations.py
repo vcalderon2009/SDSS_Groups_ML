@@ -177,6 +177,16 @@ def get_parser():
                         choices=range(2,1000),
                         metavar='[1-1000]',
                         default=2)
+    ## Minimum of galaxies in a group
+    parser.add_argument('-mass_factor',
+                        dest='mass_factor',
+                        help="""
+                        Factor by which to evaluate the distance to closest 
+                        cluster""",
+                        type=int,
+                        choices=range(2,100),
+                        metavar='[2-100]',
+                        default=10)
     ## Removing group for when determining density
     parser.add_argument('-remove_group',
                         dest='remove_group',
@@ -582,14 +592,16 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
     group_mod_pd = group_general_prop(group_ii_pd, group_mod_pd)
     ## Velocity dispersion
     group_mod_pd = group_sigma_rmed(memb_ii_pd, group_ii_pd, group_mod_pd, 
-        group_gals_dict, nmin=param_dict['nmin'])
+        group_gals_dict, param_dict, nmin=param_dict['nmin'])
     ## Density of galaxies around group/cluster
     group_mod_pd = group_galaxy_density(memb_ii_pd, group_ii_pd, group_mod_pd,
-        group_gals_dict, remove_group=param_dict['remove_group'],
-        dist_scales=param_dict['dist_scales'], 
+        group_gals_dict, dist_scales=param_dict['dist_scales'],
         remove_group=param_dict['remove_group'])
     ## Dynamical mass estimates
     group_mod_pd = group_dynamical_mass(group_ii_pd, group_mod_pd)
+    ## Distance to nearest cluster
+    group_mod_pd = group_distance_closest_cluster(group_ii_pd, group_mod_pd,
+        mass_factor=param_dict['mass_factor'])
 
 
 
@@ -878,7 +890,7 @@ def group_general_prop(group_ii_pd, group_mod_pd):
 
 ## Total and median radii of galaxy group
 def group_sigma_rmed(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict, 
-    nmin=2):
+    param_dict, nmin=2):
     """
     Determines the total and median radii of the galaxy groups with 
     group richness of "ngal > `nmin`"
@@ -896,6 +908,12 @@ def group_sigma_rmed(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
 
     group_gals_dict: python dictionary
         dictionary with indices of galaxies for each galaxy group
+
+    param_dict: python dictionary
+        dictionary with `project` variables
+
+    nmin: int, optional (default = 2)
+        minimum number of galaxies in the galaxy group
 
     Returns
     ------------
@@ -997,7 +1015,7 @@ def group_galaxy_density(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
     group_cols   = ['GG_x', 'GG_y', 'GG_z']
     group_coords = group_ii_pd[group_cols].values
     ## Looping over all groups
-    for group_kk in tqdm(groupid_arr):
+    for group_kk in tqdm(groupid_arr[0:1000]):
         ## Group indices
         group_idx    = group_gals_dict[group_kk]
         # Indices of galaxies NOT in the galaxy group
@@ -1057,6 +1075,61 @@ def group_dynamical_mass(group_ii_pd, group_mod_pd):
     group_mod_pd.loc[:,'mdyn_rproj'] = mdyn_proj
 
     return group_mod_pd
+
+## Distance to nearest cluster
+def group_distance_closest_cluster(group_ii_pd, group_mod_pd, mass_factor=10):
+    """
+    Calculated the distance to the nearest galaxy cluster
+    
+    Parameters
+    ------------
+    group_ii_pd: pandas DataFrame
+        DataFrame with group properties
+
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+
+    mass_factor: int, optional (default = 10)
+    
+    Returns
+    ------------
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+    """
+    # Group Columns
+    groups_cols      = ['GG_x', 'GG_y', 'GG_z', 'GG_M_group']
+    groups_coords    = group_ii_pd[group_cols].values
+    groups_cart_arr  = groups_coords[:,0:3].copy()
+    grups_mgroup_arr = groups_coords[:,  3].copy()
+    # Distance to nearest "massive" cluster
+    groups_dist_sq_cluster_arr = num.zeros(len(groups_coords))
+    # Looping over all galaxy groups
+    for group_zz in tqdm(range(len(groups_coords))):
+        ## Group mass
+        factor_zz = grups_mgroup_arr[group_zz] + num.log10(mass_factor)
+        ## Cartesian Coordinates of the groups 'group_zz'
+        cart_zz = groups_cart_arr[group_zz].reshape(1,3)
+        ## Selecting next closest "massive cluster"
+        mas_clusters_coords = groups_coords[grups_mgroup_arr >= factor_zz][:,0:3]
+        if len(mas_clusters_coords) > 0:
+            ## Distance squared
+            cluster_dists_sq = num.sum((mas_clusters_coords - cart_zz)**2, axis=1)
+            ## Minimum distance
+            cluster_dist_sq_min = num.min(cluster_dists_sq)
+        else:
+            cluster_dists_sq = 0.
+        ## Minimum distance
+        groups_dist_sq_cluster_arr[group_zz] = cluster_dist_sq_min
+    ##
+    ## Square root of `distances_sq`
+    groups_dist_cluster_arr = groups_dist_sq_cluster_arr**(.5)
+    ## Assigning to 'group_mod_pd'
+    group_mod_pd.loc[:,'dist_cluster'] = groups_dist_cluster_arr
+
+    return group_mod_pd
+
+
+
 
 
 
