@@ -621,16 +621,6 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
     ## Saving DataFrames
     merging_df_save(catl_ii_name, memb_group_pd, param_dict, proj_dict)
 
-
-
-
-
-
-
-
-
-
-
 ## --------- Galaxy Properties ------------##
 
 ## Distance to the group's centre
@@ -1403,8 +1393,6 @@ def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
     ## Saving to file
     cu.pandas_df_to_hdf5_file(catl_pd_main, filepath, key=file_key)
     cu.File_Exists(filepath)
-
-
 
 ## --------- Multiprocessing ------------##
 
