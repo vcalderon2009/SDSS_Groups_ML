@@ -530,7 +530,7 @@ def gals_cartesian(memb_ii_pd, group_ii_pd, param_dict):
 
     return memb_ii_pd, group_ii_pd
 
-def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
+def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict, ext='hdf5'):
     """
     Function to analyze the catalogue and compute all of the group/galaxy 
     properties, and saves the resulting merged catalogue
@@ -549,79 +549,101 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
 
     proj_dict: python dictionary
         Dictionary with current and new paths to project directories
+
+    ext: string, optional (default = 'hdf5')
+        Extension to use for the resulting catalogues
     """
+    ## Merged DataFrame - Filename
+    merged_vac_filename = os.path.join( proj_dict['merged_gal_dir'],
+                                        '{0}_merged_vac.{1}'.format(
+                                            catl_ii_name, ext))
+    if os.path.exists(merged_vac_filename):
+        if param_dict['remove_files']:
+            os.remove(merged_vac_filename)
+            vac_create_opt = True
+        else:
+            vac_create_opt = False
+    else:
+        vac_create_opt = True
     ##
-    ## Reading in `galaxy` and `group` catalogues, and merging 
-    ## into a single DataFrame
-    (   merged_gal_pd,
-        memb_ii_pd   ,
-        group_ii_pd  ) = cu.catl_sdss_merge(ii,
-                                            catl_kind='mocks',
-                                            catl_type=param_dict['catl_type'],
-                                            sample_s=param_dict['sample_s'],
-                                            halotype=param_dict['halotype'],
-                                            clf_method=param_dict['clf_method'],
-                                            hod_n=param_dict['hod_n'],
-                                            perf_opt=param_dict['perf_opt'],
-                                            print_filedir=False,
-                                            return_memb_group=True)
-    merged_gal_pd = None
-    ##
-    ## Constants
-    n_gals   = len(memb_ii_pd )
-    n_groups = len(group_ii_pd)
-    ## Cartesian Coordinates for both `memb_ii_pd` and `group_ii_pd`
-    (   memb_ii_pd ,
-        group_ii_pd) = gals_cartesian(memb_ii_pd, group_ii_pd, param_dict)
-    ## ---- Galaxy Groups - Properties ---- ##
-    ## Creating new DataFrames
-    group_mod_pd = pd.DataFrame({'groupid':num.sort(group_ii_pd['groupid'])})
-    ## Indices for each galaxy group
-    group_gals_dict = group_gals_idx(memb_ii_pd, group_ii_pd)
-    ## Brightness of brightness galaxy
-    group_mod_pd = group_brightest_gal( memb_ii_pd  , group_ii_pd    , 
-                                        group_mod_pd, group_gals_dict)
-    ## Brighness ratio between 1st and 2nd brightest galaxies in galaxy group
-    group_mod_pd = group_brightness_gal_ratio(  memb_ii_pd  , group_ii_pd    ,
-                                    group_mod_pd, group_gals_dict,
-                                    nmin=param_dict['nmin'])
-    ## Group Shape
-    group_mod_pd = group_shape(memb_ii_pd, group_ii_pd, group_mod_pd, 
-        group_gals_dict, param_dict, nmin=param_dict['nmin'])
-    ## Total and median radius of the group
-    group_mod_pd = group_radii(memb_ii_pd, group_ii_pd, group_mod_pd, 
-        group_gals_dict, nmin=param_dict['nmin'])
-    ## Abundance matched mass of group
-    group_mod_pd = group_general_prop(group_ii_pd, group_mod_pd)
-    ## Velocity dispersion
-    group_mod_pd = group_sigma_rmed(memb_ii_pd, group_ii_pd, group_mod_pd, 
-        group_gals_dict, param_dict, nmin=param_dict['nmin'])
-    ## Density of galaxies around group/cluster
-    group_mod_pd = group_galaxy_density(memb_ii_pd, group_ii_pd, group_mod_pd,
-        group_gals_dict, dist_scales=param_dict['dist_scales'],
-        remove_group=param_dict['remove_group'])
-    ## Dynamical mass estimates
-    group_mod_pd = group_dynamical_mass(group_ii_pd, group_mod_pd)
-    ## Distance to nearest cluster
-    group_mod_pd = group_distance_closest_cluster(group_ii_pd, group_mod_pd,
-        mass_factor=param_dict['mass_factor'])
-    ##
-    ## ---- Member Galaxies - Properties---- ##
-    ## Creating new 'members' DataFrame
-    memb_mod_pd = pd.DataFrame({'idx':num.arange(len(memb_ii_pd))})
-    ## Adding to member galaxies
-    memb_mod_pd = galaxy_dist_centre(memb_ii_pd, group_ii_pd, group_mod_pd, 
-        group_gals_dict, memb_mod_pd)
-    ## Adding member galaxy properties
-    memb_mod_pd = galaxy_properties(memb_ii_pd, memb_mod_pd)
-    ## Brightest galaxy in group
-    memb_mod_pd = gal_brightest_in_group(memb_ii_pd, group_ii_pd, 
-        group_mod_pd, group_gals_dict, memb_mod_pd)
-    ## ---- Combining Member and Group Properties ---- ##
-    ## Merging group and galaxy DataFrames
-    memb_group_pd = memb_group_merging(memb_mod_pd, group_mod_pd)
-    ## Saving DataFrames
-    merging_df_save(catl_ii_name, memb_group_pd, param_dict, proj_dict)
+    ## Onl running analysis if `merged_vac_filename` not present
+    if vac_create_opt:
+        ##
+        ## Reading in `galaxy` and `group` catalogues, and merging 
+        ## into a single DataFrame
+        (   merged_gal_pd,
+            memb_ii_pd   ,
+            group_ii_pd  ) = cu.catl_sdss_merge(ii,
+                                                catl_kind='mocks',
+                                                catl_type=param_dict['catl_type'],
+                                                sample_s=param_dict['sample_s'],
+                                                halotype=param_dict['halotype'],
+                                                clf_method=param_dict['clf_method'],
+                                                hod_n=param_dict['hod_n'],
+                                                perf_opt=param_dict['perf_opt'],
+                                                print_filedir=False,
+                                                return_memb_group=True)
+        merged_gal_pd = None
+        ##
+        ## Constants
+        n_gals   = len(memb_ii_pd )
+        n_groups = len(group_ii_pd)
+        ## Cartesian Coordinates for both `memb_ii_pd` and `group_ii_pd`
+        (   memb_ii_pd ,
+            group_ii_pd) = gals_cartesian(memb_ii_pd, group_ii_pd, param_dict)
+        ## ---- Galaxy Groups - Properties ---- ##
+        ## Creating new DataFrames
+        group_mod_pd = pd.DataFrame({'groupid':num.sort(group_ii_pd['groupid'])})
+        ## Indices for each galaxy group
+        group_gals_dict = group_gals_idx(memb_ii_pd, group_ii_pd)
+        ## Brightness of brightness galaxy
+        group_mod_pd = group_brightest_gal( memb_ii_pd  , group_ii_pd    , 
+                                            group_mod_pd, group_gals_dict)
+        ## Brighness ratio between 1st and 2nd brightest galaxies in galaxy group
+        group_mod_pd = group_brightness_gal_ratio(  memb_ii_pd  , group_ii_pd    ,
+                                        group_mod_pd, group_gals_dict,
+                                        nmin=param_dict['nmin'])
+        ## Group Shape
+        group_mod_pd = group_shape(memb_ii_pd, group_ii_pd, group_mod_pd, 
+            group_gals_dict, param_dict, nmin=param_dict['nmin'])
+        ## Total and median radius of the group
+        group_mod_pd = group_radii(memb_ii_pd, group_ii_pd, group_mod_pd, 
+            group_gals_dict, nmin=param_dict['nmin'])
+        ## Abundance matched mass of group
+        group_mod_pd = group_general_prop(group_ii_pd, group_mod_pd)
+        ## Velocity dispersion
+        group_mod_pd = group_sigma_rmed(memb_ii_pd, group_ii_pd, group_mod_pd, 
+            group_gals_dict, param_dict, nmin=param_dict['nmin'])
+        ## Density of galaxies around group/cluster
+        group_mod_pd = group_galaxy_density(memb_ii_pd, group_ii_pd, group_mod_pd,
+            group_gals_dict, dist_scales=param_dict['dist_scales'],
+            remove_group=param_dict['remove_group'])
+        ## Dynamical mass estimates
+        group_mod_pd = group_dynamical_mass(group_ii_pd, group_mod_pd)
+        ## Distance to nearest cluster
+        group_mod_pd = group_distance_closest_cluster(group_ii_pd, group_mod_pd,
+            mass_factor=param_dict['mass_factor'])
+        ##
+        ## ---- Member Galaxies - Properties---- ##
+        ## Creating new 'members' DataFrame
+        memb_mod_pd = pd.DataFrame({'idx':num.arange(len(memb_ii_pd))})
+        ## Adding to member galaxies
+        memb_mod_pd = galaxy_dist_centre(memb_ii_pd, group_ii_pd, group_mod_pd, 
+            group_gals_dict, memb_mod_pd)
+        ## Adding member galaxy properties
+        memb_mod_pd = galaxy_properties(memb_ii_pd, memb_mod_pd)
+        ## Brightest galaxy in group
+        memb_mod_pd = gal_brightest_in_group(memb_ii_pd, group_ii_pd, 
+            group_mod_pd, group_gals_dict, memb_mod_pd)
+        ## ---- Combining Member and Group Properties ---- ##
+        ## Merging group and galaxy DataFrames
+        memb_group_pd = memb_group_merging(memb_mod_pd, group_mod_pd)
+        ## Saving DataFrames
+        merging_df_save(merged_vac_filename, memb_group_pd, param_dict, 
+            proj_dict)
+    else:
+        msg = '{0} Catalogue `{1}` ... Created\n'.format(
+            param_dict['Prog_msg'], merged_vac_filename)
 
 ## --------- Galaxy Properties ------------##
 
@@ -1325,14 +1347,13 @@ def memb_group_merging(memb_mod_pd, group_mod_pd):
     return memb_group_pd
 
 ## Saving merged DataFrame
-def merging_df_save(catl_ii_name, memb_group_pd, param_dict, proj_dict,
-    ext='hdf5'):
+def merging_df_save(merged_vac_filename, memb_group_pd, param_dict, proj_dict):
     """
     Saves merged DataFrame to file on disk
 
     Parameters
     -------------
-    catl_ii_name: string
+    merged_vac_filename: string
         name of the catalogue file being analyzed
 
     memb_group_pd: pandas DataFrame
@@ -1342,20 +1363,15 @@ def merging_df_save(catl_ii_name, memb_group_pd, param_dict, proj_dict,
         dictionary with `project` variables
 
     proj_dict: python dictionary
-        Dictionary with current and new paths to project directories\
-
-    ext: string, optional (default = 'hdf5')
-        Extension to use for the resulting catalogues
+        Dictionary with current and new paths to project directories
     """
-    ## Filename
-    filename = os.path.join(proj_dict['merged_gal_dir'],
-                            '{0}_merged_vac.{1}'.format(catl_ii_name, ext))
     ## Saving catalogue
-    cu.pandas_df_to_hdf5_file(memb_group_pd, filename, key='/gals_groups')
+    cu.pandas_df_to_hdf5_file(memb_group_pd, merged_vac_filename,
+        key='/gals_groups')
     ## Print message
     if param_dict['verbose']:
-        print('{0} Saving `{1}`\n'.format(Prog_msg, filename))
-    cu.File_Exists(filename)
+        print('{0} Saving `{1}`\n'.format(Prog_msg, merged_vac_filename))
+    cu.File_Exists(merged_vac_filename)
 
 ## Merging all Datasets into a single Dataset
 def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
@@ -1395,7 +1411,8 @@ def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
             catl_pd_main = catl_pd_ii.copy()
         else:
             catl_pd_ii.loc[:,group_key] += group_id_tot
-            catl_pd_main = pd.concat([catl_pd_main, catl_pd_ii], ignore_index=True)
+            catl_pd_main = pd.concat([catl_pd_main, catl_pd_ii], 
+                ignore_index=True)
         ## Increasing number of groups
         group_id_tot += num.unique(catl_pd_ii[group_key]).size
     ## Saving to file
