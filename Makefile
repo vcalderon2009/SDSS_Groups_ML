@@ -18,12 +18,13 @@ SRC_DIR            = $(PROJECT_DIR)/src/data
 MOCKS_CATL_DIR     = $(DATA_DIR)/processed/SDSS/mocks
 
 # CPU-Fraction
-CPU_FRAC     = 0.5
+CPU_FRAC     = 0.75
 REMOVE_FILES = "True"
 CLF_METHOD   = 3
-SAMPLE       = "all"
-HALOTYPE     = 'fof'
+SAMPLE       = "19"
+HALOTYPE     = 'so'
 HOD_N        = 0
+NMIN         = 2
 
 ifeq (,$(shell which conda))
 HAS_CONDA=False
@@ -72,6 +73,10 @@ endif
 #################################################################################
 # PROJECT RULES                                                                 #
 #################################################################################
+
+## Create set of `merged` catalogues, i.e. galaxy + group information
+catl_props:
+	@python $(SRC_DIR)/mocks_ml_main/catl_properties_calculations_make.py -cpu_frac $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN)
 
 ## Run tests to see if all files (Halobias, catalogues) are in order
 test_files:
