@@ -463,7 +463,8 @@ def group_gals_idx(memb_ii_pd, group_ii_pd):
     """
     group_gals_dict = {}
     ## Looping over groups
-    for group_kk in tqdm(range(len(group_ii_pd))):
+    tq_msg = 'Group Gals IDX: '
+    for group_kk in tqdm(range(len(group_ii_pd)), desc=tq_msg):
         group_idx = memb_ii_pd.loc[memb_ii_pd['groupid']==group_kk].index.values
         group_gals_dict[group_kk] = group_idx
 
@@ -661,7 +662,8 @@ def galaxy_dist_centre(memb_ii_pd, group_ii_pd, group_mod_pd,
     group_cols   = ['GG_cen_cz', 'GG_ngals', 'GG_x', 'GG_y', 'GG_z']
     group_coords = group_ii_pd[group_cols].values
     ## Looping over all groups
-    for group_kk in tqdm(range(len(group_ii_pd))):
+    tq_msg = 'Galaxy Dist Centre: '
+    for group_kk in tqdm(range(len(group_ii_pd)), desc=tq_msg):
         ## Group indices
         group_idx    = group_gals_dict[group_kk]
         ## Galaxies in group
@@ -786,7 +788,8 @@ def group_brightest_gal(memb_ii_pd, group_ii_pd, group_mod_pd,
     group_mr_max_arr     = num.zeros(len(group_ii_pd))
     group_mr_max_idx_arr = num.zeros(len(group_ii_pd))
     ## Looping over all groups
-    for group_kk in tqdm(range(len(group_mod_pd))):
+    tq_msg = 'Group Bright. Gal: '
+    for group_kk in tqdm(range(len(group_mod_pd)), desc=tq_msg):
         ## Group indices
         group_idx = group_gals_dict[group_kk]
         ## Galaxy luminosities in galaxy group
@@ -835,7 +838,8 @@ def group_brightness_gal_ratio(memb_ii_pd, group_ii_pd, group_mod_pd,
     groups_nmin_arr = group_ii_pd.loc[group_ii_pd['GG_ngals']>=nmin,'groupid']
     groups_nmin_arr = groups_nmin_arr.values
     ## Looping over all groups
-    for group_kk in tqdm(groups_nmin_arr):
+    tq_msg = 'Mr Ratio: '
+    for group_kk in tqdm(groups_nmin_arr, desc=tq_msg):
         ## Group indices
         group_idx = group_gals_dict[group_kk]
         ## Brightness ratio
@@ -898,7 +902,8 @@ def group_shape(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
                                         group_ii_pd['GG_cen_dec'],
                                         group_dist))
     ## Looping over all groups
-    for group_kk in tqdm(groups_nmin_arr):
+    tq_msg = 'Group Shape: '
+    for group_kk in tqdm(groups_nmin_arr, desc=tq_msg):
         ## Group indices
         group_idx    = group_gals_dict[group_kk]
         ## Galaxies in group
@@ -971,7 +976,8 @@ def group_radii(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
     memb_coords     = memb_ii_pd[['x','y','z']].values
     group_coords    = group_ii_pd[['GG_x','GG_y','GG_z']].values
     ## Looping over all groups
-    for group_kk in tqdm(groups_nmin_arr):
+    tq_msg = 'Group Radii: '
+    for group_kk in tqdm(groups_nmin_arr, desc=tq_msg):
         ## Group indices
         group_idx    = group_gals_dict[group_kk]
         ## Galaxies in group
@@ -1083,7 +1089,8 @@ def group_sigma_rmed(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
     group_cols   = ['GG_cen_cz', 'GG_ngals', 'GG_x', 'GG_y', 'GG_z']
     group_coords = group_ii_pd[group_cols].values
     ## Looping over all groups
-    for group_kk in tqdm(groups_nmin_arr):
+    tq_msg = 'Group Sigma: '
+    for group_kk in tqdm(groups_nmin_arr, desc=tq_msg):
         ## Group indices
         group_idx    = group_gals_dict[group_kk]
         ## Galaxies in group
@@ -1164,7 +1171,8 @@ def group_galaxy_density(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
     group_cols   = ['GG_x', 'GG_y', 'GG_z']
     group_coords = group_ii_pd[group_cols].values
     ## Looping over all groups
-    for group_kk in tqdm(groupid_arr):
+    tq_msg = 'Group Dens: '
+    for group_kk in tqdm(groupid_arr, desc=tq_msg):
         ## Group indices
         group_idx    = group_gals_dict[group_kk]
         # Indices of galaxies NOT in the galaxy group
@@ -1253,7 +1261,8 @@ def group_distance_closest_cluster(group_ii_pd, group_mod_pd, mass_factor=10):
     # Distance to nearest "massive" cluster
     groups_dist_sq_cluster_arr = num.zeros(len(groups_coords))
     # Looping over all galaxy groups
-    for group_zz in tqdm(range(len(groups_coords))):
+    tq_msg = 'Dist Cluster: '
+    for group_zz in tqdm(range(len(groups_coords)), desc=tq_msg):
         ## Group mass
         factor_zz = grups_mgroup_arr[group_zz] + num.log10(mass_factor)
         ## Cartesian Coordinates of the groups 'group_zz'
@@ -1379,7 +1388,8 @@ def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
     group_id_tot = 0
     gals_id_tot  = 0
     ## Looping over catalogues
-    for catl_ii in tqdm(range(files_arr.size)):
+    tq_msg = 'Catl Merging: '
+    for catl_ii in tqdm(range(files_arr.size), desc=tq_msg):
         catl_pd_ii = cu.read_hdf5_file_to_pandas_DF(files_arr[catl_ii])
         if catl_ii == 0:
             catl_pd_main = catl_pd_ii.copy()
