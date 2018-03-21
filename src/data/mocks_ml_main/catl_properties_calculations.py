@@ -609,6 +609,7 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
     ## Adding to member galaxies
     memb_mod_pd = galaxy_dist_centre(memb_ii_pd, group_ii_pd, group_mod_pd, 
         group_gals_dict, memb_mod_pd)
+    ## Adding member galaxy properties
 
 
 
@@ -621,6 +622,7 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
 
 ## --------- Galaxy Properties ------------##
 
+## Distance to the group's centre
 def galaxy_dist_centre(memb_ii_pd, group_ii_pd, group_mod_pd, 
     group_gals_dict, memb_mod_pd):
     """
@@ -678,7 +680,35 @@ def galaxy_dist_centre(memb_ii_pd, group_ii_pd, group_mod_pd,
 
     return memb_mod_pd
 
+## General properties for member galaxies
+def galaxy_properties(memb_ii_pd, memb_mod_pd):
+    """
+    Assigns `general` galaxy properties to `memb_mod_pd`
+    It assigns:
+        - Luminosity/Absolute magnitude of the member galaxy
+        - Central/Satellite Designation
 
+    Parameters
+    ------------
+    memb_ii_pd: pandas DataFrame
+        DataFrame with info about galaxy members
+
+    memb_mod_pd: pandas DataFrame
+        DataFrame, to which to add the `member galaxy` properties
+
+    Returns
+    ------------
+    memb_mod_pd: pandas DataFrame
+        DataFrame, to which to add the `member galaxy` properties
+    """
+    ## Galaxy Properties
+    gals_cols         = ['M_r', 'galtype']
+    gals_cols_pd_copy = (memb_ii_pd.copy())[gals_cols]
+    # Merging DataFrames
+    memb_mod_pd = pd.merge(memb_mod_pd, gals_cols_pd_copy,
+                    left_index=True, right_index=True)
+
+    return memb_mod_pd
 
 
 
