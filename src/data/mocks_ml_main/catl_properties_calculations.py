@@ -602,6 +602,15 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
     ## Distance to nearest cluster
     group_mod_pd = group_distance_closest_cluster(group_ii_pd, group_mod_pd,
         mass_factor=param_dict['mass_factor'])
+    ##
+    ## ---- Member Galaxies ---- ##
+    ## Creating new 'members' DataFrame
+    memb_mod_pd = pd.DataFrame({'idx':num.arange(len(memb_ii_pd))})
+    ## Adding to member galaxies
+    memb_mod_pd = galaxy_dist_centre(memb_ii_pd, group_ii_pd, group_mod_pd, 
+        group_gals_dict, memb_mod_pd)
+
+
 
 
 
@@ -611,6 +620,67 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
 
 
 ## --------- Galaxy Properties ------------##
+
+def galaxy_dist_centre(memb_ii_pd, group_ii_pd, group_mod_pd, 
+    group_gals_dict, memb_mod_pd):
+    """
+    Determines the distance to the centre of the galaxy group
+
+    Parameters
+    ------------
+    memb_ii_pd: pandas DataFrame
+        DataFrame with info about galaxy members
+
+    group_ii_pd: pandas DataFrame
+        DataFrame with group properties
+
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+
+    group_gals_dict: python dictionary
+        dictionary with indices of galaxies for each galaxy group
+
+    memb_mod_pd: pandas DataFrame
+        DataFrame, to which to add the `member galaxy` properties
+
+    Returns
+    ------------
+    memb_mod_pd: pandas DataFrame
+        DataFrame, to which to add the `member galaxy` properties
+    """
+    ## Array of distances to centre of the galaxy group
+    gals_group_dist_sq_arr = num.zeros(len(memb_ii_pd))
+    ## Galaxy columns
+    gals_cols    = ['cz','x','y','z']
+    memb_coords  = memb_ii_pd[gals_cols].values
+    # Group Columns
+    group_cols   = ['GG_cen_cz', 'GG_ngals', 'GG_x', 'GG_y', 'GG_z']
+    group_coords = group_ii_pd[group_cols].values
+    ## Looping over all groups
+    for group_kk in tqdm(range(len(group_ii_pd))):
+        ## Group indices
+        group_idx    = group_gals_dict[group_kk]
+        ## Galaxies in group
+        memb_gals_kk = memb_coords [group_idx]
+        group_kk_pd  = group_coords[group_kk ]
+        ## Cartesian Coordinates
+        memb_cart_arr  = memb_gals_kk[:,1:]
+        group_cart_rsh = group_kk_pd [2:].reshape(1,3)
+        ## If within `r_med`
+        memb_dist_sq_arr = num.sum((memb_cart_arr - group_cart_rsh)**2,axis=1)
+        ## Assigning to each galaxy
+        gals_group_dist_sq_arr[group_idx] = memb_dist_sq_arr
+    ##
+    ## Distance square root
+    gals_group_dist_arr = gals_group_dist_sq_arr**(0.5)
+    ## Adding to `memb_mod_pd`
+    memb_mod_pd.loc['dist_centre'] = gals_group_dist_arr
+
+    return memb_mod_pd
+
+
+
+
 
 
 ## --------- Group Properties ------------##
