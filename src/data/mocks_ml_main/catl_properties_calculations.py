@@ -1275,7 +1275,7 @@ def group_distance_closest_cluster(group_ii_pd, group_mod_pd, mass_factor=10):
             ## Minimum distance
             cluster_dist_sq_min = num.min(cluster_dists_sq)
         else:
-            cluster_dists_sq = 0.
+            cluster_dist_sq_min = 0.
         ## Minimum distance
         groups_dist_sq_cluster_arr[group_zz] = cluster_dist_sq_min
     ##
