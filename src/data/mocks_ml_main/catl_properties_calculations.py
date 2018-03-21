@@ -618,6 +618,8 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
     ## ---- Combining Member and Group Properties ---- ##
     ## Merging group and galaxy DataFrames
     memb_group_pd = memb_group_merging(memb_mod_pd, group_mod_pd)
+    ## Saving DataFrames
+    merging_df_save(catl_ii_name, memb_group_pd, param_dict, proj_dict)
 
 
 
@@ -1321,6 +1323,38 @@ def memb_group_merging(memb_mod_pd, group_mod_pd):
 
     return memb_group_pd
 
+## Saving merged DataFrame
+def merging_df_save(catl_ii_name, memb_group_pd, param_dict, proj_dict,
+    ext='hdf5'):
+    """
+    Saves merged DataFrame to file on disk
+
+    Parameters
+    -------------
+    catl_ii_name: string
+        name of the catalogue file being analyzed
+
+    memb_group_pd: pandas DataFrame
+        DataFrame with the merged info on galaxies and groups
+
+    param_dict: python dictionary
+        dictionary with `project` variables
+
+    proj_dict: python dictionary
+        Dictionary with current and new paths to project directories\
+
+    ext: string, optional (default = 'hdf5')
+        Extension to use for the resulting catalogues
+    """
+    ## Filename
+    filename = os.path.join(proj_dict['merged_gal_dir'],
+                            '{0}_merged_vac.{1}'.format(catl_ii_name, ext))
+    ## Saving catalogue
+    cu.pandas_df_to_hdf5_file(memb_group_pd, filename, key='gals_groups')
+    ## Print message
+    if param_dict['verbose']:
+        print('{0} Saving `{1}`\n'.format(Prog_msg, filename))
+    cu.File_Exists(filename)
 
 
 
