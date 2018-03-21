@@ -1173,7 +1173,7 @@ def group_galaxy_density(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
     group_cols   = ['GG_x', 'GG_y', 'GG_z']
     group_coords = group_ii_pd[group_cols].values
     ## Looping over all groups
-    for group_kk in tqdm(groupid_arr[0:1000]):
+    for group_kk in tqdm(groupid_arr):
         ## Group indices
         group_idx    = group_gals_dict[group_kk]
         # Indices of galaxies NOT in the galaxy group
@@ -1256,7 +1256,7 @@ def group_distance_closest_cluster(group_ii_pd, group_mod_pd, mass_factor=10):
     """
     # Group Columns
     groups_cols      = ['GG_x', 'GG_y', 'GG_z', 'GG_M_group']
-    groups_coords    = group_ii_pd[group_cols].values
+    groups_coords    = group_ii_pd[groups_cols].values
     groups_cart_arr  = groups_coords[:,0:3].copy()
     grups_mgroup_arr = groups_coords[:,  3].copy()
     # Distance to nearest "massive" cluster
@@ -1394,7 +1394,7 @@ def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
             catl_pd_main = catl_pd_ii.copy()
         else:
             catl_pd_ii.loc[:,group_key] += group_id_tot
-            catl_pd_main = pd.concat([catl_pd_main, catl_pd_ii, ignore_index=True])
+            catl_pd_main = pd.concat([catl_pd_main, catl_pd_ii], ignore_index=True)
         ## Increasing number of groups
         group_id_tot += num.unique(catl_pd_ii[group_key]).size
     ## Saving to file
