@@ -1,5 +1,6 @@
-.PHONY: clean data lint requirements sync_data_to_s3 sync_data_from_s3 
-	environment update_environment remove_environment
+.PHONY: clean lint test_environment environment update_environment
+	remove_environment catl_props test_files 
+	delete_mock_catls delete_data_catls delete_all_but_raw clean_data_dir
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -18,7 +19,7 @@ SRC_DIR            = $(PROJECT_DIR)/src/data
 MOCKS_CATL_DIR     = $(DATA_DIR)/processed/SDSS/mocks
 
 # CPU-Fraction
-CPU_FRAC     = 0.75
+CPU_FRAC     = 0.90
 REMOVE_FILES = "True"
 CLF_METHOD   = 3
 SAMPLE       = "19"
