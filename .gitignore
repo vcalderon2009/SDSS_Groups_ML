@@ -72,3 +72,6 @@ target/
 # exclude data from source control by default
 /data/
 *__pycache__*
+
+#### --- Excluded Files --- ####
+Synch_files.sh
