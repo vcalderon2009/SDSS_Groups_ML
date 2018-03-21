@@ -610,6 +610,10 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
     memb_mod_pd = galaxy_dist_centre(memb_ii_pd, group_ii_pd, group_mod_pd, 
         group_gals_dict, memb_mod_pd)
     ## Adding member galaxy properties
+    memb_mod_pd = galaxy_properties(memb_ii_pd, memb_mod_pd)
+    ## Brightest galaxy in group
+    memb_mod_pd = gal_brightest_in_group(memb_ii_pd, group_ii_pd, 
+        group_mod_pd, group_gals_dict, memb_mod_pd)
 
 
 
@@ -676,7 +680,7 @@ def galaxy_dist_centre(memb_ii_pd, group_ii_pd, group_mod_pd,
     ## Distance square root
     gals_group_dist_arr = gals_group_dist_sq_arr**(0.5)
     ## Adding to `memb_mod_pd`
-    memb_mod_pd.loc['dist_centre'] = gals_group_dist_arr
+    memb_mod_pd.loc[:,'dist_centre'] = gals_group_dist_arr
 
     return memb_mod_pd
 
@@ -702,7 +706,7 @@ def galaxy_properties(memb_ii_pd, memb_mod_pd):
         DataFrame, to which to add the `member galaxy` properties
     """
     ## Galaxy Properties
-    gals_cols         = ['M_r', 'galtype']
+    gals_cols         = ['M_r', 'galtype', 'g_galtype', 'groupid']
     gals_cols_pd_copy = (memb_ii_pd.copy())[gals_cols]
     # Merging DataFrames
     memb_mod_pd = pd.merge(memb_mod_pd, gals_cols_pd_copy,
@@ -710,7 +714,48 @@ def galaxy_properties(memb_ii_pd, memb_mod_pd):
 
     return memb_mod_pd
 
+## Brightest galaxy in the group or not
+def gal_brightest_in_group(memb_ii_pd, group_ii_pd, group_mod_pd, 
+    group_gals_dict, memb_mod_pd):
+    """
+    Determines whether or not a galaxy is the brightest galaxy in 
+    a galaxy group
 
+    Parameters
+    ------------
+    memb_ii_pd: pandas DataFrame
+        DataFrame with info about galaxy members
+
+    group_ii_pd: pandas DataFrame
+        DataFrame with group properties
+
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+
+    group_gals_dict: python dictionary
+        dictionary with indices of galaxies for each galaxy group
+
+    memb_mod_pd: pandas DataFrame
+        DataFrame, to which to add the `member galaxy` properties
+
+    Returns
+    ------------
+    memb_mod_pd: pandas DataFrame
+        DataFrame, to which to add the galaxy properties
+    """
+    ## Constants
+    bright_opt     = int(1)
+    not_bright_opt = int(0)
+    ## Creating array for brightest galaxy
+    group_gal_brightest_gal = num.ones(len(memb_ii_pd)) * not_bright_opt
+    ## IDs of brightest galaxies in groups
+    group_brightest_idx = group_mod_pd['mr_brightest_idx'].values.astype(int)
+    ## Determining if brighest galaxy
+    group_gal_brightest_gal[group_brightest_idx] = bright_opt
+    ## Saving to DataFrame
+    memb_mod_pd.loc[:,'g_brightest'] = group_gal_brightest_gal
+
+    return memb_mod_pd
 
 
 ## --------- Group Properties ------------##
@@ -741,16 +786,23 @@ def group_brightest_gal(memb_ii_pd, group_ii_pd, group_mod_pd,
         DataFrame, to which to add the group properties
     """
     ## Creating array for brightest galaxy
-    group_mr_max_arr = num.zeros(len(group_ii_pd))
+    group_mr_max_arr     = num.zeros(len(group_ii_pd))
+    group_mr_max_idx_arr = num.zeros(len(group_ii_pd))
     ## Looping over all groups
     for group_kk in tqdm(range(len(group_mod_pd))):
         ## Group indices
         group_idx = group_gals_dict[group_kk]
+        ## Galaxy luminosities in galaxy group
+        gals_g_lum_arr = memb_ii_pd.loc[group_idx,'M_r']
+        ## Index of the brightest galaxy
+        gal_brightest_idx = num.argmin(gals_g_lum_arr)
         ## Brightest galaxy
-        group_mr_max_arr[group_kk] = memb_ii_pd.loc[group_idx,'M_r'].min()
+        group_mr_max_arr    [group_kk] = gals_g_lum_arr.loc[gal_brightest_idx]
+        group_mr_max_idx_arr[group_kk] = gal_brightest_idx
     ##
     ## Assigning it to DataFrame
-    group_mod_pd.loc[:,'mr_brightest'] = group_mr_max_arr
+    group_mod_pd.loc[:,'mr_brightest'    ] = group_mr_max_arr
+    group_mod_pd.loc[:,'mr_brightest_idx'] = group_mr_max_idx_arr
 
     return group_mod_pd
 
