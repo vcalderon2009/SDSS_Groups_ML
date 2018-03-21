@@ -571,6 +571,7 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
     ## Cartesian Coordinates for both `memb_ii_pd` and `group_ii_pd`
     (   memb_ii_pd ,
         group_ii_pd) = gals_cartesian(memb_ii_pd, group_ii_pd, param_dict)
+    ## ---- Galaxy Groups - Properties ---- ##
     ## Creating new DataFrames
     group_mod_pd = pd.DataFrame({'groupid':num.sort(group_ii_pd['groupid'])})
     ## Indices for each galaxy group
@@ -603,7 +604,7 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
     group_mod_pd = group_distance_closest_cluster(group_ii_pd, group_mod_pd,
         mass_factor=param_dict['mass_factor'])
     ##
-    ## ---- Member Galaxies ---- ##
+    ## ---- Member Galaxies - Properties---- ##
     ## Creating new 'members' DataFrame
     memb_mod_pd = pd.DataFrame({'idx':num.arange(len(memb_ii_pd))})
     ## Adding to member galaxies
@@ -614,6 +615,10 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
     ## Brightest galaxy in group
     memb_mod_pd = gal_brightest_in_group(memb_ii_pd, group_ii_pd, 
         group_mod_pd, group_gals_dict, memb_mod_pd)
+    ## ---- Combining Member and Group Properties ---- ##
+    ## Merging group and galaxy DataFrames
+    memb_group_pd = memb_group_merging(memb_mod_pd, group_mod_pd)
+
 
 
 
@@ -753,10 +758,9 @@ def gal_brightest_in_group(memb_ii_pd, group_ii_pd, group_mod_pd,
     ## Determining if brighest galaxy
     group_gal_brightest_gal[group_brightest_idx] = bright_opt
     ## Saving to DataFrame
-    memb_mod_pd.loc[:,'g_brightest'] = group_gal_brightest_gal
+    memb_mod_pd.loc[:,'g_brightest'] = group_gal_brightest_gal.astype(int)
 
     return memb_mod_pd
-
 
 ## --------- Group Properties ------------##
 
@@ -802,7 +806,7 @@ def group_brightest_gal(memb_ii_pd, group_ii_pd, group_mod_pd,
     ##
     ## Assigning it to DataFrame
     group_mod_pd.loc[:,'mr_brightest'    ] = group_mr_max_arr
-    group_mod_pd.loc[:,'mr_brightest_idx'] = group_mr_max_idx_arr
+    group_mod_pd.loc[:,'mr_brightest_idx'] = group_mr_max_idx_arr.astype(int)
 
     return group_mod_pd
 
@@ -1280,6 +1284,42 @@ def group_distance_closest_cluster(group_ii_pd, group_mod_pd, mass_factor=10):
 
     return group_mod_pd
 
+## --------- Galaxy and Group-related functions ------------##
+
+## Merging member galaxy and group DataFrames
+def memb_group_merging(memb_mod_pd, group_mod_pd):
+    """
+    Merges the two datasets into a single dataset
+
+    Parameters
+    ------------
+    memb_mod_pd: pandas DataFrame
+        DataFrame with information on galaxies
+
+    group_mod_pd: pandas DataFrame
+        DataFrame with information on galaxy groups
+
+    Returns
+    ------------
+    memb_group_pd: pandas DataFrame
+        DataFrame with the merged info on galaxies and groups
+    """
+    ## Constants
+    memb_merge_key  = 'groupid'
+    memb_cols_drop  = ['idx']
+    group_cols_drop = ['groupid']
+    ## Removing unnecessary columns
+    memb_mod_pd  = memb_mod_pd.drop( memb_cols_drop, axis=1)
+    group_mod_pd = group_mod_pd.drop(group_cols_drop, axis=1)
+    ## Renaming `group` M_r column
+    group_mod_pd = group_mod_pd.rename(columns={'M_r':'M_r_group'})
+    ## Merging DataFrames
+    memb_group_pd = pd.merge(   memb_mod_pd,
+                                group_mod_pd, 
+                                left_on=memb_merge_key,
+                                right_index=True)
+
+    return memb_group_pd
 
 
 
