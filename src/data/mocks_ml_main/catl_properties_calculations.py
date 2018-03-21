@@ -367,6 +367,16 @@ def directory_skeleton(param_dict, proj_dict):
     proj_dict: python dictionary
         Dictionary with current and new paths to project directories
     """
+    ## Main Directories
+    # External Directory
+    ext_dir       = os.path.join( proj_dict['data_dir'], 'external')
+    # Processes Directory
+    processed_dir = os.path.join( proj_dict['data_dir'], 'processed')
+    # Interim Directory
+    int_dir       = os.path.join( proj_dict['data_dir'], 'interim')
+    # Raw Directory
+    raw_dir       = os.path.join( proj_dict['data_dir'], 'raw')
+    ##
     ## Output file for all catalogues
     catl_outdir    = os.path.join(  proj_dict['data_dir'],
                                     'processed',
@@ -385,6 +395,10 @@ def directory_skeleton(param_dict, proj_dict):
     merged_gal_perf_all_dir = os.path.join(catl_outdir, 'merged_vac_perf_all')
     ##
     ## Creating Directories
+    cu.Path_Folder(ext_dir)
+    cu.Path_Folder(processed_dir)
+    cu.Path_Folder(int_dir)
+    cu.Path_Folder(raw_dir)
     cu.Path_Folder(catl_outdir)
     cu.Path_Folder(merged_gal_dir)
     cu.Path_Folder(merged_gal_perf_dir)
@@ -392,6 +406,10 @@ def directory_skeleton(param_dict, proj_dict):
     cu.Path_Folder(merged_gal_perf_all_dir)
     ##
     ## Adding to `proj_dict`
+    proj_dict['ext_dir'                ] = ext_dir
+    proj_dict['processed_dir'          ] = processed_dir
+    proj_dict['int_dir'                ] = int_dir
+    proj_dict['raw_dir'                ] = raw_dir
     proj_dict['catl_outdir'            ] = catl_outdir
     proj_dict['merged_gal_dir'         ] = merged_gal_dir
     proj_dict['merged_gal_perf_dir'    ] = merged_gal_perf_dir
