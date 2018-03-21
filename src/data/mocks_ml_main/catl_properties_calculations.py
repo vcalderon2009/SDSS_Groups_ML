@@ -1309,14 +1309,15 @@ def memb_group_merging(memb_mod_pd, group_mod_pd):
     ## Constants
     memb_merge_key  = 'groupid'
     memb_cols_drop  = ['idx']
-    group_cols_drop = ['groupid']
+    group_cols_drop = ['groupid','mr_brightest_idx']
     ## Removing unnecessary columns
-    memb_mod_pd  = memb_mod_pd.drop( memb_cols_drop, axis=1)
-    group_mod_pd = group_mod_pd.drop(group_cols_drop, axis=1)
+    memb_mod_pd     = memb_mod_pd.drop( memb_cols_drop, axis=1)
+    group_mod_pd    = group_mod_pd.drop(group_cols_drop, axis=1)
     ## Renaming `group` M_r column
-    group_mod_pd = group_mod_pd.rename(columns={'M_r':'M_r_group'})
+    group_cols_arr  = dict(zip(group_mod_pd, ['GG_'+xx for xx in group_mod_pd]))
+    group_mod_pd    = group_mod_pd.rename(columns=group_cols_arr)
     ## Merging DataFrames
-    memb_group_pd = pd.merge(   memb_mod_pd,
+    memb_group_pd   = pd.merge( memb_mod_pd,
                                 group_mod_pd, 
                                 left_on=memb_merge_key,
                                 right_index=True)
@@ -1350,12 +1351,58 @@ def merging_df_save(catl_ii_name, memb_group_pd, param_dict, proj_dict,
     filename = os.path.join(proj_dict['merged_gal_dir'],
                             '{0}_merged_vac.{1}'.format(catl_ii_name, ext))
     ## Saving catalogue
-    cu.pandas_df_to_hdf5_file(memb_group_pd, filename, key='gals_groups')
+    cu.pandas_df_to_hdf5_file(memb_group_pd, filename, key='/gals_groups')
     ## Print message
     if param_dict['verbose']:
         print('{0} Saving `{1}`\n'.format(Prog_msg, filename))
     cu.File_Exists(filename)
 
+## Merging all Datasets into a single Dataset
+def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
+    """
+    Merges all of the catalogues into a single dataset
+
+    Parameters
+    ------------
+    param_dict: python dictionary
+        dictionary with `project` variables
+
+    proj_dict: python dictionary
+        Dictionary with current and new paths to project directories
+
+    ext: string, optional (default = 'hdf5')
+        file extension used when saving catalogues to files
+    """
+    ## List of catalogues
+    files_arr = cu.Index(proj_dict['merged_gal_dir'], '.{0}'.format(ext))
+    file_key  = '/gals_groups'
+    group_key = 'groupid'
+    file_str_arr = [param_dict['sample_Mr'],    param_dict['hod_n'],
+                        param_dict['clf_method'],   param_dict['cosmo_choice'],
+                        param_dict['nmin']      ,   param_dict['halotype'],
+                        param_dict['perf_opt']  ,   ext]
+    file_str  = '{0}_hodn_{1}_clf_{2}_cosmo_{3}_nmin_{4}_halotype_{5}_perf_{6}'
+    file_str += '.{7}'
+    filename  = file_str.format(*file_str_arr)
+    ## Concatenating DataFrames
+    group_id_tot = 0
+    gals_id_tot  = 0
+    ## Looping over catalogues
+    for catl_ii in tqdm(range(files_arr.size)):
+        catl_pd_ii = cu.read_hdf5_file_to_pandas_DF(files_arr[catl_ii])
+        if catl_ii == 0:
+            catl_pd_main = catl_pd_ii.copy()
+        else:
+            catl_pd_ii.loc[:,group_key] += group_id_tot
+            catl_pd_main = pd.concat([catl_pd_main, catl_pd_ii, ignore_index=True])
+        ## Increasing number of groups
+        group_id_tot += num.unique(catl_pd_ii[group_key]).size
+    ## Saving to file
+    filepath = os.path.join(proj_dict['merged_gal_all_dir'],
+                            filename)
+    ## Saving to file
+    cu.pandas_df_to_hdf5_file(catl_pd_main, filepath, key=file_key)
+    cu.File_Exists(filepath)
 
 
 
@@ -1478,6 +1525,11 @@ def main(args):
     ## Joining `procs`
     for proc in procs:
         proc.join()
+    ##
+    ## Combining catalogues into a single 'master' file
+    print('{0} Merging Catalogues ....'.format(Prog_msg))
+    catl_df_merging(param_dict, proj_dict, ext='hdf5')
+    print('{0} Merging Catalogues .... Done'.format(Prog_msg))
     ##
     ## End time for running the catalogues
     end_time   = datetime.now()
