@@ -131,7 +131,7 @@ def get_parser():
                         help='Type of the DM halo.',
                         type=str,
                         choices=['so','fof'],
-                        default='fof')
+                        default='so')
     ## CLF/CSMF method of assigning galaxy properties
     parser.add_argument('-clf_method',
                         dest='clf_method',
@@ -564,6 +564,7 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict):
                                             perf_opt=param_dict['perf_opt'],
                                             print_filedir=False,
                                             return_memb_group=True)
+    merged_gal_pd = None
     ##
     ## Constants
     n_gals   = len(memb_ii_pd )
