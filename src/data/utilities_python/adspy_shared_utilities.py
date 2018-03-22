@@ -23,9 +23,12 @@ Set of functions used for ML. Taken and modified from:
 """
 
 ## Modules
+import matplotlib
+matplotlib.use( 'Agg' )
 import numpy
 import pandas as pd
 import seaborn as sn
+import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.colors import ListedColormap, BoundaryNorm
