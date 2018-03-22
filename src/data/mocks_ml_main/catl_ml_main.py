@@ -376,6 +376,11 @@ def directory_skeleton(param_dict, proj_dict):
         Dictionary with current and new paths to project directories
     """
     ## Main Directories
+    proj_str = os.path.join('halos_{0}'.format(param_dict['halotype']),
+                            'hod_model_{0}'.format(param_dict['hod_n']),
+                            'clf_method_{0}'.format(param_dict['clf_method']),
+                            param_dict['catl_type'],
+                            param_dict['sample_Mr'])
     # External Directory
     ext_dir        = os.path.join( proj_dict['data_dir'], 'external')
     # Processes Directory
@@ -385,18 +390,20 @@ def directory_skeleton(param_dict, proj_dict):
     # Raw Directory
     raw_dir        = os.path.join( proj_dict['data_dir'], 'raw')
     ## Training and Testing directories
-    training_dir   = os.path.join(  int_dir
-                                    '')
+    # Training
+    training_dir   = os.path.join(  int_dir,
+                                    'training',
+                                    proj_str)
+    # Testing
+    testing_dir    = os.path.join(  int_dir,
+                                    'testing',
+                                    proj_str)
     ## Output file for all catalogues
     catl_outdir    = os.path.join(  proj_dict['data_dir'],
                                     'processed',
                                     'SDSS',
                                     'mocks',
-                                    'halos_{0}'.format(param_dict['halotype']),
-                                    'hod_model_{0}'.format(param_dict['hod_n']),
-                                    'clf_method_{0}'.format(param_dict['clf_method']),
-                                    param_dict['catl_type'],
-                                    param_dict['sample_Mr'],
+                                    proj_str,
                                     'merged_vac')
     ## Creating output folders for the catalogues
     merged_gal_dir          = os.path.join(catl_outdir, 'merged_vac'         )
@@ -415,6 +422,9 @@ def directory_skeleton(param_dict, proj_dict):
             msg = '{0} `{1}` does not exist! Exiting'.format(
                 param_dict['Prog_msg'], catl_ii)
             raise ValueError(msg)
+    ## Creating directories
+    cu.Path_Folder(training_dir)
+    cu.Path_Folder(testing_dir )
     ##
     ## Adding to `proj_dict`
     proj_dict['ext_dir'                ] = ext_dir
@@ -426,6 +436,8 @@ def directory_skeleton(param_dict, proj_dict):
     proj_dict['merged_gal_perf_dir'    ] = merged_gal_perf_dir
     proj_dict['merged_gal_all_dir'     ] = merged_gal_all_dir
     proj_dict['merged_gal_perf_all_dir'] = merged_gal_perf_all_dir
+    proj_dict['training_dir'           ] = training_dir
+    proj_dict['testing_dir'            ] = testing_dir
 
     return proj_dict
 

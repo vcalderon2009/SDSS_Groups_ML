@@ -48,6 +48,7 @@ import astropy.units     as u
 import astropy.table     as astro_table
 from   astropy.coordinates import SkyCoord
 from scipy.spatial import cKDTree
+from glob import glob
 
 
 ## Functions
@@ -404,6 +405,12 @@ def directory_skeleton(param_dict, proj_dict):
     cu.Path_Folder(merged_gal_perf_dir)
     cu.Path_Folder(merged_gal_all_dir)
     cu.Path_Folder(merged_gal_perf_all_dir)
+    ## Removing files if necessary
+    if param_dict['remove_files']:
+        for catl_ii in [merged_gal_dir, merged_gal_perf_dir, merged_gal_all_dir, merged_gal_perf_all_dir]:
+            file_list = glob('{0}/*'.format(catl_ii))
+            for f in file_list:
+                os.remove(f)
     ##
     ## Adding to `proj_dict`
     proj_dict['ext_dir'                ] = ext_dir
