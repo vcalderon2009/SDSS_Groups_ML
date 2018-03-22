@@ -2,6 +2,7 @@ name: sdss_groups_ml
 
 channels:
   - defaults
+  - anaconda
 
 dependencies:
   - python>=3.6
@@ -9,6 +10,8 @@ dependencies:
   - anaconda
   - astropy
   - h5py
+  - graphviz
+  - python-graphviz
   - numpy
   - pandas>=0.19.0
   - scipy
@@ -22,3 +25,4 @@ dependencies:
     - sphinx_rtd_theme
     - tqdm
     - tables
+    - graphviz
