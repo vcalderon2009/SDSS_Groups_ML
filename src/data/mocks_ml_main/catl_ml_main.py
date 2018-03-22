@@ -786,7 +786,7 @@ def saving_data(param_dict, proj_dict, model_fits_dict):
         Dictionary for storing 'fit' and 'score' data for different algorithms
     """
     ## Filename
-    filepath = os.path.join(    proj_dict['training_testing'],
+    filepath = os.path.join(    proj_dict['test_train_dir'],
                                 '{0}__model_fits_dict.p'.format(
                                     param_dict['catl_str']))
     ## Saving pickle file
@@ -798,8 +798,6 @@ def saving_data(param_dict, proj_dict, model_fits_dict):
     except:
         msg = '{0} File `{1}` was not found... Exiting'.format(
             param_dict['Prog_msg'], filepath)
-
-
 
 ## --------- Main Function ------------##
 
