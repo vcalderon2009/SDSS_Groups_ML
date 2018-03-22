@@ -440,13 +440,9 @@ def directory_skeleton(param_dict, proj_dict):
     # Raw Directory
     raw_dir        = os.path.join( proj_dict['data_dir'], 'raw')
     ## Training and Testing directories
-    # Training
-    training_dir   = os.path.join(  int_dir,
-                                    'training',
-                                    proj_str)
-    # Testing
-    testing_dir    = os.path.join(  int_dir,
-                                    'testing',
+    # Training and testing
+    test_train_dir   = os.path.join(  int_dir,
+                                    'training_testing',
                                     proj_str)
     ## Output file for all catalogues
     catl_outdir    = os.path.join(  proj_dict['data_dir'],
@@ -473,8 +469,7 @@ def directory_skeleton(param_dict, proj_dict):
                 param_dict['Prog_msg'], catl_ii)
             raise ValueError(msg)
     ## Creating directories
-    cu.Path_Folder(training_dir)
-    cu.Path_Folder(testing_dir )
+    cu.Path_Folder(test_train_dir)
     ##
     ## Adding to `proj_dict`
     proj_dict['ext_dir'                ] = ext_dir
@@ -486,8 +481,7 @@ def directory_skeleton(param_dict, proj_dict):
     proj_dict['merged_gal_perf_dir'    ] = merged_gal_perf_dir
     proj_dict['merged_gal_all_dir'     ] = merged_gal_all_dir
     proj_dict['merged_gal_perf_all_dir'] = merged_gal_perf_all_dir
-    proj_dict['training_dir'           ] = training_dir
-    proj_dict['testing_dir'            ] = testing_dir
+    proj_dict['test_train_dir'         ] = test_train_dir
 
     return proj_dict
 
@@ -764,7 +758,7 @@ def random_forest(train_dict, test_dict, param_dict, proj_dict,
     ## Defining Regressor Object
     skem_key = 'random_forest'
     ## Getting Metrics for model
-    model_fits_dict['skem_key'] = model_score_general(  train_dict,
+    model_fits_dict[skem_key] = model_score_general(  train_dict,
                                                         test_dict,
                                                         skem_key,
                                                         param_dict)
@@ -772,9 +766,40 @@ def random_forest(train_dict, test_dict, param_dict, proj_dict,
     return model_fits_dict
     
 
-## --------- Training and Testing Function ------------##
+## --------- Saving Data ------------##
 
-## Feature Importance
+## Saving results from algorithms
+def saving_data(param_dict, proj_dict, model_fits_dict):
+    """
+    Saves the final data file
+
+    Parameters
+    ------------
+    param_dict: python dictionary
+        dictionary with `project` variables
+
+    proj_dict: python dictionary
+        dictionary with info of the project that uses the
+        `Data Science` Cookiecutter template.
+
+    model_fits_dict: python dictionary
+        Dictionary for storing 'fit' and 'score' data for different algorithms
+    """
+    ## Filename
+    filepath = os.path.join(    proj_dict['training_testing'],
+                                '{0}__model_fits_dict.p'.format(
+                                    param_dict['catl_str']))
+    ## Saving pickle file
+    with open(filepath, 'wb') as file_p:
+        pickle.dump(model_fits_dict, file_p)
+    ## Checking that file exists
+    try:
+        assert(os.path.exists(filepath))
+    except:
+        msg = '{0} File `{1}` was not found... Exiting'.format(
+            param_dict['Prog_msg'], filepath)
+
+
 
 ## --------- Main Function ------------##
 
@@ -825,15 +850,10 @@ def main(args):
     ## Random Forest
     model_fits_dict = random_forest(train_dict, test_dict,param_dict, 
         proj_dict, model_fits_dict)
-
-
-
-
-
-
-
-
-
+    ##
+    ## ----- Saving final resulst -----
+    # Saving final result
+    saving_data(param_dict, proj_dict, model_fits_dict)
     ##
     ## End time for running the catalogues
     end_time   = datetime.now()
