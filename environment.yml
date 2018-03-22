@@ -25,4 +25,3 @@ dependencies:
     - sphinx_rtd_theme
     - tqdm
     - tables
-    - graphviz
