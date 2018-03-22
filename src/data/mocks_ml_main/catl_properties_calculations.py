@@ -203,7 +203,7 @@ def get_parser():
                         densities""",
                         type=float,
                         nargs='+',
-                        default=[2, 5, 10])
+                        default=[2.0, 5.0, 10.0])
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',

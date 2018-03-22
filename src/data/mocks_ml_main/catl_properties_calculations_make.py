@@ -235,21 +235,21 @@ def get_analysis_params(param_dict):
     ## Format: (name of variable, flag, value)
     #
     # For `mocks`
-    params_arr = num.array([('hod_n'       ,'-hod_model_n' ,0         ),
-                            ('halotype'    ,'-halotype'    ,'so'      ),
-                            ('clf_method'  ,'-clf_method'  ,3         ),
-                            ('sample'      ,'-sample'      ,'19'      ),
-                            ('catl_type'   ,'-abopt'       ,'mr'      ),
-                            ('cosmo_choice','-cosmo'       ,'LasDamas'),
-                            ('nmin'        ,'-nmin'        ,1         ),
-                            ('mass_factor' ,'-mass_factor' ,10        ),
-                            ('remove_group','-remove_group',True      ),
-                            # ('dist_scales' ,'-dist_scales' ,'2 5 10'  ),
-                            ('perf_opt'    ,'-perf'        ,False     ),
-                            ('seed'        ,'-seed'        ,1         ),
-                            ('cpu_frac'    ,'-cpu'         ,0.75      ),
-                            ('remove_files','-remove'      ,'False'   ),
-                            ('verbose'     ,'-v'           ,'False'   )])
+    params_arr = num.array([('hod_n'       ,'-hod_model_n' ,0          ),
+                            ('halotype'    ,'-halotype'    ,'so'       ),
+                            ('clf_method'  ,'-clf_method'  ,3          ),
+                            ('sample'      ,'-sample'      ,'19'       ),
+                            ('catl_type'   ,'-abopt'       ,'mr'       ),
+                            ('cosmo_choice','-cosmo'       ,'LasDamas' ),
+                            ('nmin'        ,'-nmin'        ,1          ),
+                            ('mass_factor' ,'-mass_factor' ,10         ),
+                            ('remove_group','-remove_group',True       ),
+                            ('dist_scales' ,'-dist_scales' ,'2. 5. 10.'),
+                            ('perf_opt'    ,'-perf'        ,False      ),
+                            ('seed'        ,'-seed'        ,1          ),
+                            ('cpu_frac'    ,'-cpu'         ,0.75       ),
+                            ('remove_files','-remove'      ,'False'    ),
+                            ('verbose'     ,'-v'           ,'False'    )])
     ##
     ## Converting to pandas DataFrame
     colnames = ['Name','Flag','Value']
@@ -288,7 +288,7 @@ def get_analysis_params(param_dict):
     params_pd.loc[params_pd['Name']=='remove_group','Value'] = param_dict['remove_group']
     ##
     ## Distance scales used for calculating densities
-    # params_pd.loc[params_pd['Name']=='dist_scales','Value'] = param_dict['dist_scales']
+    params_pd.loc[params_pd['Name']=='dist_scales','Value'] = param_dict['dist_scales']
     ##
     ## Option for using 'perfect' catalogues
     params_pd.loc[params_pd['Name']=='perf_opt','Value'] = param_dict['perf_opt']
