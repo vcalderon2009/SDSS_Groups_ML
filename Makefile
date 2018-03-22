@@ -19,7 +19,7 @@ SRC_DIR            = $(PROJECT_DIR)/src/data
 MOCKS_CATL_DIR     = $(DATA_DIR)/processed/SDSS/mocks
 
 # CPU-Fraction
-CPU_FRAC     = 0.90
+CPU_FRAC     = 0.75
 REMOVE_FILES = "True"
 CLF_METHOD   = 3
 SAMPLE       = "19"
