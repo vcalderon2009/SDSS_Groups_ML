@@ -174,6 +174,15 @@ def get_parser():
                         densities at different radii""",
                         type=_str2bool,
                         default=True)
+    ## Radii used for estimating densities
+    parser.add_argument('-dist_scales',
+                        dest='dist_scales',
+                        help="""
+                        List of distance scales to use when calculating 
+                        densities""",
+                        type=float,
+                        nargs='+',
+                        default=[2.0, 5.0, 10.0])
     ## `Perfect Catalogue` Option
     parser.add_argument('-perf',
                         dest='perf_opt',
