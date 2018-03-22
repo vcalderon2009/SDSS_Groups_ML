@@ -3,7 +3,7 @@
 
 # Victor Calderon
 # Created      : 03/21/2018
-# Last Modified: 03/21/2018
+# Last Modified: 03/22/2018
 # Vanderbilt University
 from __future__ import print_function, division, absolute_import
 __author__     =['Victor Calderon']
@@ -56,8 +56,9 @@ import astropy.units     as u
 import astropy.table     as astro_table
 from   astropy.coordinates import SkyCoord
 # ML modules
-import sklearn.model_selection as ms
-import sklearn.ensemble        as skem
+import sklearn
+import sklearn.model_selection  as ms
+import sklearn.ensemble         as skem
 
 ## Functions
 
@@ -225,7 +226,7 @@ def get_parser():
                         dest='sample_frac',
                         help='fraction of the total dataset to use',
                         type=float,
-                        default=0.10)
+                        default=0.01)
     ## Option for removing file
     parser.add_argument('-remove',
                         dest='remove_files',
@@ -250,6 +251,14 @@ def get_parser():
                         help='Percentage size of the catalogue used for testing',
                         type=_check_pos_val,
                         default=0.25)
+    ## Total number of K-folds, i.e. 'kf_splits'
+    parser.add_argument('-kf_splits',
+                        dest='kf_splits',
+                        help="""
+                        Total number of K-folds to perform. Must be larger 
+                        than 2""",
+                        type=_check_pos_val,
+                        default=3)
     ## Option for Shuffling dataset when separing 
     ## `training` and `testing` sets
     parser.add_argument('-shuffle_opt',
@@ -329,6 +338,14 @@ def param_vals_test(param_dict):
                             param_dict['halotype'],
                             param_dict['hod_n'])
         raise ValueError(msg)
+    ##
+    ## Checking that `kf_splits` is larger than `2`
+    if (param_dict['kf_splits'] < 2):
+        msg  = '{0} The value for `kf_splits` ({1}) must be LARGER than `2`'
+        msg += 'Exiting...'
+        msg  = msg.format(  param_dict['Prog_msg' ],
+                            param_dict['kf_splits'])
+        raise ValueError(msg)
 
 def is_tool(name):
     """Check whether `name` is on PATH and marked as executable."""
@@ -376,6 +393,9 @@ def add_to_dict(param_dict):
     catl_str    += '{6}'
     catl_str     = catl_str.format(*catl_str_arr)
     ##
+    ## Dictionary of ML Regressors
+    skem_dict = sklearns_models()
+    ##
     ## Saving to `param_dict`
     param_dict['sample_s'    ] = sample_s
     param_dict['sample_Mr'   ] = sample_Mr
@@ -383,6 +403,7 @@ def add_to_dict(param_dict):
     param_dict['sats'        ] = sats
     param_dict['speed_c'     ] = speed_c
     param_dict['catl_str'    ] = catl_str
+    param_dict['skem_dict'   ] = skem_dict
 
     return param_dict
 
@@ -526,7 +547,7 @@ def training_testing(param_dict, proj_dict, test_size=0.25,
     catl_arr = cu.Index(proj_dict['merged_gal_all_dir'], '.' + ext)
     catl_pd_tot  = cu.read_hdf5_file_to_pandas_DF(catl_arr[0])
     ## Selecting only a fraction of the dataset
-    catl_pd = catl_pd_tot.sample(frac=sample_frac, random_state=random_state)
+    catl_pd     = catl_pd_tot.sample(frac=sample_frac, random_state=random_state)
     catl_pd_tot = None
     ## Dropping `groupid`
     catl_drop_arr = ['groupid', 'GG_dens_2.0', 'GG_dens_5.0', 'GG_dens_10.0' ]
@@ -558,7 +579,158 @@ def training_testing(param_dict, proj_dict, test_size=0.25,
 
     return train_dict, test_dict, param_dict
 
+# Different types of Regressors
+def sklearns_models():
+    """
+    Returns a set of Regressors used by Scikit-Learn
+    
+    Returns
+    ---------
+    skem_dict: python dicitonary
+        Dictioanry with a set of regressors uninitialized
+    """
+    skem_dict = {}
+    skem_dict['random_forest'] = skem.RandomForestRegressor()
+
+    return skem_dict
+
 ## --------- Training and Testing Function ------------##
+
+## Algorithm Score, Testing
+def model_score_general(train_dict, test_dict, skem_key, param_dict,
+    kf_splits=3):
+    """
+    Computes different statistics for determining if `model` is good.
+    It calculates:
+        - General Score
+        - K-fold scores
+        - Feature importance for `General` and `K-fold`
+
+    Parameters
+    -----------
+    train_dict: python dictionary
+        dictionary containing the 'training' data from the catalogue
+
+    test_dict: python dictionary
+        dictionary containing the 'testing' data from the catalogue
+
+    skem_key: string
+        key of the Regressor being used. Taken from 'skem_dict'
+
+    kf_splits: int, optional (default = 3)
+        number of folds to use. Must be at least 2
+
+    Returns
+    -----------
+    model_dict: python dictionary
+        dictionary containing metrics that evaluate the model
+        Keys:
+            - 'model_score_tot'  : total score of the model after 1 run
+            - 'kf_scores'        : score for each of the  K-folds
+            - 'feat_imp_gen_sort': feature importance for 1 run
+            - 'feat_imp_kf_sort' : mean feature importance for K-folds
+    
+    """
+    ## Training and Testing sets
+    X_train   = train_dict['X_train']
+    Y_train   = train_dict['Y_train']
+    X_test    = test_dict ['X_test' ]
+    Y_test    = test_dict ['Y_test' ]
+    feat_cols = param_dict['features_cols']
+    n_feat    = len(feat_cols)
+    ## ------- General Model ------- ##
+    ##
+    ## -- General Model
+    model_gen = sklearn.base.clone(param_dict['skem_dict'][skem_key])
+    ##
+    ## -- Training
+    model_gen.fit(X_train, Y_train)
+    ###
+    ### -- Score - Total and K-fold -- ###
+    # Normal score
+    model_score_tot = model_gen.score(X_test, Y_test)
+    # K-fold
+    # Choosing which method to use
+    kf_scores        = num.zeros(kf_splits)
+    kdf_features_imp = num.zeros((kf_splits, n_feat))
+    kf_obj           = ms.KFold(n_splits=kf_splits,
+                                shuffle=param_dict['shuffle_opt'],
+                                random_state=param_dict['seed'])
+    for kk, (train_idx_kk, test_idx_kk) in tqdm(enumerate(kf_obj.split(X_train))):
+        ## Determining Training and Testing
+        X_train_kk, X_test_kk = X_train[train_idx_kk], X_train[test_idx_kk]
+        Y_train_kk, Y_test_kk = Y_train[train_idx_kk], Y_train[test_idx_kk]
+        ## Fitting Model
+        model_kf = sklearn.base.clone(param_dict['skem_dict'][skem_key])
+        model_kf.fit(X_train_kk, Y_train_kk)
+        ## Calculating Score
+        kf_kk_score = model_kf.score(X_test_kk, Y_test_kk)
+        ## Saving to array
+        kf_scores[kk] = kf_kk_score
+        ## Feature importances
+        kdf_features_imp[kk] = model_kf.feature_importances_.astype(float)
+    ##
+    ## ------- Feature Importance ------- ##
+    ##
+    ## Feature Importance - Sorted from highest to lowest
+    #  -- General
+    feat_imp_gen          = num.vstack(zip( feat_cols,
+                                            model_gen.feature_importances_))
+    feat_imp_gen_sort_idx = num.argsort(feat_imp_gen[:,1])[::-1]
+    feat_imp_gen_sort     = feat_imp_gen[feat_imp_gen_sort_idx]
+    #  -- K-folds
+    feat_imp_kf_mean     = num.mean(kdf_features_imp.T, axis=1)
+    feat_imp_kf          = num.vstack(zip(feat_cols, feat_imp_kf_mean))
+    feat_imp_kf_sort_idx = num.argsort(feat_imp_kf[:,1])[::-1]
+    feat_imp_kf_sort     = feat_imp_kf[feat_imp_kf_sort_idx]
+    ##
+    ## ------- Scores after evaluating with different features ------- ##
+    # General and K-folds
+    feat_score_gen_arr = num.zeros(n_feat)
+    feat_score_kf_arr  = num.zeros(n_feat)
+    # Looping over features
+    for kk in tqdm(range(n_feat)):
+        ## ---- General ---- ##
+        # Initializing model
+        model_gen_kk = sklearn.base.clone(param_dict['skem_dict'][skem_key])
+        # Training model
+        X_train_gen_kk = X_train.T[feat_imp_gen_sort_idx[0:kk+1]].T
+        X_test_gen_kk  = X_test.T [feat_imp_gen_sort_idx[0:kk+1]].T
+        model_gen_kk.fit(X_train_gen_kk, Y_train)
+        # Getting Score
+        model_gen_kk_score = model_gen_kk.score(X_test_gen_kk, Y_test)
+        ##
+        ## ---- K-fold ---- ##
+        model_kf_kk = sklearn.base.clone(param_dict['skem_dict'][skem_key])
+        # Training model
+        X_train_kf_kk = X_train.T[feat_imp_kf_sort_idx[0:kk+1]].T
+        X_test_kf_kk  = X_test.T [feat_imp_kf_sort_idx[0:kk+1]].T
+        model_kf_kk.fit(X_train_kf_kk, Y_train)
+        # Getting Score
+        model_kf_kk_score = model_kf_kk.score(X_test_kf_kk, Y_test)
+        ##
+        ## ---- Saving to array ---- ##
+        feat_score_gen_arr[kk] = model_gen_kk_score
+        feat_score_kf_arr [kk] = model_kf_kk_score
+    # Joining Keys
+    feat_score_gen_cumu = num.vstack(zip(   feat_imp_gen_sort[:,0],
+                                            feat_score_gen_arr))
+    feat_score_kf_cumu  = num.vstack(zip(   feat_imp_kf_sort[:,0],
+                                            feat_score_kf_arr))
+    ##
+    ##
+    ##
+    ## Saving to dicitoanry
+    model_dict = {}
+    model_dict['model_score_tot'    ] = model_score_tot
+    model_dict['kf_scores'          ] = kf_scores
+    model_dict['feat_imp_gen_sort'  ] = feat_imp_gen_sort
+    model_dict['feat_imp_kf_sort'   ] = feat_imp_kf_sort
+    model_dict['feat_score_gen_cumu'] = feat_score_gen_cumu
+    model_dict['feat_score_kf_cumu' ] = feat_score_kf_cumu
+
+    return model_dict
+
 
 ## Random Forest  algorithm
 def random_forest(train_dict, test_dict, param_dict, proj_dict, 
@@ -590,11 +762,19 @@ def random_forest(train_dict, test_dict, param_dict, proj_dict,
         Dictionary for storing 'fit' and 'score' data for different algorithms
     """
     ## Defining Regressor Object
-    model = skem.RandomForestRegressor()
-    ## Fitting model
-    model.fit(train_dict['X_train'], train_dict['Y_train'])
+    skem_key = 'random_forest'
+    ## Getting Metrics for model
+    model_fits_dict['skem_key'] = model_score_general(  train_dict,
+                                                        test_dict,
+                                                        skem_key,
+                                                        param_dict)
 
+    return model_fits_dict
+    
 
+## --------- Training and Testing Function ------------##
+
+## Feature Importance
 
 ## --------- Main Function ------------##
 
@@ -638,9 +818,13 @@ def main(args):
                                         dropna_opt=param_dict['dropna_opt'],
                                         sample_frac=param_dict['sample_frac'])
     ##
-    ## Training Dataset - Algorithms
+    ## ----- Training Dataset - Algorithms -----
     # Dictionary for storing Fit data and scores
     model_fits_dict = {}
+    ##
+    ## Random Forest
+    model_fits_dict = random_forest(train_dict, test_dict,param_dict, 
+        proj_dict, model_fits_dict)
 
 
 
