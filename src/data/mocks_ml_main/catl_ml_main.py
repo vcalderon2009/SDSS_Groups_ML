@@ -57,6 +57,7 @@ import astropy.table     as astro_table
 from   astropy.coordinates import SkyCoord
 # ML modules
 import sklearn.model_selection as ms
+import sklearn.ensemble        as skem
 
 ## Functions
 
@@ -219,6 +220,12 @@ def get_parser():
                         help='Fraction of total number of CPUs to use',
                         type=float,
                         default=0.75)
+    ## CPU Counts
+    parser.add_argument('-sample_frac',
+                        dest='sample_frac',
+                        help='fraction of the total dataset to use',
+                        type=float,
+                        default=0.10)
     ## Option for removing file
     parser.add_argument('-remove',
                         dest='remove_files',
@@ -242,14 +249,23 @@ def get_parser():
                         dest='test_size',
                         help='Percentage size of the catalogue used for testing',
                         type=_check_pos_val,
-                        default=0.75)
-    ## Option for Shuffling dataset when separing `training` and `testing` sets
+                        default=0.25)
+    ## Option for Shuffling dataset when separing 
+    ## `training` and `testing` sets
     parser.add_argument('-shuffle_opt',
                         dest='shuffle_opt',
                         help="""
                         Option for whether or not to shuffle the data before 
                         splitting.
-                        """
+                        """,
+                        type=_str2bool,
+                        default=True)
+    ## Option for Shuffling dataset when separing `training` and `testing` sets
+    parser.add_argument('-dropna_opt',
+                        dest='dropna_opt',
+                        help="""
+                        Option for whether or not to drop NaNs from the dataset
+                        """,
                         type=_str2bool,
                         default=True)
     ## Random Seed
@@ -348,12 +364,25 @@ def add_to_dict(param_dict):
     # Speed of light - In km/s
     speed_c = ac.c.to(u.km/u.s).value
     ##
+    ## Catalogue string
+    catl_str_arr = [sample_Mr,
+                    param_dict['hod_n'], 
+                    param_dict['clf_method'],
+                    param_dict['cosmo_choice'],
+                    param_dict['nmin'],
+                    param_dict['halotype'], 
+                    param_dict['perf_opt']]
+    catl_str     = '{0}_hodn_{1}_clf_{2}_cosmo_{3}_nmin_{4}_halotype_{5}_perf_'
+    catl_str    += '{6}'
+    catl_str     = catl_str.format(*catl_str_arr)
+    ##
     ## Saving to `param_dict`
     param_dict['sample_s'    ] = sample_s
     param_dict['sample_Mr'   ] = sample_Mr
     param_dict['cens'        ] = cens
     param_dict['sats'        ] = sats
     param_dict['speed_c'     ] = speed_c
+    param_dict['catl_str'    ] = catl_str
 
     return param_dict
 
@@ -445,7 +474,8 @@ def directory_skeleton(param_dict, proj_dict):
 
 # Separating data into `training` and `testing` dataset
 def training_testing(param_dict, proj_dict, test_size=0.25,
-    random_state=0, shuffle_opt=True, dropna_opt=True, ext='hdf5'):
+    random_state=0, shuffle_opt=True, dropna_opt=True, sample_frac=0.1,
+    ext='hdf5'):
     """
     Reads in the catalogue, and separates data into a `training` and 
     `testing` datasets.
@@ -474,6 +504,9 @@ def training_testing(param_dict, proj_dict, test_size=0.25,
     dropna_opt: boolean, optional (default = True)
         Option for dropping 'NaN' from the catalogue
 
+    sample_frac: float, optional (default = 0.10)
+        fraction of the total dataset to use
+
     ext: string, optional (default = 'hdf5')
         file extension of the `merged` catalogue
 
@@ -485,16 +518,22 @@ def training_testing(param_dict, proj_dict, test_size=0.25,
     test_dict: python dictionary
         dictionary containing the 'testing' data from the catalogue
 
+    param_dict: python dictionary
+        dictionary with `project` variables + list of `predicted` and `features`
+
     """
     ## Read in catalogue
     catl_arr = cu.Index(proj_dict['merged_gal_all_dir'], '.' + ext)
-    catl_pd  = cu.read_hdf5_file_to_pandas_DF(catl_arr[0])
+    catl_pd_tot  = cu.read_hdf5_file_to_pandas_DF(catl_arr[0])
+    ## Selecting only a fraction of the dataset
+    catl_pd = catl_pd_tot.sample(frac=sample_frac, random_state=random_state)
+    catl_pd_tot = None
     ## Dropping `groupid`
     catl_drop_arr = ['groupid', 'GG_dens_2.0', 'GG_dens_5.0', 'GG_dens_10.0' ]
     catl_pd       = catl_pd.drop(catl_drop_arr, axis=1)
     ## Dropping NaN's
-    if drop_na:
-        catl_pd.dropna(how='all', inplace=True)
+    if dropna_opt:
+        catl_pd.dropna(how='any', inplace=True)
     ## Separing `features` and `predicted values`
     catl_cols      = catl_pd.columns.values
     predicted_cols = ['g_brightest', 'M_r', 'dist_centre', 'galtype']
@@ -513,8 +552,49 @@ def training_testing(param_dict, proj_dict, test_size=0.25,
     ## Assigning `training` and `testing` datasets to dictionary
     train_dict = {'X_train': X_train, 'Y_train': Y_train}
     test_dict  = {'X_test' : X_test , 'Y_test' : Y_test }
+    ## Adding lists to `param_dict`
+    param_dict['predicted_cols'] = predicted_cols
+    param_dict['features_cols' ] = features_cols
 
-    return train_dict, test_dict
+    return train_dict, test_dict, param_dict
+
+## --------- Training and Testing Function ------------##
+
+## Random Forest  algorithm
+def random_forest(train_dict, test_dict, param_dict, proj_dict, 
+    model_fits_dict):
+    """
+    Uses `Random Forests` to predict a score for the given training set
+
+    Parameters
+    ------------
+    train_dict: python dictionary
+        dictionary containing the 'training' data from the catalogue
+
+    test_dict: python dictionary
+        dictionary containing the 'testing' data from the catalogue
+
+    param_dict: python dictionary
+        dictionary with `project` variables
+
+    proj_dict: python dictionary
+        dictionary with info of the project that uses the
+        `Data Science` Cookiecutter template.
+
+    model_fits_dict: python dictionary
+        Dictionary for storing 'fit' and 'score' data for different algorithms
+
+    Returns
+    ------------
+    model_fits_dict: python dictionary
+        Dictionary for storing 'fit' and 'score' data for different algorithms
+    """
+    ## Defining Regressor Object
+    model = skem.RandomForestRegressor()
+    ## Fitting model
+    model.fit(train_dict['X_train'], train_dict['Y_train'])
+
+
 
 ## --------- Main Function ------------##
 
@@ -549,7 +629,18 @@ def main(args):
     ## Reading in merged catalogue and separating training and testing 
     ## dataset
     (   train_dict,
-        test_dict ) = training_testing(param_dict, proj_dict)
+        test_dict ,
+        param_dict) = training_testing( param_dict,
+                                        proj_dict, 
+                                        test_size=param_dict['test_size'],
+                                        random_state=param_dict['seed'],
+                                        shuffle_opt=param_dict['shuffle_opt'],
+                                        dropna_opt=param_dict['dropna_opt'],
+                                        sample_frac=param_dict['sample_frac'])
+    ##
+    ## Training Dataset - Algorithms
+    # Dictionary for storing Fit data and scores
+    model_fits_dict = {}
 
 
 
