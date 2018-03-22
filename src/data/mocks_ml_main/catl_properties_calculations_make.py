@@ -180,9 +180,8 @@ def get_parser():
                         help="""
                         List of distance scales to use when calculating 
                         densities""",
-                        type=float,
-                        nargs='+',
-                        default=[2.0, 5.0, 10.0])
+                        type=str,
+                        default=['2. 5. 10.'])
     ## `Perfect Catalogue` Option
     parser.add_argument('-perf',
                         dest='perf_opt',
