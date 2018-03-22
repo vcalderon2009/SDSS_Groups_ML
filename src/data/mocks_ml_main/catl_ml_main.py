@@ -787,7 +787,7 @@ def saving_data(param_dict, proj_dict, model_fits_dict):
     """
     ## Filename
     filepath = os.path.join(    proj_dict['test_train_dir'],
-                                '{0}__model_fits_dict.p'.format(
+                                '{0}_model_fits_dict.p'.format(
                                     param_dict['catl_str']))
     ## Saving pickle file
     with open(filepath, 'wb') as file_p:
