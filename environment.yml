@@ -3,6 +3,7 @@ name: sdss_groups_ml
 channels:
   - defaults
   - anaconda
+  - conda-forge
 
 dependencies:
   - python>=3.6
@@ -14,6 +15,7 @@ dependencies:
   - python-graphviz
   - numpy
   - pandas>=0.19.0
+  - pydotplus
   - scipy
   - seaborn>=0.8.1
   - scikit-learn>=0.19.1
