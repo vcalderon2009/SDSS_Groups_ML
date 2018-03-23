@@ -719,15 +719,19 @@ def galaxy_dist_centre(memb_ii_pd, group_ii_pd, group_mod_pd,
         ## Cartesian Coordinates
         memb_cart_arr  = memb_gals_kk[:,1:]
         group_cart_rsh = group_kk_pd [2:].reshape(1,3)
-        ## If within `r_med`
-        memb_dist_sq_arr = num.sum((memb_cart_arr - group_cart_rsh)**2,axis=1)
+        if len(memb_cart_arr) > 1:
+            ## If within `r_med`
+            memb_dist_sq_arr = num.sum((memb_cart_arr - group_cart_rsh)**2,axis=1)
+        else:
+            memb_dist_sq_arr = 0.
         ## Assigning to each galaxy
         gals_group_dist_sq_arr[group_idx] = memb_dist_sq_arr
+
     ##
     ## Distance square root
     gals_group_dist_arr = gals_group_dist_sq_arr**(0.5)
     ## Adding to `memb_mod_pd`
-    memb_mod_pd.loc[:,'dist_centre'] = gals_group_dist_arr
+    memb_mod_pd.loc[:,'dist_centre_group'] = gals_group_dist_arr
 
     return memb_mod_pd
 
@@ -753,7 +757,9 @@ def galaxy_properties(memb_ii_pd, memb_mod_pd):
         DataFrame, to which to add the `member galaxy` properties
     """
     ## Galaxy Properties
-    gals_cols         = ['M_r', 'galtype', 'g_galtype', 'groupid']
+    gals_cols         = ['galtype', 'halo_ngal', 'M_r'      , 'logssfr',\
+                         'M_h'    , 'g_galtype', 'halo_rvir', 'g_r'    ,\
+                         'groupid', 'sersic'   ]
     gals_cols_pd_copy = (memb_ii_pd.copy())[gals_cols]
     # Merging DataFrames
     memb_mod_pd = pd.merge(memb_mod_pd, gals_cols_pd_copy,
