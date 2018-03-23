@@ -188,57 +188,12 @@ def get_parser():
                         choices=range(2,1000),
                         metavar='[1-1000]',
                         default=2)
-    ## Minimum of galaxies in a group
-    parser.add_argument('-mass_factor',
-                        dest='mass_factor',
-                        help="""
-                        Factor by which to evaluate the distance to closest 
-                        cluster""",
-                        type=int,
-                        choices=range(2,100),
-                        metavar='[2-100]',
-                        default=10)
-    ## Removing group for when determining density
-    parser.add_argument('-remove_group',
-                        dest='remove_group',
-                        help="""
-                        Option for removing the group when calculating 
-                        densities at different radii""",
-                        type=_str2bool,
-                        default=True)
-    ## Radii used for estimating densities
-    parser.add_argument('-dist_scales',
-                        dest='dist_scales',
-                        help="""
-                        List of distance scales to use when calculating 
-                        densities""",
-                        type=float,
-                        nargs='+',
-                        default=[2, 5, 10])
-    ## CPU Counts
-    parser.add_argument('-cpu',
-                        dest='cpu_frac',
-                        help='Fraction of total number of CPUs to use',
-                        type=float,
-                        default=0.75)
     ## CPU Counts
     parser.add_argument('-sample_frac',
                         dest='sample_frac',
                         help='fraction of the total dataset to use',
                         type=float,
                         default=0.01)
-    ## Option for removing file
-    parser.add_argument('-remove',
-                        dest='remove_files',
-                        help='Delete HMF ',
-                        type=_str2bool,
-                        default=False)
-    ## Verbose
-    parser.add_argument('-v','--verbose',
-                        dest='verbose',
-                        help='Option to print out project parameters',
-                        type=_str2bool,
-                        default=False)
     ## `Perfect Catalogue` Option
     parser.add_argument('-perf',
                         dest='perf_opt',
@@ -277,6 +232,24 @@ def get_parser():
                         """,
                         type=_str2bool,
                         default=True)
+    ## Option for removing file
+    parser.add_argument('-remove',
+                        dest='remove_files',
+                        help='Delete HMF ',
+                        type=_str2bool,
+                        default=False)
+    ## Verbose
+    parser.add_argument('-v','--verbose',
+                        dest='verbose',
+                        help='Option to print out project parameters',
+                        type=_str2bool,
+                        default=False)
+    ## CPU Counts
+    parser.add_argument('-cpu',
+                        dest='cpu_frac',
+                        help='Fraction of total number of CPUs to use',
+                        type=float,
+                        default=0.75)
     ## Random Seed
     parser.add_argument('-seed',
                         dest='seed',
@@ -395,6 +368,8 @@ def add_to_dict(param_dict):
     ##
     ## Dictionary of ML Regressors
     skem_dict = sklearns_models()
+    ## Number of CPU's to use
+    cpu_number = int(cpu_count() * param_dict['cpu_frac'])
     ##
     ## Saving to `param_dict`
     param_dict['sample_s'    ] = sample_s
@@ -404,6 +379,7 @@ def add_to_dict(param_dict):
     param_dict['speed_c'     ] = speed_c
     param_dict['catl_str'    ] = catl_str
     param_dict['skem_dict'   ] = skem_dict
+    param_dict['cpu_number'  ] = cpu_number
 
     return param_dict
 
@@ -488,7 +464,7 @@ def directory_skeleton(param_dict, proj_dict):
 ## --------- Preparing Data ------------##
 
 # Separating data into `training` and `testing` dataset
-def training_testing(param_dict, proj_dict, test_size=0.25,
+def training_testing_data(param_dict, proj_dict, test_size=0.25,
     random_state=0, shuffle_opt=True, dropna_opt=True, sample_frac=0.1,
     ext='hdf5'):
     """
@@ -544,14 +520,15 @@ def training_testing(param_dict, proj_dict, test_size=0.25,
     catl_pd     = catl_pd_tot.sample(frac=sample_frac, random_state=random_state)
     catl_pd_tot = None
     ## Dropping `groupid`
-    catl_drop_arr = ['groupid', 'GG_dens_2.0', 'GG_dens_5.0', 'GG_dens_10.0' ]
+    catl_drop_arr = ['groupid']
     catl_pd       = catl_pd.drop(catl_drop_arr, axis=1)
     ## Dropping NaN's
     if dropna_opt:
         catl_pd.dropna(how='any', inplace=True)
     ## Separing `features` and `predicted values`
     catl_cols      = catl_pd.columns.values
-    predicted_cols = ['g_brightest', 'M_r', 'dist_centre', 'galtype']
+    # predicted_cols = ['g_brightest', 'M_r', 'dist_centre', 'galtype']
+    predicted_cols = ['galtype']
     features_cols  = [s for s in catl_cols if s not in predicted_cols]
     # Creating new DataFrames
     pred_arr = catl_pd.loc[:,predicted_cols].values
@@ -590,9 +567,9 @@ def sklearns_models():
 
 ## --------- Training and Testing Function ------------##
 
-## Algorithm Score, Testing
+## Algorithm Score, Testing, and other metrics
 def model_score_general(train_dict, test_dict, skem_key, param_dict,
-    kf_splits=3):
+    kf_splits=3, cpu_number=1):
     """
     Computes different statistics for determining if `model` is good.
     It calculates:
@@ -613,6 +590,9 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict,
 
     kf_splits: int, optional (default = 3)
         number of folds to use. Must be at least 2
+
+    cpu_number: int, optional (default = 1)
+        number of 
 
     Returns
     -----------
@@ -833,7 +813,8 @@ def main(args):
     ## dataset
     (   train_dict,
         test_dict ,
-        param_dict) = training_testing( param_dict,
+        param_dict) = training_testing_data(    
+                                        param_dict,
                                         proj_dict, 
                                         test_size=param_dict['test_size'],
                                         random_state=param_dict['seed'],
