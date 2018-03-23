@@ -18,7 +18,8 @@ DATA_DIR           = $(PROJECT_DIR)/data
 SRC_DIR            = $(PROJECT_DIR)/src/data
 MOCKS_CATL_DIR     = $(DATA_DIR)/processed/SDSS/mocks
 
-# CPU-Fraction
+# INPUT VARIABLES
+# -- General
 CPU_FRAC     = 0.75
 REMOVE_FILES = "True"
 CLF_METHOD   = 3
@@ -26,6 +27,10 @@ SAMPLE       = "19"
 HALOTYPE     = 'so'
 HOD_N        = 0
 NMIN         = 2
+KF_SPLITS    = 3
+SHUFFLE_OPT  = "True"
+TEST_SIZE    = 0.25
+SAMPLE_FRAC  = 0.01
 
 ifeq (,$(shell which conda))
 HAS_CONDA=False
@@ -81,7 +86,7 @@ catl_props:
 
 ## Trains ML algorithms on the `merged` dataset
 catl_props_train:
-	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main.py -cpu_frac $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN)
+	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main.py -cpu_frac $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -shuffle_opt $(SHUFFLE_OPT) -kf_splits $(KF_SPLITS) -test_size $(TEST_SIZE) -sample_frac $(SAMPLE_FRAC)
 
 ## Run tests to see if all files (Halobias, catalogues) are in order
 test_files:
