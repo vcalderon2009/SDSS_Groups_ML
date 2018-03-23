@@ -55,6 +55,7 @@ import astropy.constants as ac
 import astropy.units     as u
 import astropy.table     as astro_table
 from   astropy.coordinates import SkyCoord
+from glob import glob
 # ML modules
 import sklearn
 import sklearn.model_selection  as ms
@@ -514,7 +515,18 @@ def training_testing_data(param_dict, proj_dict, test_size=0.25,
 
     """
     ## Read in catalogue
-    catl_arr = cu.Index(proj_dict['merged_gal_all_dir'], '.' + ext)
+    catl_arr = glob('{0}/*{1}*.{2}'.format( proj_dict['merged_gal_all_dir'],
+                                            param_dict['catl_str'],
+                                            ext))
+    ## Checking if file exists
+    try:
+        assert(len(catl_arr) > 0)
+    except:
+        msg = '{0} The length of `catl_arr` ({1}) must be larger than `0`. '
+        msg += 'Exiting ...'
+        msg = msg.format(param_dict['Prog_msg'], len(catl_arr))
+        raise ValueError(msg)
+    ## Reading in catalogue
     catl_pd_tot  = cu.read_hdf5_file_to_pandas_DF(catl_arr[0])
     ## Selecting only a fraction of the dataset
     catl_pd     = catl_pd_tot.sample(frac=sample_frac, random_state=random_state)
@@ -533,6 +545,11 @@ def training_testing_data(param_dict, proj_dict, test_size=0.25,
     # Creating new DataFrames
     pred_arr = catl_pd.loc[:,predicted_cols].values
     feat_arr = catl_pd.loc[:,features_cols ].values
+    ## Reshaping array
+    if len(predicted_cols) == 1:
+        pred_arr = pred_arr.reshape(len(pred_arr),)
+    if len(features_cols) == 1:
+        feat_arr = feat_arr.reshape(len(feat_arr),)
     ## Training and Testing Dataset
     (   X_train, X_test,
         Y_train, Y_test) = ms.train_test_split( feat_arr,
