@@ -79,6 +79,10 @@ endif
 catl_props:
 	@python $(SRC_DIR)/mocks_ml_main/catl_properties_calculations_make.py -cpu_frac $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN)
 
+## Trains ML algorithms on the `merged` dataset
+catl_props_train:
+	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main.py -cpu_frac $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN)
+
 ## Run tests to see if all files (Halobias, catalogues) are in order
 test_files:
 	@pytest
