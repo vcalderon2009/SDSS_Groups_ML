@@ -1429,7 +1429,7 @@ def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
                         param_dict['nmin']      ,   param_dict['halotype'],
                         param_dict['perf_opt']  ,   ext]
     file_str  = '{0}_hodn_{1}_clf_{2}_cosmo_{3}_nmin_{4}_halotype_{5}_perf_{6}'
-    file_str += '.{7}'
+    file_str += 'merged_vac_all.{7}'
     filename  = file_str.format(*file_str_arr)
     ## Concatenating DataFrames
     group_id_tot = 0
