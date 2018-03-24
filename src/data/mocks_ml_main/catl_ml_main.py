@@ -368,11 +368,11 @@ def add_to_dict(param_dict):
     catl_str     = '{0}_hodn_{1}_clf_{2}_cosmo_{3}_nmin_{4}_halotype_{5}_perf_'
     catl_str    += '{6}'
     catl_str     = catl_str.format(*catl_str_arr)
-    ##
-    ## Dictionary of ML Regressors
-    skem_dict = sklearns_models()
     ## Number of CPU's to use
     cpu_number = int(cpu_count() * param_dict['cpu_frac'])
+    ##
+    ## Dictionary of ML Regressors
+    skem_dict = sklearns_models(param_dict, cpu_number)
     ##
     ## Saving to `param_dict`
     param_dict['sample_s'    ] = sample_s
@@ -570,9 +570,17 @@ def training_testing_data(param_dict, proj_dict, test_size=0.25,
     return train_dict, test_dict, param_dict
 
 # Different types of Regressors
-def sklearns_models():
+def sklearns_models(param_dict, cpu_number):
     """
     Returns a set of Regressors used by Scikit-Learn
+
+    Parameters
+    -----------
+    param_dict: python dictionary
+        dictionary with input parameters and values
+
+    cpu_number: int
+        number of CPUs to use for the training
     
     Returns
     ---------
@@ -582,14 +590,14 @@ def sklearns_models():
     skem_dict = {}
     # Random Forest
     skem_dict['random_forest'    ] = skem.RandomForestRegressor(
-                                        n_jobs=param_dict['cpu_number'],
+                                        n_jobs=cpu_number,
                                         random_state=param_dict['seed'])
     # Gradient Boosting Method
     skem_dict['gradient_boosting'] = skem.GradientBoostingRegressor(
                                         random_state=param_dict['seed'])
     # XGBoost Regressor
     skem_dict['XGBoost'          ] = xgboost.XGBRegressor(
-                                        n_jobs=param_dict['cpu_number'],
+                                        n_jobs=cpu_number,
                                         random_state=param_dict['seed'])
 
     return skem_dict
@@ -650,12 +658,12 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
     model_score_tot = model_gen.score(X_test, Y_test)
     # K-fold
     # Choosing which method to use
-    kf_models_arr    = [[] for kk in kf_splits]
-    kf_scores        = num.zeros(kf_splits)
-    kdf_features_imp = num.zeros((kf_splits, n_feat))
-    kf_obj           = ms.KFold(n_splits=kf_splits,
-                                shuffle=param_dict['shuffle_opt'],
-                                random_state=param_dict['seed'])
+    kf_models_arr      = [[] for kk in range(kf_splits)]
+    kf_scores          = num.zeros(kf_splits)
+    kdf_features_imp   = num.zeros((kf_splits, n_feat))
+    kf_obj             = ms.KFold(  n_splits=kf_splits,
+                                    shuffle=param_dict['shuffle_opt'],
+                                    random_state=param_dict['seed'])
     tqdm_desc   = 'General and K-Fold Score: '
     tqdm_kf_obj = tqdm(enumerate(kf_obj.split(X_train)), desc=tqdm_desc)
     for kk, (train_idx_kk, test_idx_kk) in tqdm_kf_obj:
@@ -666,13 +674,29 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
         model_kf = sklearn.base.clone(param_dict['skem_dict'][skem_key])
         model_kf.fit(X_train_kk, Y_train_kk)
         ## Calculating Score
-        kf_kk_score = model_kf.score(X_test_kk, Y_test_kk)
+        kf_kk_score          = model_kf.score(X_test_kk, Y_test_kk)
         ## Saving to array
-        kf_scores[kk] = kf_kk_score
+        kf_scores[kk]        = kf_kk_score
         ## Feature importances
         kdf_features_imp[kk] = model_kf.feature_importances_.astype(float)
         ## Saving Model to array
-        kf_models_arr[kk] = model_kf
+        kf_models_arr   [kk] = model_kf
+    ##
+    ##
+    ## ------- True and Predicted values ------- ##
+    #  `General` case
+    model_gen_prediction_arr = model_gen.predict(X_test)
+    model_gen_frac_diff_arr  = 100*(model_gen_prediction_arr - Y_test)/Y_test
+    model_gen_truth_arr      = Y_test.copy()
+    #  `K-fold` case
+    model_kf_prediction_arr  = [[] for kk in range(kf_splits)]
+    model_kf_frac_diff_arr   = [[] for kk in range(kf_splits)]
+    for kk in range(kf_splits):
+        kf_prediction_kk = kf_models_arr[kk].predict(X_test)
+        kf_frac_diff_kk  = 100.*(kf_prediction_kk - Y_test)/Y_test
+        ## Saving to Arrays
+        model_kf_prediction_arr[kk] = kf_prediction_kk
+        model_kf_frac_diff_arr [kk] = kf_frac_diff_kk
     ##
     ## ------- Feature Importance ------- ##
     ##
@@ -724,17 +748,21 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
     feat_score_kf_cumu  = num.vstack(zip(   feat_imp_kf_sort[:,0],
                                             feat_score_kf_arr))
     ##
-    ##
     ## Saving to dicitoanry
     model_dict = {}
-    model_dict['model_score_tot'    ] = model_score_tot
-    model_dict['kf_scores'          ] = kf_scores
-    model_dict['feat_imp_gen_sort'  ] = feat_imp_gen_sort
-    model_dict['feat_imp_kf_sort'   ] = feat_imp_kf_sort
-    model_dict['feat_score_gen_cumu'] = feat_score_gen_cumu
-    model_dict['feat_score_kf_cumu' ] = feat_score_kf_cumu
-    model_dict['model_gen'          ] = model_gen
-    model_dict['kf_models_arr'      ] = kf_models_arr
+    model_dict['model_score_tot'         ] = model_score_tot
+    model_dict['kf_scores'               ] = kf_scores
+    model_dict['feat_imp_gen_sort'       ] = feat_imp_gen_sort
+    model_dict['feat_imp_kf_sort'        ] = feat_imp_kf_sort
+    model_dict['feat_score_gen_cumu'     ] = feat_score_gen_cumu
+    model_dict['feat_score_kf_cumu'      ] = feat_score_kf_cumu
+    model_dict['model_gen'               ] = model_gen
+    model_dict['kf_models_arr'           ] = kf_models_arr
+    model_dict['model_gen_prediction_arr'] = model_gen_prediction_arr
+    model_dict['model_gen_frac_diff_arr' ] = model_gen_frac_diff_arr
+    model_dict['model_gen_truth_arr'     ] = model_gen_truth_arr
+    model_dict['model_kf_prediction_arr' ] = model_kf_prediction_arr
+    model_dict['model_kf_frac_diff_arr'  ] = model_kf_frac_diff_arr
 
     return model_dict
 
@@ -784,7 +812,7 @@ def ml_models_training(train_dict, test_dict, param_dict, proj_dict,
 ## --------- Saving Data ------------##
 
 ## Saving results from algorithms
-def saving_data(param_dict, proj_dict, model_fits_dict):
+def saving_data(param_dict, proj_dict, model_fits_dict, train_dict, test_dict):
     """
     Saves the final data file
 
@@ -799,14 +827,22 @@ def saving_data(param_dict, proj_dict, model_fits_dict):
 
     model_fits_dict: python dictionary
         Dictionary for storing 'fit' and 'score' data for different algorithms
+
+    train_dict: python dictionary
+        dictionary containing the 'training' data from the catalogue
+
+    test_dict: python dictionary
+        dictionary containing the 'testing' data from the catalogue
     """
     ## Filename
     filepath = os.path.join(    proj_dict['test_train_dir'],
                                 '{0}_model_fits_dict.p'.format(
                                     param_dict['catl_str']))
+    ## Elements to be saved
+    obj_arr = [model_fits_dict, train_dict, test_dict, param_dict]
     ## Saving pickle file
     with open(filepath, 'wb') as file_p:
-        pickle.dump(model_fits_dict, file_p)
+        pickle.dump(obj_arr, file_p)
     ## Checking that file exists
     try:
         assert(os.path.exists(filepath))
@@ -870,7 +906,7 @@ def main(args):
     ##
     ## ----- Saving final resulst -----
     # Saving final result
-    saving_data(param_dict, proj_dict, model_fits_dict)
+    saving_data(param_dict, proj_dict, model_fits_dict, train_dict, test_dict)
     ##
     ## End time for running the catalogues
     end_time   = datetime.now()
