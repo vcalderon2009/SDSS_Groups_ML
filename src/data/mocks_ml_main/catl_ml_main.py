@@ -540,7 +540,7 @@ def training_testing_data(param_dict, proj_dict, test_size=0.25,
     ## Separing `features` and `predicted values`
     catl_cols      = catl_pd.columns.values
     # predicted_cols = ['g_brightest', 'M_r', 'dist_centre', 'galtype']
-    predicted_cols = ['galtype']
+    predicted_cols = ['M_h']
     features_cols  = [s for s in catl_cols if s not in predicted_cols]
     # Creating new DataFrames
     pred_arr = catl_pd.loc[:,predicted_cols].values
@@ -578,15 +578,15 @@ def sklearns_models():
         Dictioanry with a set of regressors uninitialized
     """
     skem_dict = {}
-    skem_dict['random_forest'] = skem.RandomForestRegressor()
+    skem_dict['random_forest'    ] = skem.RandomForestRegressor()
+    skem_dict['gradient_boosting'] = skem.GradientBoostingRegressor()
 
     return skem_dict
 
 ## --------- Training and Testing Function ------------##
 
 ## Algorithm Score, Testing, and other metrics
-def model_score_general(train_dict, test_dict, skem_key, param_dict,
-    kf_splits=3, cpu_number=1):
+def model_score_general(train_dict, test_dict, skem_key, param_dict):
     """
     Computes different statistics for determining if `model` is good.
     It calculates:
@@ -605,12 +605,6 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict,
     skem_key: string
         key of the Regressor being used. Taken from 'skem_dict'
 
-    kf_splits: int, optional (default = 3)
-        number of folds to use. Must be at least 2
-
-    cpu_number: int, optional (default = 1)
-        number of 
-
     Returns
     -----------
     model_dict: python dictionary
@@ -622,6 +616,9 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict,
             - 'feat_imp_kf_sort' : mean feature importance for K-folds
     
     """
+    ## Constants
+    kf_splits  = param_dict['kf_splits' ]
+    cpu_number = param_dict['cpu_number']
     ## Training and Testing sets
     X_train   = train_dict['X_train']
     Y_train   = train_dict['Y_train']
@@ -647,7 +644,9 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict,
     kf_obj           = ms.KFold(n_splits=kf_splits,
                                 shuffle=param_dict['shuffle_opt'],
                                 random_state=param_dict['seed'])
-    for kk, (train_idx_kk, test_idx_kk) in tqdm(enumerate(kf_obj.split(X_train))):
+    tqdm_desc   = 'General and K-Fold Score: '
+    tqdm_kf_obj = tqdm(enumerate(kf_obj.split(X_train)), desc=tqdm_desc)
+    for kk, (train_idx_kk, test_idx_kk) in tqdm_kf_obj:
         ## Determining Training and Testing
         X_train_kk, X_test_kk = X_train[train_idx_kk], X_train[test_idx_kk]
         Y_train_kk, Y_test_kk = Y_train[train_idx_kk], Y_train[test_idx_kk]
@@ -710,7 +709,6 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict,
                                             feat_score_kf_arr))
     ##
     ##
-    ##
     ## Saving to dicitoanry
     model_dict = {}
     model_dict['model_score_tot'    ] = model_score_tot
@@ -719,15 +717,16 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict,
     model_dict['feat_imp_kf_sort'   ] = feat_imp_kf_sort
     model_dict['feat_score_gen_cumu'] = feat_score_gen_cumu
     model_dict['feat_score_kf_cumu' ] = feat_score_kf_cumu
+    model_dict['model_gen'          ] = model_gen
 
     return model_dict
 
-
-## Random Forest  algorithm
-def random_forest(train_dict, test_dict, param_dict, proj_dict, 
+## Training different models
+def ml_models_training(train_dict, test_dict, param_dict, proj_dict,
     model_fits_dict):
     """
-    Uses `Random Forests` to predict a score for the given training set
+    Trains different ML models to determine metrics of accuracy and more for
+    the given algorithm.
 
     Parameters
     ------------
@@ -752,16 +751,18 @@ def random_forest(train_dict, test_dict, param_dict, proj_dict,
     model_fits_dict: python dictionary
         Dictionary for storing 'fit' and 'score' data for different algorithms
     """
-    ## Defining Regressor Object
-    skem_key = 'random_forest'
-    ## Getting Metrics for model
-    model_fits_dict[skem_key] = model_score_general(  train_dict,
+    ## List of keys for the different ML models
+    skem_keys_arr = num.sort(list(param_dict['skem_dict'].keys()))
+    ## Looping over each ML model
+    for zz, skem_key in tqdm(enumerate(skem_keys_arr)):
+        print('{0} Analyzing: `{1}`'.format(param_dict['Prog_msg'],skem_key))
+        # Training Dataset
+        model_fits_dict[skem_key] = model_score_general(train_dict,
                                                         test_dict,
                                                         skem_key,
                                                         param_dict)
 
     return model_fits_dict
-    
 
 ## --------- Saving Data ------------##
 
@@ -823,7 +824,10 @@ def main(args):
     print('\n'+50*'='+'\n')
     for key, key_val in sorted(param_dict.items()):
         if key !='Prog_msg':
-            print('{0} `{1}`: {2}'.format(Prog_msg, key, key_val))
+            if key == 'skem_dict':
+                print('{0} `{1}`: {2}'.format(Prog_msg, key, list(key_val.keys())))
+            else:
+                print('{0} `{1}`: {2}'.format(Prog_msg, key, key_val))
     print('\n'+50*'='+'\n')
     ##
     ## Reading in merged catalogue and separating training and testing 
@@ -844,7 +848,7 @@ def main(args):
     model_fits_dict = {}
     ##
     ## Random Forest
-    model_fits_dict = random_forest(train_dict, test_dict,param_dict, 
+    model_fits_dict = ml_models_training(train_dict, test_dict, param_dict,
         proj_dict, model_fits_dict)
     ##
     ## ----- Saving final resulst -----
