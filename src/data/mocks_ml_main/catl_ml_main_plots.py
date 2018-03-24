@@ -190,12 +190,27 @@ def get_parser():
                         help='Option for using a `Perfect` catalogue',
                         type=_str2bool,
                         default=False)
+    ## Total number of properties to predict. Default = 1
+    parser.add_argument('-n_predict',
+                        dest='n_predict',
+                        help="""
+                        Number of properties to predict. Default = 1""",
+                        type=int,
+                        choices=range(1,4),
+                        default=1)
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
                         help='Fraction of total number of CPUs to use',
                         type=float,
                         default=0.75)
+    ## Random Seed
+    parser.add_argument('-seed',
+                        dest='seed',
+                        help='Random seed to be used for the analysis',
+                        type=int,
+                        metavar='[0-4294967295]',
+                        default=1)
     ## Option for removing file
     parser.add_argument('-remove',
                         dest='remove_files',
@@ -262,6 +277,13 @@ def param_vals_test(param_dict):
                             param_dict['halotype'],
                             param_dict['hod_n'])
         raise ValueError(msg)
+    ##
+    ## Checking that `kf_splits` is larger than `2`
+    if (param_dict['n_predict'] < 1):
+        msg  = '{0} The value for `n_predict` ({1}) must be LARGER than `1`'
+        msg += 'Exiting...'
+        msg  = msg.format(  param_dict['Prog_msg' ],
+                            param_dict['n_predict'])
 
 def is_tool(name):
     """Check whether `name` is on PATH and marked as executable."""
@@ -305,9 +327,15 @@ def add_to_dict(param_dict):
                     param_dict['nmin'],
                     param_dict['halotype'], 
                     param_dict['perf_opt']]
-    catl_str     = '{0}_hodn_{1}_clf_{2}_cosmo_{3}_nmin_{4}_halotype_{5}_perf_'
-    catl_str    += '{6}'
-    catl_str     = catl_str.format(*catl_str_arr)
+    catl_str_read     = '{0}_hodn_{1}_clf_{2}_cosmo_{3}_nmin_{4}_halotype_{5}_perf_'
+    catl_str_read    += '{6}'
+    catl_str_read     = catl_str_read.format(*catl_str_arr)
+    ##
+    ## Figure catalogue string
+    catl_str_fig_arr = [catl_str_read,
+                        param_dict['n_predict']]
+    catl_str_fig = '{0}_n_predict_{1}'
+    catl_str_fig = catl_str_fig.format(*catl_str_fig_arr)
     ##
     ## Column names
     ml_dict_cols_names = ml_file_data_cols()
@@ -318,7 +346,8 @@ def add_to_dict(param_dict):
     param_dict['cens'              ] = cens
     param_dict['sats'              ] = sats
     param_dict['speed_c'           ] = speed_c
-    param_dict['catl_str'          ] = catl_str
+    param_dict['catl_str_read'     ] = catl_str_read
+    param_dict['catl_str_fig'      ] = catl_str_fig
     param_dict['ml_dict_cols_names'] = ml_dict_cols_names
 
     return param_dict
@@ -418,7 +447,13 @@ def ml_file_data_cols():
                             'GG_dens_2.0':"Density at 2 Mpc/h (G)",
                             'GG_M_group':"Group's Ab. Matched Mass (G)",
                             'GG_sigma_v_rmed':"Velocity Dispersion at Rmed (G)",
-                            'GG_ngals':"Group richness (G)"}
+                            'GG_ngals':"Group richness (G)",
+                            'M_r':"Galaxy's luminosity",
+                            'g_r':"(g-r) galaxy color",
+                            'dist_centre_group':"Distance to Group's centre",
+                            'g_brightest':"If galaxy is group's brightest galaxy",
+                            'logssfr':"Log of Specific star formation rate ",
+                            'sersic': "Galaxy's morphology"}
 
     return ml_dict_cols_names
 
@@ -439,13 +474,24 @@ def ml_file_read(proj_dict, param_dict):
 
     Returns
     -----------
-    model_fits_dict: python dictionary
-        Dictionary for storing 'fit' and 'score' data for different algorithms
+    obj_arr: tuple, shape (4,)
+        List of elements from the `trained` algorithms
+        It includes:
+            - 'model_fits_dict': python dictionary
+                Dictionary for storing 'fit' and 'score' data for different algorithms
+            - 'train_dict': python dictionary
+                dictionary containing the 'training' data from the catalogue
+            - 'test_dict': python dictionary
+                dictionary containing the 'testing' data from the catalogue
+            - 'param_dict': python dictionary
+                dictionary with `project` variables used when training the 
+                algorithms.
     """
     ## Filename
+    filepath_str  = '{0}_model_fits_dict.p'.format(param_dict['catl_str_fig'])
     filepath = os.path.join(    proj_dict['test_train_dir'],
-                                '{0}_model_fits_dict.p'.format(
-                                    param_dict['catl_str']))
+                                filepath_str)
+    ## Checking if file exists
     try:
         assert(os.path.exists(filepath))
     except:
@@ -454,9 +500,9 @@ def ml_file_read(proj_dict, param_dict):
     ##
     ## Reading in data
     with open(filepath, 'rb') as file_p:
-        model_fits_dict = pickle.load(file_p)
+        obj_arr = pickle.load(file_p)
 
-    return model_fits_dict
+    return obj_arr
 
 ## --------- Plotting Functions ------------##
 
@@ -488,62 +534,72 @@ def feature_imp_chart(model_fits_dict, param_dict, proj_dict,
     """
     ## Constants
     ml_dict_cols_names = param_dict['ml_dict_cols_names']
-    ## Model being analyzed
-    skem_key = 'random_forest'
-    ## Figure name
-    fname = os.path.join(   proj_dict['figure_dir'],
-                            '{0}_feature_importance_{1}.pdf'.format(
-                                param_dict['catl_str'],
-                                skem_key))
-    ## Reading in data
-    feat_imp_gen_sort = model_fits_dict[skem_key]['feat_imp_gen_sort']
-    feat_imp_kf_sort  = model_fits_dict[skem_key]['feat_imp_kf_sort' ]
-    ## Converting to DataFrames
-    # General
-    feat_imp_gen_sort_pd = pd.DataFrame(feat_imp_gen_sort[:,1].astype(float),
-                                        index=feat_imp_gen_sort[:,0],
-                                        columns=['General'])
-    # K-Folds
-    feat_imp_kf_sort_pd  = pd.DataFrame(feat_imp_kf_sort[:,1].astype(float),
-                                        index=feat_imp_kf_sort[:,0],
-                                        columns=['K-Fold'])
-    ## Joining DataFrames
-    feat_gen_kf_merged   = pd.merge(    feat_imp_gen_sort_pd,
-                                        feat_imp_kf_sort_pd,
-                                        left_index=True,
-                                        right_index=True)
-    ## Renaming indices
-    feat_gen_kf_merged.rename(  index=ml_dict_cols_names, inplace=True)
-    ## Sorting by descending values
-    feat_gen_kf_merged_sort = feat_gen_kf_merged.sort_values(
-                                    by=['K-Fold','General'], ascending=False)
-    ##
-    ## Figure details
-    fig_title = skem_key.replace('_', ' ').title()
-    # Figure
-    plt.clf()
-    plt.close()
-    fig = plt.figure(figsize=figsize)
-    ax1 = fig.add_subplot(111, facecolor='white')
-    # Constants
-    feat_gen_kf_merged_sort.plot(   kind='barh',
-                                    stacked=False,
-                                    # colormap=ListedColormap(sns.color_palette("GnBu", 10)),
-                                    ax=ax1,
-                                    title=fig_title,
-                                    legend=True)
-    ## Ticks
-    ax_data_major_loc  = ticker.MultipleLocator(0.05)
-    ax1.xaxis.set_major_locator(ax_data_major_loc)
-    ##
-    ## Saving figure
-    if fig_fmt=='pdf':
-        plt.savefig(fname, bbox_inches='tight')
-    else:
-        plt.savefig(fname, bbox_inches='tight', dpi=400)
-    print('{0} Figure saved as: {1}'.format(Prog_msg, fname))
-    plt.clf()
-    plt.close()
+    ## List of algorithms being used
+    skem_key_arr = num.sort(list(model_fits_dict.keys()))
+    ## Looping over all algorithms
+    for skem_key in tqdm(skem_key_arr):
+        ## Model being analyzed
+        ## Figure name
+        fname = os.path.join(   proj_dict['figure_dir'],
+                                '{0}_feature_importance_{1}.pdf'.format(
+                                    param_dict['catl_str_fig'],
+                                    skem_key))
+        ## Reading in data
+        feat_imp_gen_sort = model_fits_dict[skem_key]['feat_imp_gen_sort']
+        feat_imp_kf_sort  = model_fits_dict[skem_key]['feat_imp_kf_sort' ]
+        ## Converting to DataFrames
+        # General
+        feat_imp_gen_sort_pd = pd.DataFrame(feat_imp_gen_sort[:,1].astype(float),
+                                            index=feat_imp_gen_sort[:,0],
+                                            columns=['General'])
+        # K-Folds
+        feat_imp_kf_sort_pd  = pd.DataFrame(feat_imp_kf_sort[:,1].astype(float),
+                                            index=feat_imp_kf_sort[:,0],
+                                            columns=['K-Fold'])
+        ## Joining DataFrames
+        feat_gen_kf_merged   = pd.merge(    feat_imp_gen_sort_pd,
+                                            feat_imp_kf_sort_pd,
+                                            left_index=True,
+                                            right_index=True)
+        ## Renaming indices
+        # Finding set of common property labels
+        feat_gen_kf_merged_idx       = feat_gen_kf_merged.index.values
+        feat_gen_kf_merged_intersect = num.intersect1d(feat_gen_kf_merged_idx,
+                                                list(ml_dict_cols_names.keys()))
+        ml_dict_cols_names_select = {key:ml_dict_cols_names[key] for key in \
+                                        feat_gen_kf_merged_intersect}
+        # Renaming indices
+        feat_gen_kf_merged.rename(  index=ml_dict_cols_names, inplace=True)
+        ## Sorting by descending values
+        feat_gen_kf_merged_sort = feat_gen_kf_merged.sort_values(
+                                        by=['K-Fold','General'], ascending=False)
+        ##
+        ## Figure details
+        fig_title = skem_key.replace('_', ' ').title()
+        # Figure
+        plt.clf()
+        plt.close()
+        fig = plt.figure(figsize=figsize)
+        ax1 = fig.add_subplot(111, facecolor='white')
+        # Constants
+        feat_gen_kf_merged_sort.plot(   kind='barh',
+                                        stacked=False,
+                                        # colormap=ListedColormap(sns.color_palette("GnBu", 10)),
+                                        ax=ax1,
+                                        title=fig_title,
+                                        legend=True)
+        ## Ticks
+        ax_data_major_loc  = ticker.MultipleLocator(0.05)
+        ax1.xaxis.set_major_locator(ax_data_major_loc)
+        ##
+        ## Saving figure
+        if fig_fmt=='pdf':
+            plt.savefig(fname, bbox_inches='tight')
+        else:
+            plt.savefig(fname, bbox_inches='tight', dpi=400)
+        print('{0} Figure saved as: {1}'.format(Prog_msg, fname))
+        plt.clf()
+        plt.close()
 
 ## Feature Importance - Cumulative Score
 
@@ -574,17 +630,19 @@ def main(args):
     proj_dict  = directory_skeleton(param_dict, cu.cookiecutter_paths('./'))
     ##
     ## Printing out project variables
+    keys_avoid_arr = ['Prog_msg', 'ml_dict_cols_names']
     print('\n'+50*'='+'\n')
     for key, key_val in sorted(param_dict.items()):
-        if key !='Prog_msg':
+        if (key not in keys_avoid_arr):
             print('{0} `{1}`: {2}'.format(Prog_msg, key, key_val))
     print('\n'+50*'='+'\n')
     ##
     ## ----- Plotting Section ----- ##
     # Reading in file
-    model_fits_dict = ml_file_read(proj_dict, param_dict)
-    # 
-    param_dict = ml_file_data_cols(param_dict)
+    (   model_fits_dict,
+        train_dict     ,
+        test_dict      ,
+        param_dict_ml  ) = ml_file_read(proj_dict, param_dict)
     ##
     ## Feature Importance - Bar Chart
     feature_imp_chart(model_fits_dict, param_dict, proj_dict)
