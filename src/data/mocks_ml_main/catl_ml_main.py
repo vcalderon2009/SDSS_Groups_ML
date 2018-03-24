@@ -578,8 +578,11 @@ def sklearns_models():
         Dictioanry with a set of regressors uninitialized
     """
     skem_dict = {}
-    skem_dict['random_forest'    ] = skem.RandomForestRegressor()
-    skem_dict['gradient_boosting'] = skem.GradientBoostingRegressor()
+    skem_dict['random_forest'    ] = skem.RandomForestRegressor(
+                                        n_jobs=param_dict['cpu_number'],
+                                        random_state=param_dict['seed'])
+    skem_dict['gradient_boosting'] = skem.GradientBoostingRegressor(
+                                        random_state=param_dict['seed'])
 
     return skem_dict
 
@@ -682,7 +685,9 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
     feat_score_gen_arr = num.zeros(n_feat)
     feat_score_kf_arr  = num.zeros(n_feat)
     # Looping over features
-    for kk in tqdm(range(n_feat)):
+    tqdm_desc   = 'Scores for different Feature Importances: '
+    tqdm_kf_obj = tqdm(range(n_feat), desc=tqdm_desc)
+    for kk in tqdm_kf_obj:
         ## ---- General ---- ##
         # Initializing model
         model_gen_kk = sklearn.base.clone(param_dict['skem_dict'][skem_key])

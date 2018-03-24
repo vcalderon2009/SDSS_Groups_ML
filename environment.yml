@@ -20,6 +20,8 @@ dependencies:
   - seaborn>=0.8.1
   - scikit-learn>=0.19.1
   - sphinx
+  - xgboost
+  - py-xgboost
   - pip
   - pip:
     - GitPython
@@ -27,3 +29,4 @@ dependencies:
     - sphinx_rtd_theme
     - tqdm
     - tables
+    - xgboost
