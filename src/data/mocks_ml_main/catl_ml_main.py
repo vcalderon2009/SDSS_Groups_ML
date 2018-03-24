@@ -639,6 +639,7 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
     model_score_tot = model_gen.score(X_test, Y_test)
     # K-fold
     # Choosing which method to use
+    kf_models_arr    = [[] for kk in kf_splits]
     kf_scores        = num.zeros(kf_splits)
     kdf_features_imp = num.zeros((kf_splits, n_feat))
     kf_obj           = ms.KFold(n_splits=kf_splits,
@@ -659,6 +660,8 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
         kf_scores[kk] = kf_kk_score
         ## Feature importances
         kdf_features_imp[kk] = model_kf.feature_importances_.astype(float)
+        ## Saving Model to array
+        kf_models_arr[kk] = model_kf
     ##
     ## ------- Feature Importance ------- ##
     ##
@@ -718,6 +721,7 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
     model_dict['feat_score_gen_cumu'] = feat_score_gen_cumu
     model_dict['feat_score_kf_cumu' ] = feat_score_kf_cumu
     model_dict['model_gen'          ] = model_gen
+    model_dict['kf_models_arr'      ] = kf_models_arr
 
     return model_dict
 
