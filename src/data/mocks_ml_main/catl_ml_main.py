@@ -849,6 +849,10 @@ def saving_data(param_dict, proj_dict, model_fits_dict, train_dict, test_dict):
     except:
         msg = '{0} File `{1}` was not found... Exiting'.format(
             param_dict['Prog_msg'], filepath)
+    ##
+    ##
+    msg = '{0} Output file: {1}'.format(param_dict['Prog_msg'], filepath)
+    print(msg)
 
 ## --------- Main Function ------------##
 
