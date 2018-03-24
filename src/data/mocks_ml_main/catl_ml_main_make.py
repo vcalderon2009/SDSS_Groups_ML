@@ -95,6 +95,13 @@ def get_parser():
                             formatter_class=SortingHelpFormatter,)
     ## 
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
+    ## Type of analysis to perform
+    parser.add_argument('-a', '--analysis',
+                        dest='analysis_type',
+                        help='Type of analysis to make',
+                        type=str,
+                        choices=['training', 'plots'],
+                        default='training')
     ## Number of HOD's to create. Dictates how many different types of 
     ##      mock catalogues to create
     parser.add_argument('-hod_model_n',
@@ -263,24 +270,38 @@ def get_analysis_params(param_dict):
     ## Format: (name of variable, flag, value)
     #
     # For `mocks`
-    params_arr = num.array([('hod_n'       ,'-hod_model_n' ,0          ),
-                            ('halotype'    ,'-halotype'    ,'so'       ),
-                            ('clf_method'  ,'-clf_method'  ,3          ),
-                            ('sample'      ,'-sample'      ,'19'       ),
-                            ('catl_type'   ,'-abopt'       ,'mr'       ),
-                            ('cosmo_choice','-cosmo'       ,'LasDamas' ),
-                            ('nmin'        ,'-nmin'        ,1          ),
-                            ('sample_frac' ,'-sample_frac' ,0.01       ),
-                            ('perf_opt'    ,'-perf'        ,False      ),
-                            ('test_size'   ,'-test_size'   ,0.25       ),
-                            ('kf_splits'   ,'-kf_splits'   ,3          ),
-                            ('n_predict'   ,'-n_predict'   ,1          ),
-                            ('shuffle_opt' ,'-shuffle_opt' ,'True'     ),
-                            ('dropna_opt'  ,'-dropna_opt'  ,'True'     ),
-                            ('seed'        ,'-seed'        ,1          ),
-                            ('cpu_frac'    ,'-cpu'         ,0.75       ),
-                            ('remove_files','-remove'      ,'False'    ),
-                            ('verbose'     ,'-v'           ,'False'    )])
+    if param_dict['analysis_type'] == 'training':
+        params_arr = num.array([('hod_n'       ,'-hod_model_n' ,0          ),
+                                ('halotype'    ,'-halotype'    ,'so'       ),
+                                ('clf_method'  ,'-clf_method'  ,3          ),
+                                ('sample'      ,'-sample'      ,'19'       ),
+                                ('catl_type'   ,'-abopt'       ,'mr'       ),
+                                ('cosmo_choice','-cosmo'       ,'LasDamas' ),
+                                ('nmin'        ,'-nmin'        ,1          ),
+                                ('sample_frac' ,'-sample_frac' ,0.01       ),
+                                ('perf_opt'    ,'-perf'        ,False      ),
+                                ('test_size'   ,'-test_size'   ,0.25       ),
+                                ('kf_splits'   ,'-kf_splits'   ,3          ),
+                                ('n_predict'   ,'-n_predict'   ,1          ),
+                                ('shuffle_opt' ,'-shuffle_opt' ,'True'     ),
+                                ('dropna_opt'  ,'-dropna_opt'  ,'True'     ),
+                                ('seed'        ,'-seed'        ,1          ),
+                                ('cpu_frac'    ,'-cpu'         ,0.75       ),
+                                ('remove_files','-remove'      ,'False'    ),
+                                ('verbose'     ,'-v'           ,'False'    )])
+    elif param_dict['analysis'] == 'plots':
+        params_arr = num.array([('hod_n'       ,'-hod_model_n' ,0          ),
+                                ('halotype'    ,'-halotype'    ,'so'       ),
+                                ('clf_method'  ,'-clf_method'  ,3          ),
+                                ('sample'      ,'-sample'      ,'19'       ),
+                                ('catl_type'   ,'-abopt'       ,'mr'       ),
+                                ('cosmo_choice','-cosmo'       ,'LasDamas' ),
+                                ('nmin'        ,'-nmin'        ,1          ),
+                                ('perf_opt'    ,'-perf'        ,False      ),
+                                ('n_predict'   ,'-n_predict'   ,1          ),
+                                ('cpu_frac'    ,'-cpu'         ,0.75       ),
+                                ('remove_files','-remove'      ,'False'    ),
+                                ('verbose'     ,'-v'           ,'False'    )])
     ##
     ## Converting to pandas DataFrame
     colnames = ['Name','Flag','Value']
@@ -311,41 +332,49 @@ def get_analysis_params(param_dict):
     ##
     ## Minimum number of galaxies in galaxy group
     params_pd.loc[params_pd['Name']=='nmin','Value'] = param_dict['nmin']
-    ##
-    ## Fraction of the total sample to use / read
-    params_pd.loc[params_pd['Name']=='sample_frac','Value'] = param_dict['sample_frac']
+
     ##
     ## Option for using 'perfect' catalogues
     params_pd.loc[params_pd['Name']=='perf_opt','Value'] = param_dict['perf_opt']
-    ##
-    ## Fraction of the sample to use for `Testing`
-    params_pd.loc[params_pd['Name']=='test_size','Value'] = param_dict['test_size']
-    ##
-    ## Number of K-Folds to use when estimating the score of the model
-    params_pd.loc[params_pd['Name']=='kf_splits','Value'] = param_dict['kf_splits']
+
     ##
     ## Number of properties to predict. Default = 1
     params_pd.loc[params_pd['Name']=='n_predict','Value'] = param_dict['n_predict']
-    ##
-    ## Option for shuffling the testing and training dataset when splitting
-    params_pd.loc[params_pd['Name']=='shuffle_opt','Value'] = param_dict['shuffle_opt']
-    ##
-    ## Option for dropping any NaN's in the training/testing datasets
-    params_pd.loc[params_pd['Name']=='dropna_opt','Value'] = param_dict['dropna_opt']
-    ##
-    ## Option for setting the 'random seed'
-    params_pd.loc[params_pd['Name']=='seed','Value'] = param_dict['seed']
-    ##
-    ## Choosing if to delete files
-    if param_dict['remove_files']:
-        ## Overwriting `remove_files` from `params_pd`
-        params_pd.loc[params_pd['Name']=='remove_files','Value'] = 'True'
     ##
     ## Choosing the amount of CPUs
     params_pd.loc[params_pd['Name']=='cpu_frac','Value'] = param_dict['cpu_frac']
     ##
     ## Option for verbosity
     params_pd.loc[params_pd['Name']=='verbose','Value'] = param_dict['verbose']
+    ## Choosing if to delete files
+    if param_dict['remove_files']:
+        ## Overwriting `remove_files` from `params_pd`
+        params_pd.loc[params_pd['Name']=='remove_files','Value'] = 'True'
+    ##
+    ## Only for `training`
+    if param_dict['analysis'] == 'training':
+        ##
+        ## Option for setting the 'random seed'
+        params_pd.loc[params_pd['Name']=='seed','Value'] = param_dict['seed']
+        ##
+        ## Fraction of the total sample to use / read
+        params_pd.loc[params_pd['Name']=='sample_frac','Value'] = param_dict['sample_frac']
+        ##
+        ## Option for shuffling the testing and training dataset when splitting
+        params_pd.loc[params_pd['Name']=='shuffle_opt','Value'] = param_dict['shuffle_opt']
+        ##
+        ## Option for dropping any NaN's in the training/testing datasets
+        params_pd.loc[params_pd['Name']=='dropna_opt','Value'] = param_dict['dropna_opt']
+        ##
+        ## Fraction of the sample to use for `Testing`
+        params_pd.loc[params_pd['Name']=='test_size','Value'] = param_dict['test_size']
+        ##
+        ## Number of K-Folds to use when estimating the score of the model
+        params_pd.loc[params_pd['Name']=='kf_splits','Value'] = param_dict['kf_splits']
+    ##
+    ## Only for `plots`
+    ##
+
 
     return params_pd
 
@@ -408,11 +437,17 @@ def project_const(param_dict):
     param_dict: python dictionary
         dictionary with project variables
     """
-    # Constants
-    window_name     = 'SDSS_ML_TRAINING'
-    sub_window_name = 'ML_Training'
+    ## Constants
+    # Environment name
     env_name        = 'sdss_groups_ml'
-    run_file_name   = 'catl_ml_main.py'
+    window_name     = 'SDSS_ML_TRAINING_PLOTTING'
+    ## Choosing script that will be ran
+    if param_dict['analysis'] == 'training':
+        sub_window_name = 'ML_Training'
+        run_file_name   = 'catl_ml_main.py'
+    elif param_dict['analysis'] == 'plots':
+        sub_window_name = 'ML_Plotting'
+        run_file_name   = 'catl_ml_main_plots.py'
     ##
     ## Saving to dictionary
     param_dict['window_name'    ] = window_name
