@@ -122,6 +122,12 @@ clean_data_dir:
 	@rm -rf $(DATA_DIR)/processed/*
 	@rm -rf $(DATA_DIR)/raw/*
 
+## Delete screens from creating catalogues
+delete_catl_screens:
+	screen -S "SDSS_ML_Groups_Catls_Create" -X quit || echo ""
+	screen -S "SDSS_ML_TRAINING" -X quit || echo ""
+	# screen -S "SDSS_Data_Mocks_create" -X quit || echo ""
+
 #################################################################################
 # Self Documenting Commands                                                     #
 #################################################################################
