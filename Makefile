@@ -82,15 +82,15 @@ endif
 
 ## Create set of `merged` catalogues, i.e. galaxy + group information
 catl_props:
-	@python $(SRC_DIR)/mocks_ml_main/catl_properties_calculations_make.py -cpu_frac $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN)
+	@python $(SRC_DIR)/mocks_ml_main/catl_properties_calculations_make.py -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN)
 
 ## Trains ML algorithms on the `merged` dataset
 ml_algs_train:
-	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main.py -cpu_frac $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -shuffle_opt $(SHUFFLE_OPT) -kf_splits $(KF_SPLITS) -test_size $(TEST_SIZE) -sample_frac $(SAMPLE_FRAC)
+	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main.py -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -shuffle_opt $(SHUFFLE_OPT) -kf_splits $(KF_SPLITS) -test_size $(TEST_SIZE) -sample_frac $(SAMPLE_FRAC)
 
 ## Plots the ML figures of the `trained` dataset
 ml_plots_make:
-	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main_plots.py -cpu_frac $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN)
+	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main_plots.py -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN)
 
 ## Run tests to see if all files (Halobias, catalogues) are in order
 test_files:
