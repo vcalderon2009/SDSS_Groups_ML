@@ -215,7 +215,7 @@ def get_parser():
                         help="""
                         Total number of K-folds to perform. Must be larger 
                         than 2""",
-                        type=_check_pos_val,
+                        type=int,
                         default=3)
     ## Option for Shuffling dataset when separing 
     ## `training` and `testing` sets
