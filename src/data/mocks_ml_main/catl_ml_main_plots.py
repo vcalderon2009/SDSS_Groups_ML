@@ -54,6 +54,7 @@ import astropy.constants as ac
 import astropy.units     as u
 import astropy.table     as astro_table
 from   astropy.coordinates import SkyCoord
+from matplotlib.colors import ListedColormap
 
 ## Functions
 
@@ -183,14 +184,12 @@ def get_parser():
                         choices=range(2,1000),
                         metavar='[1-1000]',
                         default=2)
-    ## Removing group for when determining density
-    parser.add_argument('-remove_group',
-                        dest='remove_group',
-                        help="""
-                        Option for removing the group when calculating 
-                        densities at different radii""",
+    ## `Perfect Catalogue` Option
+    parser.add_argument('-perf',
+                        dest='perf_opt',
+                        help='Option for using a `Perfect` catalogue',
                         type=_str2bool,
-                        default=True)
+                        default=False)
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -209,19 +208,6 @@ def get_parser():
                         help='Option to print out project parameters',
                         type=_str2bool,
                         default=False)
-    ## `Perfect Catalogue` Option
-    parser.add_argument('-perf',
-                        dest='perf_opt',
-                        help='Option for using a `Perfect` catalogue',
-                        type=_str2bool,
-                        default=False)
-    ## Random Seed
-    parser.add_argument('-seed',
-                        dest='seed',
-                        help='Random seed to be used for the analysis',
-                        type=int,
-                        metavar='[0-4294967295]',
-                        default=1)
     ## Program message
     parser.add_argument('-progmsg',
                         dest='Prog_msg',
@@ -323,13 +309,17 @@ def add_to_dict(param_dict):
     catl_str    += '{6}'
     catl_str     = catl_str.format(*catl_str_arr)
     ##
+    ## Column names
+    ml_dict_cols_names = ml_file_data_cols()
+    ##
     ## Saving to `param_dict`
-    param_dict['sample_s'    ] = sample_s
-    param_dict['sample_Mr'   ] = sample_Mr
-    param_dict['cens'        ] = cens
-    param_dict['sats'        ] = sats
-    param_dict['speed_c'     ] = speed_c
-    param_dict['catl_str'    ] = catl_str
+    param_dict['sample_s'          ] = sample_s
+    param_dict['sample_Mr'         ] = sample_Mr
+    param_dict['cens'              ] = cens
+    param_dict['sats'              ] = sats
+    param_dict['speed_c'           ] = speed_c
+    param_dict['catl_str'          ] = catl_str
+    param_dict['ml_dict_cols_names'] = ml_dict_cols_names
 
     return param_dict
 
@@ -371,8 +361,12 @@ def directory_skeleton(param_dict, proj_dict):
                                     'training_testing',
                                     proj_str)
     ##
+    ## Figure directory
+    figure_dir = os.path.join(  proj_dict['plot_dir'],
+                                proj_str)
+    ##
     ## Creating Directories
-    catl_dir_arr = [ext_dir, processed_dir, int_dir, raw_dir test_train_dir]
+    catl_dir_arr = [ext_dir, processed_dir, int_dir, raw_dir, test_train_dir]
     for catl_ii in catl_dir_arr:
         try:
             assert(os.path.exists(catl_ii))
@@ -381,16 +375,52 @@ def directory_skeleton(param_dict, proj_dict):
                 param_dict['Prog_msg'], catl_ii)
             raise ValueError(msg)
     ##
+    ## Creating directories
+    cu.Path_Folder(figure_dir)
+    ##
     ## Adding to `proj_dict`
-    proj_dict['ext_dir'                ] = ext_dir
-    proj_dict['processed_dir'          ] = processed_dir
-    proj_dict['int_dir'                ] = int_dir
-    proj_dict['raw_dir'                ] = raw_dir
-    proj_dict['test_train_dir'         ] = test_train_dir
+    proj_dict['ext_dir'       ] = ext_dir
+    proj_dict['processed_dir' ] = processed_dir
+    proj_dict['int_dir'       ] = int_dir
+    proj_dict['raw_dir'       ] = raw_dir
+    proj_dict['test_train_dir'] = test_train_dir
+    proj_dict['figure_dir'    ] = figure_dir
 
     return proj_dict
 
 ## --------- Preparing Data ------------##
+
+## Galaxy and Property Names
+def ml_file_data_cols():
+    """
+    Substitutes for the column names in the `ml_file`
+
+    Returns
+    ---------
+    ml_dict_cols_names: python dictionary
+        dictionary with column names for each column in the ML file
+    """
+    ml_dict_cols_names = {  'GG_r_tot':"Total Radius (G)",
+                            'GG_sigma_v': "Velocity Dispersion (G)",
+                            'GG_mr_brightest':"Lum. of Brightest Galaxy (G)",
+                            'g_galtype':"Group galaxy type",
+                            'GG_r_med':"Median radius (G)",
+                            'GG_mr_ratio': "Luminosity ratio (G,1-2)",
+                            'GG_logssfr': "log(sSFR) (G)",
+                            'GG_mdyn_rmed':"Dynamical mass at median radius (G)",
+                            'GG_dist_cluster':"Distance to closest cluster (G)",
+                            'GG_M_r':"Total Brightness (G)",
+                            'GG_rproj':"Total Rproj (G)",
+                            'GG_shape':"Group's shape (G)",
+                            'GG_mdyn_rproj':"Dynamical mass at Rproj (G)",
+                            'GG_dens_10.0':"Density at 10 Mpc/h (G)",
+                            'GG_dens_5.0':"Density at 5 Mpc/h (G)",
+                            'GG_dens_2.0':"Density at 2 Mpc/h (G)",
+                            'GG_M_group':"Group's Ab. Matched Mass (G)",
+                            'GG_sigma_v_rmed':"Velocity Dispersion at Rmed (G)",
+                            'GG_ngals':"Group richness (G)"}
+
+    return ml_dict_cols_names
 
 ## Reading in File
 def ml_file_read(proj_dict, param_dict):
@@ -428,11 +458,96 @@ def ml_file_read(proj_dict, param_dict):
 
     return model_fits_dict
 
-
-
-
-
 ## --------- Plotting Functions ------------##
+
+## Scores for `General` and `K-Folds` Methods
+
+## Feature importance - Barchart
+def feature_imp_chart(model_fits_dict, param_dict, proj_dict,
+    fig_fmt='pdf', figsize=(10,8)):
+    """
+    Plots the importance of each feature for the ML algorithm
+
+    Parameters
+    -----------
+    model_fits_dict: python dictionary
+        Dictionary for storing 'fit' and 'score' data for different algorithms
+
+    param_dict: python dictionary
+        dictionary with `project` variables
+
+    proj_dict: python dictionary
+        dictionary with info of the project that uses the
+        `Data Science` Cookiecutter template.
+
+    fig_fmt: string, optional (default = 'pdf')
+        extension used to save the figure
+
+    figsize: tuple, optional (12,15.5)
+        size of the output figure
+    """
+    ## Constants
+    ml_dict_cols_names = param_dict['ml_dict_cols_names']
+    ## Model being analyzed
+    skem_key = 'random_forest'
+    ## Figure name
+    fname = os.path.join(   proj_dict['figure_dir'],
+                            '{0}_feature_importance_{1}.pdf'.format(
+                                param_dict['catl_str'],
+                                skem_key))
+    ## Reading in data
+    feat_imp_gen_sort = model_fits_dict[skem_key]['feat_imp_gen_sort']
+    feat_imp_kf_sort  = model_fits_dict[skem_key]['feat_imp_kf_sort' ]
+    ## Converting to DataFrames
+    # General
+    feat_imp_gen_sort_pd = pd.DataFrame(feat_imp_gen_sort[:,1].astype(float),
+                                        index=feat_imp_gen_sort[:,0],
+                                        columns=['General'])
+    # K-Folds
+    feat_imp_kf_sort_pd  = pd.DataFrame(feat_imp_kf_sort[:,1].astype(float),
+                                        index=feat_imp_kf_sort[:,0],
+                                        columns=['K-Fold'])
+    ## Joining DataFrames
+    feat_gen_kf_merged   = pd.merge(    feat_imp_gen_sort_pd,
+                                        feat_imp_kf_sort_pd,
+                                        left_index=True,
+                                        right_index=True)
+    ## Renaming indices
+    feat_gen_kf_merged.rename(  index=ml_dict_cols_names, inplace=True)
+    ## Sorting by descending values
+    feat_gen_kf_merged_sort = feat_gen_kf_merged.sort_values(
+                                    by=['K-Fold','General'], ascending=False)
+    ##
+    ## Figure details
+    fig_title = skem_key.replace('_', ' ').title()
+    # Figure
+    plt.clf()
+    plt.close()
+    fig = plt.figure(figsize=figsize)
+    ax1 = fig.add_subplot(111, facecolor='white')
+    # Constants
+    feat_gen_kf_merged_sort.plot(   kind='barh',
+                                    stacked=False,
+                                    # colormap=ListedColormap(sns.color_palette("GnBu", 10)),
+                                    ax=ax1,
+                                    title=fig_title,
+                                    legend=True)
+    ## Ticks
+    ax_data_major_loc  = ticker.MultipleLocator(0.05)
+    ax1.xaxis.set_major_locator(ax_data_major_loc)
+    ##
+    ## Saving figure
+    if fig_fmt=='pdf':
+        plt.savefig(fname, bbox_inches='tight')
+    else:
+        plt.savefig(fname, bbox_inches='tight', dpi=400)
+    print('{0} Figure saved as: {1}'.format(Prog_msg, fname))
+    plt.clf()
+    plt.close()
+
+## Feature Importance - Cumulative Score
+
+
 
 ## --------- Main Function ------------##
 
@@ -468,6 +583,11 @@ def main(args):
     ## ----- Plotting Section ----- ##
     # Reading in file
     model_fits_dict = ml_file_read(proj_dict, param_dict)
+    # 
+    param_dict = ml_file_data_cols(param_dict)
+    ##
+    ## Feature Importance - Bar Chart
+    feature_imp_chart(model_fits_dict, param_dict, proj_dict)
 
 
 
