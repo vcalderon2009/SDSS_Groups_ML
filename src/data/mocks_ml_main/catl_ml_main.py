@@ -58,8 +58,10 @@ from   astropy.coordinates import SkyCoord
 from glob import glob
 # ML modules
 import sklearn
+import sklearn.metrics          as skmetrics
 import sklearn.model_selection  as ms
 import sklearn.ensemble         as skem
+import xgboost
 
 ## Functions
 
@@ -578,10 +580,16 @@ def sklearns_models():
         Dictioanry with a set of regressors uninitialized
     """
     skem_dict = {}
+    # Random Forest
     skem_dict['random_forest'    ] = skem.RandomForestRegressor(
                                         n_jobs=param_dict['cpu_number'],
                                         random_state=param_dict['seed'])
+    # Gradient Boosting Method
     skem_dict['gradient_boosting'] = skem.GradientBoostingRegressor(
+                                        random_state=param_dict['seed'])
+    # XGBoost Regressor
+    skem_dict['XGBoost'          ] = xgboost.XGBRegressor(
+                                        n_jobs=param_dict['cpu_number'],
                                         random_state=param_dict['seed'])
 
     return skem_dict
