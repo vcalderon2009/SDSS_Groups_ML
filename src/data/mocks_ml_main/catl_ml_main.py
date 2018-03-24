@@ -217,6 +217,14 @@ def get_parser():
                         than 2""",
                         type=int,
                         default=3)
+    ## Total number of properties to predict. Default = 1
+    parser.add_argument('-n_predict',
+                        dest='n_predict',
+                        help="""
+                        Number of properties to predict. Default = 1""",
+                        type=int,
+                        choices=range(1,4),
+                        default=1)
     ## Option for Shuffling dataset when separing 
     ## `training` and `testing` sets
     parser.add_argument('-shuffle_opt',
@@ -321,6 +329,14 @@ def param_vals_test(param_dict):
         msg += 'Exiting...'
         msg  = msg.format(  param_dict['Prog_msg' ],
                             param_dict['kf_splits'])
+        raise ValueError(msg)
+    ##
+    ## Checking that `kf_splits` is larger than `2`
+    if (param_dict['n_predict'] < 1):
+        msg  = '{0} The value for `n_predict` ({1}) must be LARGER than `1`'
+        msg += 'Exiting...'
+        msg  = msg.format(  param_dict['Prog_msg' ],
+                            param_dict['n_predict'])
         raise ValueError(msg)
 
 def is_tool(name):
@@ -835,9 +851,12 @@ def saving_data(param_dict, proj_dict, model_fits_dict, train_dict, test_dict):
         dictionary containing the 'testing' data from the catalogue
     """
     ## Filename
+    filepath_str  = '{0}_n_predict_{1}'
+    filepath_str += '_model_fits_dict.p'
+    filepath_str  = filepath_str.format(param_dict['catl_str' ],
+                                        param_dict['n_predict'])
     filepath = os.path.join(    proj_dict['test_train_dir'],
-                                '{0}_model_fits_dict.p'.format(
-                                    param_dict['catl_str']))
+                                filepath_str)
     ## Elements to be saved
     obj_arr = [model_fits_dict, train_dict, test_dict, param_dict]
     ## Saving pickle file

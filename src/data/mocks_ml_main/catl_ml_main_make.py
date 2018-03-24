@@ -182,6 +182,14 @@ def get_parser():
                         than 2""",
                         type=int,
                         default=3)
+    ## Total number of properties to predict. Default = 1
+    parser.add_argument('-n_predict',
+                        dest='n_predict',
+                        help="""
+                        Number of properties to predict. Default = 1""",
+                        type=int,
+                        choices=range(1,4),
+                        default=1)
     ## Option for Shuffling dataset when separing 
     ## `training` and `testing` sets
     parser.add_argument('-shuffle_opt',
@@ -266,6 +274,7 @@ def get_analysis_params(param_dict):
                             ('perf_opt'    ,'-perf'        ,False      ),
                             ('test_size'   ,'-test_size'   ,0.25       ),
                             ('kf_splits'   ,'-kf_splits'   ,3          ),
+                            ('n_predict'   ,'-n_predict'   ,1          ),
                             ('shuffle_opt' ,'-shuffle_opt' ,'True'     ),
                             ('dropna_opt'  ,'-dropna_opt'  ,'True'     ),
                             ('seed'        ,'-seed'        ,1          ),
@@ -314,6 +323,9 @@ def get_analysis_params(param_dict):
     ##
     ## Number of K-Folds to use when estimating the score of the model
     params_pd.loc[params_pd['Name']=='kf_splits','Value'] = param_dict['kf_splits']
+    ##
+    ## Number of properties to predict. Default = 1
+    params_pd.loc[params_pd['Name']=='n_predict','Value'] = param_dict['n_predict']
     ##
     ## Option for shuffling the testing and training dataset when splitting
     params_pd.loc[params_pd['Name']=='shuffle_opt','Value'] = param_dict['shuffle_opt']
