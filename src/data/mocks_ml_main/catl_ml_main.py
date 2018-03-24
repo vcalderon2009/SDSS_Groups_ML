@@ -550,7 +550,7 @@ def training_testing_data(param_dict, proj_dict, test_size=0.25,
     catl_pd     = catl_pd_tot.sample(frac=sample_frac, random_state=random_state)
     catl_pd_tot = None
     ## Dropping `groupid`
-    catl_drop_arr = ['groupid']
+    catl_drop_arr = ['groupid', 'halo_rvir', 'galtype', 'halo_ngal']
     catl_pd       = catl_pd.drop(catl_drop_arr, axis=1)
     ## Dropping NaN's
     if dropna_opt:
@@ -558,7 +558,10 @@ def training_testing_data(param_dict, proj_dict, test_size=0.25,
     ## Separing `features` and `predicted values`
     catl_cols      = catl_pd.columns.values
     # predicted_cols = ['g_brightest', 'M_r', 'dist_centre', 'galtype']
-    predicted_cols = ['M_h']
+    if param_dict['n_predict'] == 1:
+        predicted_cols = ['M_h']
+    elif param_dict['n_predict'] == 3:
+        predicted_cols = ['M_h', 'galtype']
     features_cols  = [s for s in catl_cols if s not in predicted_cols]
     # Creating new DataFrames
     pred_arr = catl_pd.loc[:,predicted_cols].values
