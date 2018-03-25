@@ -508,9 +508,9 @@ def ml_file_read(proj_dict, param_dict):
 
 ## Scores for `General` and `K-Folds` Methods
 
-## Feature importance - Barchart
+## Feature importance - Bar Chart
 def feature_imp_chart(model_fits_dict, param_dict, proj_dict,
-    fig_fmt='pdf', figsize=(10,8)):
+    fig_fmt='pdf', figsize=(10,8), fig_number=1):
     """
     Plots the importance of each feature for the ML algorithm
 
@@ -531,6 +531,9 @@ def feature_imp_chart(model_fits_dict, param_dict, proj_dict,
 
     figsize: tuple, optional (12,15.5)
         size of the output figure
+
+    fig_number: int, optional (default = 2)
+        number of figure in the workflow
     """
     ## Constants
     ml_dict_cols_names = param_dict['ml_dict_cols_names']
@@ -541,7 +544,8 @@ def feature_imp_chart(model_fits_dict, param_dict, proj_dict,
         ## Model being analyzed
         ## Figure name
         fname = os.path.join(   proj_dict['figure_dir'],
-                                '{0}_feature_importance_{1}.pdf'.format(
+                                'Fig_{0}_{1}_feature_importance_{2}.pdf'.format(
+                                    fig_number,
                                     param_dict['catl_str_fig'],
                                     skem_key))
         ## Reading in data
@@ -601,7 +605,86 @@ def feature_imp_chart(model_fits_dict, param_dict, proj_dict,
         plt.clf()
         plt.close()
 
-## Feature Importance - Cumulative Score
+## Model Score - Different algorithms - Bar Chart
+def model_score_chart(model_fits_dict, param_dict, proj_dict,
+    fig_fmt='pdf', figsize=(10,8), fig_number=2):
+    """
+    Plots the importance of each feature for the ML algorithm
+
+    Parameters
+    -----------
+    model_fits_dict: python dictionary
+        Dictionary for storing 'fit' and 'score' data for different algorithms
+
+    param_dict: python dictionary
+        dictionary with `project` variables
+
+    proj_dict: python dictionary
+        dictionary with info of the project that uses the
+        `Data Science` Cookiecutter template.
+
+    fig_fmt: string, optional (default = 'pdf')
+        extension used to save the figure
+
+    figsize: tuple, optional (12,15.5)
+        size of the output figure
+
+    fig_number: int, optional (default = 2)
+        number of figure in the workflow
+    """
+    ##
+    ## Figure name
+    fname = os.path.join(   proj_dict['figure_dir'],
+                            'Fig_{0}_{1}_ml_algorithms_scores.pdf'.format(
+                                fig_number,
+                                param_dict['catl_str_fig']))
+    ## Algorithm names - Thought as indices for the plot
+    ml_algs_names = num.sort(list(model_fits_dict.keys()))
+    ## Initializing DataFrame
+    zero_arr   = num.zeros(len(ml_algs_names))
+    col_names  = ['General','K-Fold']
+    ml_algs_pd = pd.DataFrame(dict(zip(col_names,[zero_arr.copy() for x in range(len(col_names))])))
+    ## Reading in data
+    for kk, ml_kk in enumerate(ml_algs_names):
+        ## General Score
+        ml_score_gen_kk = model_fits_dict[ml_kk]['model_score_tot']
+        ## K-Fold Score
+        ml_score_kf_kk  = model_fits_dict[ml_kk]['kf_scores'].mean()
+        ## Assigning to DataFrame
+        ml_algs_pd.loc[kk, 'General'] = ml_score_gen_kk
+        ml_algs_pd.loc[kk, 'K-Fold' ] = ml_score_kf_kk
+    ##
+    ## Rename indices
+    ml_algs_indices = [xx.replace('_',' ').title() for xx in ml_algs_names]
+    ml_algs_pd.rename(index=dict(zip(range(len(ml_algs_names)),ml_algs_indices)),
+                        inplace=True)
+    ##
+    ## Plotting
+    plt.clf()
+    plt.close()
+    fig = plt.figure(figsize=figsize)
+    ax1 = fig.add_subplot(111, facecolor='white')
+    # Constants
+    ml_algs_pd.plot(kind='barh',
+                    stacked=False,
+                    ax=ax1,
+                    legend=True)
+    ## Ticks
+    ax_data_major_loc  = ticker.MultipleLocator(0.05)
+    ax1.xaxis.set_major_locator(ax_data_major_loc)
+    ##
+    ## Axis label
+    xlabel = 'Score'
+    ax1.set_xlabel(xlabel)
+    ##
+    ## Saving figure
+    if fig_fmt=='pdf':
+        plt.savefig(fname, bbox_inches='tight')
+    else:
+        plt.savefig(fname, bbox_inches='tight', dpi=400)
+    print('{0} Figure saved as: {1}'.format(Prog_msg, fname))
+    plt.clf()
+    plt.close()
 
 
 
@@ -644,8 +727,14 @@ def main(args):
         test_dict      ,
         param_dict_ml  ) = ml_file_read(proj_dict, param_dict)
     ##
-    ## Feature Importance - Bar Chart
+    ## Feature Importance - Bar Chart - Different Algorithms
     feature_imp_chart(model_fits_dict, param_dict, proj_dict)
+    ##
+    ## Score for each Algorithm
+    model_score_chart(model_fits_dict, param_dict, proj_dict)
+    ##
+    ## Fractional difference of predicted and truth
+
 
 
 
