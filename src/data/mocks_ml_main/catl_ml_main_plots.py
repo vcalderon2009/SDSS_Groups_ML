@@ -340,6 +340,9 @@ def add_to_dict(param_dict):
     ## Column names
     ml_dict_cols_names = ml_file_data_cols()
     ##
+    ## Plotting constants
+    plot_dict = {'size_label':18}
+    ##
     ## Saving to `param_dict`
     param_dict['sample_s'          ] = sample_s
     param_dict['sample_Mr'         ] = sample_Mr
@@ -349,6 +352,7 @@ def add_to_dict(param_dict):
     param_dict['catl_str_read'     ] = catl_str_read
     param_dict['catl_str_fig'      ] = catl_str_fig
     param_dict['ml_dict_cols_names'] = ml_dict_cols_names
+    param_dict['plot_dict'         ] = plot_dict
 
     return param_dict
 
@@ -483,7 +487,7 @@ def ml_file_read(proj_dict, param_dict):
                 dictionary containing the 'training' data from the catalogue
             - 'test_dict': python dictionary
                 dictionary containing the 'testing' data from the catalogue
-            - 'param_dict': python dictionary
+            - 'param_dict_ml': python dictionary
                 dictionary with `project` variables used when training the 
                 algorithms.
     """
@@ -532,7 +536,7 @@ def feature_imp_chart(model_fits_dict, param_dict, proj_dict,
     figsize: tuple, optional (12,15.5)
         size of the output figure
 
-    fig_number: int, optional (default = 2)
+    fig_number: int, optional (default = 1)
         number of figure in the workflow
     """
     ## Constants
@@ -686,7 +690,218 @@ def model_score_chart(model_fits_dict, param_dict, proj_dict,
     plt.clf()
     plt.close()
 
+## Fractional difference of truth and predicted
+def frac_diff_model(model_fits_dict, test_dict, param_dict, proj_dict,
+    param_dict_ml, bin_width = 0.4, arr_len=10, bin_statval='left',
+    fig_fmt='pdf', figsize=(10,8), fig_number=3):
+    """
+    Plots the importance of each feature for the ML algorithm
 
+    Parameters
+    -----------
+    model_fits_dict: python dictionary
+        Dictionary for storing 'fit' and 'score' data for different algorithms
+
+    test_dict: python dictionary
+        dictionary containing the 'testing' data from the catalogue
+
+    param_dict: python dictionary
+        dictionary with `project` variables
+
+    proj_dict: python dictionary
+        dictionary with info of the project that uses the
+        `Data Science` Cookiecutter template.
+
+    param_dict_ml: python dictionary
+        dictionary with `project` variables used when training the 
+        algorithms.
+
+    bin_width: float, optional (default = 0.4)
+        width of the bin used for the `truth` axis
+
+    arr_len: int, optional (default=0)
+        Minimum number of elements in bins
+
+    bin_statval: string, optional (default='average')
+        Option for where to plot the bin values of X1_arr and Y1_arr.
+        - 'average': Returns the x-points at the average x-value of the bin
+        - 'left'   : Returns the x-points at the left-edge of the x-axis bin
+        - 'right'  : Returns the x-points at the right-edge of the x-axis bin
+
+    fig_fmt: string, optional (default = 'pdf')
+        extension used to save the figure
+
+    figsize: tuple, optional (12,15.5)
+        size of the output figure
+
+    fig_number: int, optional (default = )
+        number of figure in the workflow
+
+    Note
+    -------
+    I'm using the `General` predictions for all algorithms
+    """
+    # Constants
+    cm        = plt.cm.get_cmap('viridis')
+    plot_dict = param_dict['plot_dict']
+    ham_color = 'red'
+    alpha     = 0.3
+    ##
+    ## Figure name
+    fname = os.path.join(   proj_dict['figure_dir'],
+                            'Fig_{0}_{1}_frac_diff_predicted.pdf'.format(
+                                fig_number,
+                                param_dict['catl_str_fig']))
+    ## Algorithm names - Thought as indices for the plot
+    ml_algs_names = num.sort(list(model_fits_dict.keys()))
+    n_ml_algs     = len(ml_algs_names)
+    # Initializing dictionary that will contain the necessary information
+    # on each model
+    frac_diff_dict = {}
+    ## Reading in arrays for different models
+    for kk, model_kk in enumerate(ml_algs_names):
+        # X and Y coordinates
+        model_kk_x = test_dict['Y_test']
+        model_kk_y = model_fits_dict[model_kk]['model_gen_frac_diff_arr']
+        ## Calculating error in bins
+        (   x_stat_arr,
+            y_stat_arr,
+            y_std_arr ,
+            y_std_err ) = cu.Mean_Std_calculations_One_array(   model_kk_x,
+                                                                model_kk_y,
+                                                                base=bin_width,
+                                                                arr_len=arr_len,
+                                                                bin_statval=bin_statval)
+        ## Saving to dictionary
+        frac_diff_dict[model_kk]      = {}
+        frac_diff_dict[model_kk]['x_val' ] = model_kk_x
+        frac_diff_dict[model_kk]['y_val' ] = model_kk_y
+        frac_diff_dict[model_kk]['x_stat'] = x_stat_arr
+        frac_diff_dict[model_kk]['y_stat'] = y_stat_arr
+        frac_diff_dict[model_kk]['y_err' ] = y_std_arr
+    ## Abundance matched mass
+    features_cols = num.array(param_dict_ml['features_cols'])
+    Mh_ham_key    = 'GG_M_group'
+    Mh_ham_idx    = num.where(features_cols == Mh_ham_key)[0]
+    mgroup_ham    = test_dict['X_test'].T[Mh_ham_idx].flatten()
+    mh_true_arr   = test_dict['Y_test'].flatten()
+    # Fractional difference M_Ham and True mass
+    frac_diff_mham_mh = 100.*(mgroup_ham - mh_true_arr)/mh_true_arr
+    # Binning data
+    (   x_stat_ham_arr,
+        y_stat_ham_arr,
+        y_std_ham_arr ,
+        y_std_ham_err ) = cu.Mean_Std_calculations_One_array(   mh_true_arr,
+                                                                frac_diff_mham_mh,
+                                                                base=bin_width,
+                                                                arr_len=arr_len,
+                                                                bin_statval=bin_statval)
+    y1_ham = y_stat_ham_arr - y_std_ham_arr
+    y2_ham = y_stat_ham_arr + y_std_ham_arr
+    ##
+    ## Figure details
+    # ML algorithms - names
+    ml_algs_names_mod  = [xx.replace('_',' ').title() for xx in ml_algs_names]
+    ml_algs_names_dict = dict(zip(ml_algs_names, ml_algs_names_mod))
+    # Labels
+    xlabel = r'\boldmath$\log M_{halo,\textrm{true}}\left[ h^{-1} M_{\odot}\right]$'
+    ylabel = r'Fractional Difference \boldmath$[\%]$'
+    ##
+    plt.clf()
+    plt.close()
+    fig = plt.figure(figsize=figsize)
+    ax1 = fig.add_subplot(111, facecolor='white')
+    ## Color
+    cm  = plt.cm.get_cmap('viridis')
+    cm_arr = [cm(kk/float(n_ml_algs)) for kk in range(n_ml_algs)]
+    ## Horizontal line
+    ax1.axhline(y=0, color='black', linestyle='--', zorder=10)
+    ##
+    ## Plotttin ML relations
+    for kk, model_kk in enumerate(ml_algs_names):
+        ## ML algorithm name
+        ml_alg_kk_name = model_kk.replace('_',' ').title()
+        ## Stats
+        x_stat = frac_diff_dict[model_kk]['x_stat']
+        y_stat = frac_diff_dict[model_kk]['y_stat']
+        y_err  = frac_diff_dict[model_kk]['y_err' ]
+        ## Fill-between variables
+        y1 = y_stat - y_err
+        y2 = y_stat + y_err
+
+        ## Plotting relation
+        ax1.plot(   x_stat,
+                    y_stat,
+                    color=cm_arr[kk],
+                    linestyle='-',
+                    marker='o')
+        ax1.fill_between(x_stat, y1, y2, color=cm_arr[kk], alpha=alpha,
+                        label=ml_alg_kk_name)
+    ## HAM Masses
+    ax1.plot(   x_stat_ham_arr,
+                y_stat_ham_arr,
+                color=ham_color,
+                linestyle='-',
+                marker='o')
+    ax1.fill_between(   x_stat_ham_arr, y1_ham, y2_ham, color=ham_color,
+                        alpha=alpha, label='HAM')
+    ## Legend
+    leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
+        prop={'size':14})
+    leg.get_frame().set_facecolor('none')
+    ## Ticks
+    # X-axis
+    ax_xaxis_major_loc = ticker.MultipleLocator(bin_width)
+    ax1.xaxis.set_major_locator(ax_xaxis_major_loc)
+    # Y-axis
+    yaxis_major_ticker = 5
+    yaxis_minor_ticker = 1
+    ax_yaxis_major_loc = ticker.MultipleLocator(yaxis_major_ticker)
+    ax_yaxis_minor_loc = ticker.MultipleLocator(yaxis_minor_ticker)
+    ax1.yaxis.set_major_locator(ax_yaxis_major_loc)
+    ax1.yaxis.set_minor_locator(ax_yaxis_minor_loc)
+    ## Labels
+    ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
+    ax1.set_ylabel(ylabel, fontsize=plot_dict['size_label'])
+    ##
+    ## Saving figure
+    if fig_fmt=='pdf':
+        plt.savefig(fname, bbox_inches='tight')
+    else:
+        plt.savefig(fname, bbox_inches='tight', dpi=400)
+    print('{0} Figure saved as: {1}'.format(Prog_msg, fname))
+    plt.clf()
+    plt.close()
+
+## Overall score as each feature is being added sequentially
+## For each algorithm separately
+def cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict,
+    fig_fmt='pdf', figsize=(10,8), fig_number=4):
+    """
+    Plots the overall score of an algorithm, as each important feature 
+    is added sequentially
+
+    Parameters
+    -----------
+    model_fits_dict: python dictionary
+        Dictionary for storing 'fit' and 'score' data for different algorithms
+    
+    param_dict: python dictionary
+        dictionary with `project` variables
+
+    proj_dict: python dictionary
+        dictionary with info of the project that uses the
+        `Data Science` Cookiecutter template.
+    
+    fig_fmt: string, optional (default = 'pdf')
+        extension used to save the figure
+
+    figsize: tuple, optional (12,15.5)
+        size of the output figure
+
+    fig_number: int, optional (default = )
+        number of figure in the workflow
+    """
 
 ## --------- Main Function ------------##
 
@@ -734,6 +949,11 @@ def main(args):
     model_score_chart(model_fits_dict, param_dict, proj_dict)
     ##
     ## Fractional difference of predicted and truth
+    frac_diff_model(model_fits_dict, test_dict, param_dict, proj_dict,
+        param_dict_ml)
+    ##
+    ## Overall score as each feature is being added sequentially
+    
 
 
 
