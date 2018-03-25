@@ -341,7 +341,8 @@ def add_to_dict(param_dict):
     ml_dict_cols_names = ml_file_data_cols()
     ##
     ## Plotting constants
-    plot_dict = {'size_label':18}
+    plot_dict = {   'size_label':18,
+                    'size_title':20}
     ##
     ## Saving to `param_dict`
     param_dict['sample_s'          ] = sample_s
@@ -876,7 +877,7 @@ def frac_diff_model(model_fits_dict, test_dict, param_dict, proj_dict,
 ## Overall score as each feature is being added sequentially
 ## For each algorithm separately
 def cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict,
-    fig_fmt='pdf', figsize=(10,8), fig_number=4):
+    fig_fmt='pdf', figsize=(10,8), fig_number=4, grid_opt=False):
     """
     Plots the overall score of an algorithm, as each important feature 
     is added sequentially
@@ -899,9 +900,100 @@ def cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict,
     figsize: tuple, optional (12,15.5)
         size of the output figure
 
-    fig_number: int, optional (default = )
+    fig_number: int, optional (default = 4)
         number of figure in the workflow
+
+    grid_opt: boolean, optional (default = False)
+        option for plotting a grid
+
+    Note
+    -------
+    I'm using the `General` predictions for all algorithms
     """
+    ## Constants
+    ml_dict_cols_names = param_dict['ml_dict_cols_names']
+    plot_dict          = param_dict['plot_dict']
+    ## List of algorithms being used
+    skem_key_arr = num.sort(list(model_fits_dict.keys()))
+    ## Looping over all algorithms
+    for skem_key in tqdm(skem_key_arr):
+        ## Model being analyzed
+        ## Figure name
+        fname = os.path.join(   proj_dict['figure_dir'],
+                                'Fig_{0}_{1}_cumu_score_feats_{2}.pdf'.format(
+                                    fig_number,
+                                    param_dict['catl_str_fig'],
+                                    skem_key))
+        ## Reading in data
+        feat_score_gen_cumu = model_fits_dict[skem_key]['feat_score_gen_cumu']
+        ## Converting to pandas DataFrame
+        feat_score_cumu_pd  = pd.DataFrame( feat_score_gen_cumu[:,1].astype(float),
+                                            index=feat_score_gen_cumu[:,0],
+                                            columns=['score_cumu'])
+        # feat_score_cumu_pd.loc[:,'idx'] = num.arange(len(feat_score_cumu_pd))
+        feat_score_cumu_pd = feat_score_cumu_pd.astype(float)
+        ## Renaming index
+        feat_score_cumu_pd.rename(index=ml_dict_cols_names, inplace=True)
+        # Number of features
+        n_feat = len(feat_score_cumu_pd)
+        ##
+        ## Figure details
+        ml_alg_accuracy = 100*feat_score_cumu_pd['score_cumu'].max()
+        fig_title       = skem_key.replace('_', ' ').title()
+        fig_title      += ' - {0:.2f}\% Accuracy'.format(ml_alg_accuracy)
+        # Figure
+        plt.clf()
+        plt.close()
+        fig = plt.figure(figsize=figsize)
+        ax1 = fig.add_subplot(111, facecolor='white')
+        # Axes labels
+        xlabel = r'Score $[\%]$'
+        ylabel = r'$\leftarrow \textrm{Adding importance}$'
+        ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
+        ax1.set_ylabel(ylabel, fontsize=plot_dict['size_label'])
+        # Title
+        ax1.set_title(fig_title, fontsize=plot_dict['size_title'])
+        # Limits
+        y_offset = 0.5
+        ax1.set_ylim(0-y_offset, n_feat-y_offset)
+        # Major Tick marks
+        ax_yaxis_ticks_loc = ticker.MultipleLocator(1.)
+        ax1.yaxis.set_major_locator(ax_xaxis_ticks_loc)
+        # Plotting
+        y_arr = num.arange(feat_score_cumu_pd.shape[0])
+        x_arr = feat_score_cumu_pd['score_cumu'].values
+        ax1.plot(   100*x_arr,
+                    y_arr,
+                    color='blue',
+                    marker='o',
+                    linestyle='-',
+                    label='General')
+        # Setting ticks
+        ax1.set_yticks(y_arr)
+        # Changing tick marks
+        yaxis_new_ticks = feat_score_cumu_pd.index.values
+        ax1.yaxis.set_ticklabels(yaxis_new_ticks)
+        # grid
+        if grid_opt:
+            ax1.grid(which='major', color='grey', linestyle='--')
+        ## Reversing array
+        ax1.invert_yaxis()
+        ## Legend
+        leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
+            prop={'size':14})
+        leg.get_frame().set_facecolor('none')
+        ##
+        ## Saving figure
+        if fig_fmt=='pdf':
+            plt.savefig(fname, bbox_inches='tight')
+        else:
+            plt.savefig(fname, bbox_inches='tight', dpi=400)
+        print('{0} Figure saved as: {1}'.format(Prog_msg, fname))
+        plt.clf()
+        plt.close()
+        
+
+
 
 ## --------- Main Function ------------##
 
@@ -953,7 +1045,8 @@ def main(args):
         param_dict_ml)
     ##
     ## Overall score as each feature is being added sequentially
-    
+    cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict)
+
 
 
 
