@@ -877,7 +877,7 @@ def frac_diff_model(model_fits_dict, test_dict, param_dict, proj_dict,
 ## Overall score as each feature is being added sequentially
 ## For each algorithm separately
 def cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict,
-    fig_fmt='pdf', figsize=(10,8), fig_number=4, grid_opt=False):
+    fig_fmt='pdf', figsize=(10,8), fig_number=4, grid_opt=True):
     """
     Plots the overall score of an algorithm, as each important feature 
     is added sequentially
@@ -903,7 +903,7 @@ def cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict,
     fig_number: int, optional (default = 4)
         number of figure in the workflow
 
-    grid_opt: boolean, optional (default = False)
+    grid_opt: boolean, optional (default = True)
         option for plotting a grid
 
     Note
@@ -953,12 +953,15 @@ def cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict,
         ax1.set_ylabel(ylabel, fontsize=plot_dict['size_label'])
         # Title
         ax1.set_title(fig_title, fontsize=plot_dict['size_title'])
-        # Limits
+        ## Limits
+        # X-axis
+        ax1.set_xlim(0, 100.)
+        # Y-axis
         y_offset = 0.5
         ax1.set_ylim(0-y_offset, n_feat-y_offset)
         # Major Tick marks
         ax_yaxis_ticks_loc = ticker.MultipleLocator(1.)
-        ax1.yaxis.set_major_locator(ax_xaxis_ticks_loc)
+        ax1.yaxis.set_major_locator(ax_yaxis_ticks_loc)
         # Plotting
         y_arr = num.arange(feat_score_cumu_pd.shape[0])
         x_arr = feat_score_cumu_pd['score_cumu'].values
@@ -973,6 +976,11 @@ def cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict,
         # Changing tick marks
         yaxis_new_ticks = feat_score_cumu_pd.index.values
         ax1.yaxis.set_ticklabels(yaxis_new_ticks)
+        ## X-axis ticks
+        ax_yaxis_major_ticks_loc = ticker.MultipleLocator(10)
+        ax_yaxis_minor_ticks_loc = ticker.MultipleLocator(5)
+        ax1.xaxis.set_major_locator(ax_yaxis_major_ticks_loc)
+        ax1.xaxis.set_major_locator(ax_yaxis_minor_ticks_loc)
         # grid
         if grid_opt:
             ax1.grid(which='major', color='grey', linestyle='--')
@@ -992,6 +1000,158 @@ def cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict,
         plt.clf()
         plt.close()
         
+##
+## Ranking of each Galaxy property for each different algorithm
+def feature_ranking_ml_algs(model_fits_dict, param_dict, proj_dict,
+    param_dict_ml, fig_fmt='pdf', figsize=(15,12), fig_number=5,
+    stacked_opt=True):
+    """
+    Plots the `ranking` of each galaxy property based on the different 
+    ML algorithms used.
+
+    Parameters
+    -----------
+    model_fits_dict: python dictionary
+        Dictionary for storing 'fit' and 'score' data for different algorithms
+    
+    param_dict: python dictionary
+        dictionary with `project` variables
+
+    proj_dict: python dictionary
+        dictionary with info of the project that uses the
+        `Data Science` Cookiecutter template.
+
+    param_dict_ml: python dictionary
+        dictionary with `project` variables used when training the 
+        algorithms.
+    
+    fig_fmt: string, optional (default = 'pdf')
+        extension used to save the figure
+
+    figsize: tuple, optional (12,15.5)
+        size of the output figure
+
+    fig_number: int, optional (default = 5)
+        number of figure in the workflow
+
+    stacked_opt: boolean, optional (default = True)
+        option to stack the bar plots
+    """
+    ## Figure name
+    fname = os.path.join(   proj_dict['figure_dir'],
+                            'Fig_{0}_{1}_feature_ranking.pdf'.format(
+                                fig_number,
+                                param_dict['catl_str_fig']))
+    ## Constants
+    ml_dict_cols_names = param_dict['ml_dict_cols_names']
+    plot_dict          = param_dict['plot_dict']
+    ## List of algorithms being used
+    skem_key_arr = num.sort(list(model_fits_dict.keys()))
+    # Number of ML algorithms
+    n_ml_algs = len(skem_key_arr)
+    # Features used
+    feat_arr = num.array(param_dict_ml['features_cols'])
+    # Number of features
+    n_feat = len(feat_arr)
+    # Initializing array
+    feat_rank_arr = num.zeros((n_feat, n_ml_algs))
+    # Initializing DataFrame
+    feat_rank_pd = pd.DataFrame(num.zeros(n_feat), index=feat_arr, columns=['temp'])
+    # Looping over ML algorithms
+    for kk, skem_key in tqdm(enumerate(skem_key_arr)):
+        # Reading in Data
+        feat_imp_gen_sort = model_fits_dict[skem_key]['feat_imp_gen_sort']
+        feat_imp_kf_sort  = model_fits_dict[skem_key]['feat_imp_kf_sort' ]
+        ## Converting to DataFrame
+        # General
+        feat_imp_gen_sort_pd = pd.DataFrame(feat_imp_gen_sort[:,1].astype(float),
+                                            index=feat_imp_gen_sort[:,0],
+                                            columns=['{0}_gen'.format(skem_key)])
+        feat_imp_gen_sort_pd.loc[:,'{0}_gen_rank'.format(skem_key)] = \
+                                feat_imp_gen_sort_pd.rank(ascending=False)
+        # K-Folds
+        feat_imp_kf_sort_pd  = pd.DataFrame(feat_imp_kf_sort[:,1].astype(float),
+                                            index=feat_imp_kf_sort[:,0],
+                                            columns=['{0}_kf'.format(skem_key)])
+        feat_imp_kf_sort_pd.loc[:,'{0}_kf_rank'.format(skem_key)] = \
+                                feat_imp_kf_sort_pd.rank(ascending=False)
+        ## Joining DataFrames
+        feat_gen_kf_merged   = pd.merge(    feat_imp_gen_sort_pd,
+                                            feat_imp_kf_sort_pd,
+                                            left_index=True,
+                                            right_index=True)
+        ## Dropping non-rank columns
+        feat_cols_merged = feat_gen_kf_merged.columns.values
+        feat_cols_drop   = [s for s in feat_cols_merged if 'rank' not in s]
+        feat_gen_kf_merged.drop(columns=feat_cols_drop, inplace=True)
+        ## Merging with main DataFrame
+        feat_rank_pd = pd.merge(    feat_rank_pd,
+                                    feat_gen_kf_merged,
+                                    left_index=True,
+                                    right_index=True)
+    ##
+    ## Deleting temporary column
+    feat_rank_pd.drop(columns=['temp'], inplace=True)
+    ##
+    ## Calculating ranking
+    feat_rank_pd.loc[:,'rank_sum'] = feat_rank_pd.sum(axis=1)
+    ##
+    ## Ordering by rank
+    feat_rank_pd.sort_values('rank_sum', ascending=True, inplace=True)
+    ##
+    ## Renaming columns
+    feat_rank_pd.rename(index=ml_dict_cols_names, inplace=True)
+    ##
+    ## Excluding `rank_sum` column
+    feat_rank_col_exclude = feat_rank_pd.columns.difference(['rank_sum'])
+    feat_rank_pd_mod      = feat_rank_pd.loc[:,feat_rank_col_exclude].copy()
+    ## Renaming columns
+    feat_rank_pd_mod_cols     = feat_rank_pd_mod.columns.values
+    feat_rank_pd_mod_cols_mod = [xx.replace('_',' ').replace('_rank','').title() for xx in 
+                                feat_rank_pd_mod_cols]
+    feat_rank_pd_mod.rename(columns=dict(zip(   feat_rank_pd_mod_cols,
+                                                feat_rank_pd_mod_cols_mod)),
+                            inplace=True)
+    ##
+    ## Plotting details
+    plt.clf()
+    plt.close()
+    fig = plt.figure(figsize=figsize)
+    ax1 = fig.add_subplot(111, facecolor='white')
+    # Axis labels
+    xlabel = 'Importance ranking'
+    ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
+    # Plotting
+    # Width
+    if stacked_opt:
+        feat_rank_pd_mod.plot(  kind='barh',
+                                stacked=stacked_opt,
+                                ax=ax1,
+                                legend=True)
+    else:
+        feat_rank_pd_mod.plot(  kind='barh',
+                                stacked=stacked_opt,
+                                ax=ax1,
+                                legend=True,
+                                width=0.5)
+    ## Ticks
+    ax_data_major_loc  = ticker.MultipleLocator(10)
+    ax_data_minor_loc  = ticker.MultipleLocator(5.)
+    ax1.xaxis.set_major_locator(ax_data_major_loc)
+    ax1.xaxis.set_minor_locator(ax_data_minor_loc)
+    # Inverting axis
+    ax1.invert_yaxis()
+    ##
+    ## Saving figure
+    if fig_fmt=='pdf':
+        plt.savefig(fname, bbox_inches='tight')
+    else:
+        plt.savefig(fname, bbox_inches='tight', dpi=400)
+    print('{0} Figure saved as: {1}'.format(Prog_msg, fname))
+    plt.clf()
+    plt.close()
+
+
 
 
 
@@ -1046,6 +1206,10 @@ def main(args):
     ##
     ## Overall score as each feature is being added sequentially
     cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict)
+    ##
+    ## Ranking of each Galaxy property for each different algorithm
+    feature_ranking_ml_algs(model_fits_dict, param_dict, proj_dict,
+        param_dict_ml)
 
 
 
