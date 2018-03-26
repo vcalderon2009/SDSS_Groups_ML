@@ -586,19 +586,31 @@ def training_testing_data(param_dict, proj_dict, test_size=0.25,
     feat_arr_scaled = data_preprocessing(feat_arr, param_dict, 
                             pre_opt=param_dict['pre_opt'])
     ## Training and Testing Dataset
+    #  Scaled
     (   X_train, X_test,
         Y_train, Y_test) = skms.train_test_split(   feat_arr_scaled,
                                                     pred_arr,
                                                     test_size=test_size,
                                                     shuffle=shuffle_opt,
                                                     random_state=random_state)
+    # Not Scaled
+    (   X_train_ns, X_test_ns,
+        Y_train_ns, Y_test_ns) = skms.train_test_split( feat_arr,
+                                                        pred_arr,
+                                                        test_size=test_size,
+                                                        shuffle=shuffle_opt,
+                                                        random_state=random_state)
     ##
     ## Assigning `training` and `testing` datasets to dictionary
-    train_dict = {'X_train': X_train, 'Y_train': Y_train}
-    test_dict  = {'X_test' : X_test , 'Y_test' : Y_test }
+    train_dict = {  'X_train': X_train, 'Y_train': Y_train,
+                    'X_train_ns':X_train_ns, 'Y_train_ns':Y_train_ns}
+    test_dict  = {'X_test' : X_test , 'Y_test' : Y_test,
+                    'X_test_ns':X_test_ns, 'Y_test_ns'}
     ## Adding lists to `param_dict`
-    param_dict['predicted_cols'] = predicted_cols
-    param_dict['features_cols' ] = features_cols
+    param_dict['predicted_cols' ] = predicted_cols
+    param_dict['features_cols'  ] = features_cols
+    param_dict['feat_arr_scaled'] = feat_arr_scaled
+    param_dict['feat_arr'       ] = feat_arr
 
     return train_dict, test_dict, param_dict
 
