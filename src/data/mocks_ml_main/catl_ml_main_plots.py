@@ -550,6 +550,7 @@ def feature_imp_chart(model_fits_dict, param_dict, proj_dict,
     fig_number: int, optional (default = 1)
         number of figure in the workflow
     """
+    Prog_msg = param_dict['Prog_msg']
     ## Constants
     ml_dict_cols_names = param_dict['ml_dict_cols_names']
     ## List of algorithms being used
@@ -647,6 +648,7 @@ def model_score_chart(model_fits_dict, param_dict, proj_dict,
     fig_number: int, optional (default = 2)
         number of figure in the workflow
     """
+    Prog_msg = param_dict['Prog_msg']
     ##
     ## Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
@@ -752,6 +754,7 @@ def frac_diff_model(model_fits_dict, test_dict, param_dict, proj_dict,
     -------
     I'm using the `General` predictions for all algorithms
     """
+    Prog_msg = param_dict['Prog_msg']
     # Constants
     cm        = plt.cm.get_cmap('viridis')
     plot_dict = param_dict['plot_dict']
@@ -920,6 +923,7 @@ def cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict,
     -------
     I'm using the `General` predictions for all algorithms
     """
+    Prog_msg = param_dict['Prog_msg']
     ## Constants
     ml_dict_cols_names = param_dict['ml_dict_cols_names']
     plot_dict          = param_dict['plot_dict']
@@ -1047,6 +1051,7 @@ def feature_ranking_ml_algs(model_fits_dict, param_dict, proj_dict,
     stacked_opt: boolean, optional (default = True)
         option to stack the bar plots
     """
+    Prog_msg = param_dict['Prog_msg']
     ## Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
                             'Fig_{0}_{1}_feature_ranking.pdf'.format(
@@ -1236,7 +1241,8 @@ def main(args):
     ## End time for running the catalogues
     end_time   = datetime.now()
     total_time = end_time - start_time
-    print('{0} Total Time taken (Create): {1}'.format(Prog_msg, total_time))
+    print('{0} Total Time taken (Create): {1}'.format(param_dict['Prog_msg'],
+        total_time))
     ##
     ## Making the `param_dict` None
     param_dict = None
