@@ -125,8 +125,8 @@ def get_parser():
     """
     ## Define parser object
     description_msg = """
-                    Computes the necessary group and galaxy features for each 
-                    galaxy and galaxy group in the catalogue
+                    Trains ML algorithms on the dataset consisting of 
+                    group and galaxy properties.
                     """
     parser = ArgumentParser(description=description_msg,
                             formatter_class=SortingHelpFormatter,)
