@@ -797,8 +797,8 @@ def frac_diff_model(model_fits_dict, test_dict, param_dict, proj_dict,
     features_cols = num.array(param_dict_ml['features_cols'])
     Mh_ham_key    = 'GG_M_group'
     Mh_ham_idx    = num.where(features_cols == Mh_ham_key)[0]
-    mgroup_ham    = test_dict['X_test'].T[Mh_ham_idx].flatten()
-    mh_true_arr   = test_dict['Y_test'].flatten()
+    mgroup_ham    = test_dict['X_test_ns'].T[Mh_ham_idx].flatten()
+    mh_true_arr   = test_dict['Y_test_ns'].flatten()
     # Fractional difference M_Ham and True mass
     frac_diff_mham_mh = 100.*(mgroup_ham - mh_true_arr)/mh_true_arr
     # Binning data
