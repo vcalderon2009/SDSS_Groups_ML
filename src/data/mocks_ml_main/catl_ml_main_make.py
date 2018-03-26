@@ -299,7 +299,7 @@ def get_analysis_params(param_dict):
                                 ('cpu_frac'    ,'-cpu'         ,0.75       ),
                                 ('remove_files','-remove'      ,'False'    ),
                                 ('verbose'     ,'-v'           ,'False'    )])
-    elif param_dict['analysis'] == 'plots':
+    elif param_dict['analysis_type'] == 'plots':
         params_arr = num.array([('hod_n'       ,'-hod_model_n' ,0          ),
                                 ('halotype'    ,'-halotype'    ,'so'       ),
                                 ('clf_method'  ,'-clf_method'  ,3          ),
@@ -365,7 +365,7 @@ def get_analysis_params(param_dict):
         params_pd.loc[params_pd['Name']=='remove_files','Value'] = 'True'
     ##
     ## Only for `training`
-    if param_dict['analysis'] == 'training':
+    if param_dict['analysis_type'] == 'training':
         ##
         ## Option for setting the 'random seed'
         params_pd.loc[params_pd['Name']=='seed','Value'] = param_dict['seed']
@@ -455,10 +455,10 @@ def project_const(param_dict):
     env_name        = 'sdss_groups_ml'
     window_name     = 'SDSS_ML_TRAINING_PLOTTING'
     ## Choosing script that will be ran
-    if param_dict['analysis'] == 'training':
+    if param_dict['analysis_type'] == 'training':
         sub_window_name = 'ML_Training'
         run_file_name   = 'catl_ml_main.py'
-    elif param_dict['analysis'] == 'plots':
+    elif param_dict['analysis_type'] == 'plots':
         sub_window_name = 'ML_Plotting'
         run_file_name   = 'catl_ml_main_plots.py'
     ##
