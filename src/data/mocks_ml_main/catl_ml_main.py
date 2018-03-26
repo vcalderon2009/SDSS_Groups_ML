@@ -61,6 +61,7 @@ import sklearn
 import sklearn.metrics          as skmetrics
 import sklearn.model_selection  as skms
 import sklearn.ensemble         as skem
+import sklearn.neural_network   as skneuro
 import sklearn.preprocessing    as skpre
 import xgboost
 
@@ -647,6 +648,9 @@ def sklearns_models(param_dict, cpu_number):
     # AdaBoost Regressor
     skem_dict['AdaBoost'         ] = skem.AdaBoostRegressor(
                                         random_state=param_dict['seed'])
+    # Neural network
+    # skem_dict['Neural_Network'   ] = skneuro.MLPRegressor(
+    #                                     random_state=param_dict['seed'])
 
     return skem_dict
 
