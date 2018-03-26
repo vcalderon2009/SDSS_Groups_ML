@@ -942,11 +942,12 @@ def saving_data(param_dict, proj_dict, model_fits_dict, train_dict, test_dict):
         dictionary containing the 'testing' data from the catalogue
     """
     ## Filename
-    filepath_str  = '{0}_n_predict_{1}_pre_opt_{2}'
+    filepath_str  = '{0}_n_predict_{1}_pre_opt_{2}_sample_frac_{3}'
     filepath_str += '_model_fits_dict.p'
     filepath_str  = filepath_str.format(param_dict['catl_str' ],
                                         param_dict['n_predict'],
-                                        param_dict['pre_opt'  ])
+                                        param_dict['pre_opt'  ],
+                                        param_dict['sample_frac'])
     filepath = os.path.join(    proj_dict['test_train_dir'],
                                 filepath_str)
     ## Elements to be saved
