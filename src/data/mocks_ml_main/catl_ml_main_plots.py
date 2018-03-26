@@ -198,6 +198,15 @@ def get_parser():
                         type=int,
                         choices=range(1,4),
                         default=1)
+    ## Option for removing file
+    parser.add_argument('-pre_opt',
+                        dest='pre_opt',
+                        help="""
+                        Option for which preprocessing of the data to use.
+                        """,
+                        type=str,
+                        choices=['min_max','standard','normalize'],
+                        default='normalize')
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -326,9 +335,10 @@ def add_to_dict(param_dict):
                     param_dict['cosmo_choice'],
                     param_dict['nmin'],
                     param_dict['halotype'], 
-                    param_dict['perf_opt']]
+                    param_dict['perf_opt'],
+                    param_dict['pre_opt']]
     catl_str_read     = '{0}_hodn_{1}_clf_{2}_cosmo_{3}_nmin_{4}_halotype_{5}_perf_'
-    catl_str_read    += '{6}'
+    catl_str_read    += '{6}_pre_opt_{7}'
     catl_str_read     = catl_str_read.format(*catl_str_arr)
     ##
     ## Figure catalogue string

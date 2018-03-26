@@ -356,6 +356,9 @@ def get_analysis_params(param_dict):
     ##
     ## Option for verbosity
     params_pd.loc[params_pd['Name']=='verbose','Value'] = param_dict['verbose']
+    ##
+    ## Option for which preprocessing of the data to use
+    params_pd.loc[params_pd['Name']=='pre_opt','Value'] = param_dict['pre_opt']
     ## Choosing if to delete files
     if param_dict['remove_files']:
         ## Overwriting `remove_files` from `params_pd`
@@ -381,9 +384,6 @@ def get_analysis_params(param_dict):
         ##
         ## Number of K-Folds to use when estimating the score of the model
         params_pd.loc[params_pd['Name']=='kf_splits','Value'] = param_dict['kf_splits']
-        ##
-        ## Option for which preprocessing of the data to use
-        params_pd.loc[params_pd['Name']=='pre_opt','Value'] = param_dict['pre_opt']
     ##
     ## Only for `plots`
     ##
