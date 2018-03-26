@@ -618,6 +618,9 @@ def sklearns_models(param_dict, cpu_number):
     skem_dict['XGBoost'          ] = xgboost.XGBRegressor(
                                         n_jobs=cpu_number,
                                         random_state=param_dict['seed'])
+    # AdaBoost Regressor
+    skem_dict['AdaBoost'         ] = skem.AdaBoostRegressor(
+                                        random_state=param_dict['seed'])
 
     return skem_dict
 
