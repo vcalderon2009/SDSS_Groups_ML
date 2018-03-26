@@ -649,7 +649,7 @@ def sklearns_models(param_dict, cpu_number):
     skem_dict['AdaBoost'         ] = skem.AdaBoostRegressor(
                                         random_state=param_dict['seed'])
     # Neural network
-    # skem_dict['Neural_Network'   ] = skneuro.MLPRegressor(
+    # skem_dict['neural_network'   ] = skneuro.MLPRegressor(
     #                                     random_state=param_dict['seed'])
 
     return skem_dict
