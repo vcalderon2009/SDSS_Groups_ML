@@ -205,7 +205,7 @@ def get_parser():
                         Option for which preprocessing of the data to use.
                         """,
                         type=str,
-                        choices=['min_max','standard','normalize'],
+                        choices=['min_max','standard','normalize','no'],
                         default='normalize')
     ## CPU Counts
     parser.add_argument('-cpu',

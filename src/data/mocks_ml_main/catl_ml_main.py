@@ -658,6 +658,7 @@ def data_preprocessing(feat_arr, param_dict, pre_opt='min_max'):
             - 'min_max':
             - 'standard':
             - 'normalize':
+            - 'no':
 
     Returns
     -------------
@@ -682,6 +683,9 @@ def data_preprocessing(feat_arr, param_dict, pre_opt='min_max'):
         scaler = skpre.Normalizer().fit(feat_arr)
         # Rescaling
         feat_arr_scaled = scaler.transform(feat_arr)
+    ## No Preprocessing
+    if pre_opt == 'no':
+        feat_arr_scaled = feat_arr
 
     return feat_arr_scaled
 
