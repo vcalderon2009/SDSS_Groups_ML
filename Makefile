@@ -35,6 +35,7 @@ TEST_SIZE    = 0.25
 SAMPLE_FRAC  = 0.01
 DROP_NA      = "True"
 N_PREDICT    = 1
+PRE_OPT      = 'normalize'
 
 ifeq (,$(shell which conda))
 HAS_CONDA=False
@@ -91,7 +92,7 @@ catl_props:
 ## Trains ML algorithms on the `merged` dataset
 ml_algs_train:
 	ANALYSIS_TYPE = 'training'
-	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main_make.p -a $(ANALYSIS_TYPE) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -shuffle_opt $(SHUFFLE_OPT) -kf_splits $(KF_SPLITS) -n_predict $(N_PREDICT) -test_size $(TEST_SIZE) -sample_frac $(SAMPLE_FRAC) -dropna_opt $(DROP_NA) -v $(VERBOSE)
+	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main_make.p -a $(ANALYSIS_TYPE) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -shuffle_opt $(SHUFFLE_OPT) -kf_splits $(KF_SPLITS) -n_predict $(N_PREDICT) -test_size $(TEST_SIZE) -sample_frac $(SAMPLE_FRAC) -dropna_opt $(DROP_NA) -v $(VERBOSE) -pre_opt $(PRE_OPT)
 
 ## Plots the ML figures of the `trained` dataset
 ml_plots_make:

@@ -59,8 +59,9 @@ from glob import glob
 # ML modules
 import sklearn
 import sklearn.metrics          as skmetrics
-import sklearn.model_selection  as ms
+import sklearn.model_selection  as skms
 import sklearn.ensemble         as skem
+import sklearn.preprocessing    as skpre
 import xgboost
 
 ## Functions
@@ -244,6 +245,15 @@ def get_parser():
                         type=_str2bool,
                         default=True)
     ## Option for removing file
+    parser.add_argument('-pre_opt',
+                        dest='pre_opt',
+                        help="""
+                        Option for which preprocessing of the data to use.
+                        """,
+                        type=str,
+                        choices=['min_max','standard','normalize'],
+                        default='normalize')
+    ## Preprocessing Option
     parser.add_argument('-remove',
                         dest='remove_files',
                         help='Delete HMF ',
@@ -571,13 +581,17 @@ def training_testing_data(param_dict, proj_dict, test_size=0.25,
         pred_arr = pred_arr.reshape(len(pred_arr),)
     if len(features_cols) == 1:
         feat_arr = feat_arr.reshape(len(feat_arr),)
+    ##
+    ## Rescaling training and testing dataset
+    feat_arr_scaled = data_preprocessing(feat_arr, param_dict, 
+                            pre_opt=param_dict['pre_opt'])
     ## Training and Testing Dataset
     (   X_train, X_test,
-        Y_train, Y_test) = ms.train_test_split( feat_arr,
-                                                pred_arr,
-                                                test_size=test_size,
-                                                shuffle=shuffle_opt,
-                                                random_state=random_state)
+        Y_train, Y_test) = skms.train_test_split(   feat_arr_scaled,
+                                                    pred_arr,
+                                                    test_size=test_size,
+                                                    shuffle=shuffle_opt,
+                                                    random_state=random_state)
     ##
     ## Assigning `training` and `testing` datasets to dictionary
     train_dict = {'X_train': X_train, 'Y_train': Y_train}
@@ -623,6 +637,53 @@ def sklearns_models(param_dict, cpu_number):
                                         random_state=param_dict['seed'])
 
     return skem_dict
+
+## Data Preprocessing
+def data_preprocessing(feat_arr, param_dict, pre_opt='min_max'):
+    """
+    Preprocess the data used, in order to clean and make the data more 
+    suitable for the machine learning algorithms
+
+    Parameters
+    -------------
+    feat_arr: numpy.ndarray
+        array of feature values. Used for training the ML algorithm
+
+    param_dict: python dictionary
+        dictionary with input parameters and values
+
+    pre_opt: string, optional (default = 'min_max')
+        Option for which preprocessing of the data to use
+        Options:
+            - 'min_max':
+            - 'standard':
+            - 'normalize':
+
+    Returns
+    -------------
+    feat_arr_scaled: numpy.ndarray
+        rescaled version of array of feature values
+    """
+    ## Min-Max scales (Rescale) Data
+    if pre_opt == 'min_max':
+        # Scaler
+        scaler = skpre.MinMaxScaler(feature_range=(0,1))
+        # Rescaling
+        feat_arr_scaled = scaler.fit_transform(feat_arr)
+    ## Standardize Data
+    if pre_opt == 'standard':
+        # Scaler
+        scaler = skpre.StandardScaler().fit(feat_arr)
+        # Rescaling
+        feat_arr_scaled = scaler.transform(feat_arr)
+    ## Normalize Data
+    if pre_opt == 'normalize':
+        # Scaler
+        scaler = skpre.Normalizer().fit(feat_arr)
+        # Rescaling
+        feat_arr_scaled = scaler.transform(feat_arr)
+
+    return feat_arr_scaled
 
 ## --------- Training and Testing Function ------------##
 
@@ -683,7 +744,7 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
     kf_models_arr      = [[] for kk in range(kf_splits)]
     kf_scores          = num.zeros(kf_splits)
     kdf_features_imp   = num.zeros((kf_splits, n_feat))
-    kf_obj             = ms.KFold(  n_splits=kf_splits,
+    kf_obj             = skms.KFold(n_splits=kf_splits,
                                     shuffle=param_dict['shuffle_opt'],
                                     random_state=param_dict['seed'])
     tqdm_desc   = 'General and K-Fold Score: '

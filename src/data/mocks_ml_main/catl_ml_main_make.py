@@ -216,6 +216,15 @@ def get_parser():
                         type=_str2bool,
                         default=True)
     ## Option for removing file
+    parser.add_argument('-pre_opt',
+                        dest='pre_opt',
+                        help="""
+                        Option for which preprocessing of the data to use.
+                        """,
+                        type=str,
+                        choices=['min_max','standard','normalize'],
+                        default='normalize')
+    ## Option for removing file
     parser.add_argument('-remove',
                         dest='remove_files',
                         help='Delete HMF ',
@@ -285,6 +294,7 @@ def get_analysis_params(param_dict):
                                 ('n_predict'   ,'-n_predict'   ,1          ),
                                 ('shuffle_opt' ,'-shuffle_opt' ,'True'     ),
                                 ('dropna_opt'  ,'-dropna_opt'  ,'True'     ),
+                                ('pre_opt'     ,'-pre_opt'     ,'True'     ),
                                 ('seed'        ,'-seed'        ,1          ),
                                 ('cpu_frac'    ,'-cpu'         ,0.75       ),
                                 ('remove_files','-remove'      ,'False'    ),
@@ -371,6 +381,9 @@ def get_analysis_params(param_dict):
         ##
         ## Number of K-Folds to use when estimating the score of the model
         params_pd.loc[params_pd['Name']=='kf_splits','Value'] = param_dict['kf_splits']
+        ##
+        ## Option for which preprocessing of the data to use
+        params_pd.loc[params_pd['Name']=='pre_opt','Value'] = param_dict['pre_opt']
     ##
     ## Only for `plots`
     ##
