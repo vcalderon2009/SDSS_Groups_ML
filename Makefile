@@ -35,7 +35,7 @@ TEST_SIZE    = 0.25
 SAMPLE_FRAC  = 0.01
 DROP_NA      = "True"
 N_PREDICT    = 1
-PRE_OPT      = 'all'
+PRE_OPT      = 'normalize'
 
 ifeq (,$(shell which conda))
 HAS_CONDA=False
