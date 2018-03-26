@@ -705,7 +705,10 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
     ## ------- True and Predicted values ------- ##
     #  `General` case
     model_gen_prediction_arr = model_gen.predict(X_test)
-    model_gen_frac_diff_arr  = 100*(model_gen_prediction_arr - Y_test)/Y_test
+    if param_dict['n_predict'] == 1:
+        model_gen_frac_diff_arr  = 100*(model_gen_prediction_arr - Y_test)/Y_test
+    else:
+        model_gen_frac_diff_arr  = 100*(model_gen_prediction_arr - Y_test)/Y_test
     model_gen_truth_arr      = Y_test.copy()
     #  `K-fold` case
     model_kf_prediction_arr  = [[] for kk in range(kf_splits)]
@@ -732,6 +735,7 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
     feat_imp_kf_sort     = feat_imp_kf[feat_imp_kf_sort_idx]
     ##
     ## ------- Scores after evaluating with different features ------- ##
+    ##
     # General and K-folds
     feat_score_gen_arr = num.zeros(n_feat)
     feat_score_kf_arr  = num.zeros(n_feat)
