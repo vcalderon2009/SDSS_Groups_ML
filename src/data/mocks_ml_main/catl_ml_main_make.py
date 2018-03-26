@@ -96,7 +96,7 @@ def get_parser():
     ## 
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
     ## Type of analysis to perform
-    parser.add_argument('-a', '--analysis',
+    parser.add_argument('-a',
                         dest='analysis_type',
                         help='Type of analysis to make',
                         type=str,
@@ -294,7 +294,7 @@ def get_analysis_params(param_dict):
                                 ('n_predict'   ,'-n_predict'   ,1          ),
                                 ('shuffle_opt' ,'-shuffle_opt' ,'True'     ),
                                 ('dropna_opt'  ,'-dropna_opt'  ,'True'     ),
-                                ('pre_opt'     ,'-pre_opt'     ,'True'     ),
+                                ('pre_opt'     ,'-pre_opt'     ,'normalize'),
                                 ('seed'        ,'-seed'        ,1          ),
                                 ('cpu_frac'    ,'-cpu'         ,0.75       ),
                                 ('remove_files','-remove'      ,'False'    ),
@@ -309,6 +309,7 @@ def get_analysis_params(param_dict):
                                 ('nmin'        ,'-nmin'        ,1          ),
                                 ('perf_opt'    ,'-perf'        ,False      ),
                                 ('n_predict'   ,'-n_predict'   ,1          ),
+                                ('pre_opt'     ,'-pre_opt'     ,'normalize'),
                                 ('cpu_frac'    ,'-cpu'         ,0.75       ),
                                 ('remove_files','-remove'      ,'False'    ),
                                 ('verbose'     ,'-v'           ,'False'    )])

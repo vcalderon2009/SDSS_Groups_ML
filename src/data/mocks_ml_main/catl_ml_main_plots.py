@@ -407,7 +407,8 @@ def directory_skeleton(param_dict, proj_dict):
     ##
     ## Figure directory
     figure_dir = os.path.join(  proj_dict['plot_dir'],
-                                proj_str)
+                                proj_str,
+                                'pre_opt_{0}'.format(param_dict['pre_opt']))
     ##
     ## Creating Directories
     catl_dir_arr = [ext_dir, processed_dir, int_dir, raw_dir, test_train_dir]
