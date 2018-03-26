@@ -205,7 +205,7 @@ def get_parser():
                         Option for which preprocessing of the data to use.
                         """,
                         type=str,
-                        choices=['min_max','standard','normalize','no'],
+                        choices=['min_max','standard','normalize','no', 'all'],
                         default='normalize')
     ## CPU Counts
     parser.add_argument('-cpu',
@@ -1135,7 +1135,7 @@ def feature_ranking_ml_algs(model_fits_dict, param_dict, proj_dict,
     fig = plt.figure(figsize=figsize)
     ax1 = fig.add_subplot(111, facecolor='white')
     # Axis labels
-    xlabel = 'Importance ranking'
+    xlabel = r'$\leftarrow \textrm{Importance ranking}$'
     ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
     # Plotting
     # Width
@@ -1255,16 +1255,34 @@ if __name__=='__main__':
     args = get_parser()
     ## Checking galaxy sample
     # Main Function
-    if args.sample == 'all':
-        for sample_ii in [19, 20, 21]:
-            print('\n'+50*'='+'\n')
-            print('\n Sample: {0}\n'.format(sample_ii))
-            print('\n'+50*'='+'\n')
-            ## Copy of `args`
-            args_c = copy.deepcopy(args)
-            ## Changing galaxy sample int
-            args_c.sample = sample_ii
-            main(args_c)
+    if args.pre_opt == 'all':
+        for pre_opt_ii in ['min_max','standard','normalize']:
+            if args.sample == 'all':
+                for sample_ii in [19, 20, 21]:
+                    print('\n'+50*'='+'\n')
+                    print('\n Sample: {0}\n'.format(sample_ii))
+                    print('\n'+50*'='+'\n')
+                    ## Copy of `args`
+                    args_c = copy.deepcopy(args)
+                    ## Changing galaxy sample int
+                    args_c.sample  = sample_ii
+                    args_c.pre_opt = pre_opt_ii
+                    main(args_c)
+            else:
+                args.sample  = int(args.sample)
+                args.pre_opt = pre_opt_ii
+                main(args)
     else:
-        args.sample = int(args.sample)
-        main(args)
+        if args.sample == 'all':
+            for sample_ii in [19, 20, 21]:
+                print('\n'+50*'='+'\n')
+                print('\n Sample: {0}\n'.format(sample_ii))
+                print('\n'+50*'='+'\n')
+                ## Copy of `args`
+                args_c = copy.deepcopy(args)
+                ## Changing galaxy sample int
+                args_c.sample  = sample_ii
+                main(args_c)
+        else:
+            args.sample  = int(args.sample)
+            main(args)

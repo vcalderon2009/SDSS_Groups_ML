@@ -252,7 +252,7 @@ def get_parser():
                         Option for which preprocessing of the data to use.
                         """,
                         type=str,
-                        choices=['min_max','standard','normalize'],
+                        choices=['min_max','standard','normalize', 'no', 'all'],
                         default='normalize')
     ## Preprocessing Option
     parser.add_argument('-remove',
@@ -1038,17 +1038,35 @@ if __name__=='__main__':
     args = get_parser()
     ## Checking galaxy sample
     # Main Function
-    if args.sample == 'all':
-        for sample_ii in [19, 20, 21]:
-            print('\n'+50*'='+'\n')
-            print('\n Sample: {0}\n'.format(sample_ii))
-            print('\n'+50*'='+'\n')
-            ## Copy of `args`
-            args_c = copy.deepcopy(args)
-            ## Changing galaxy sample int
-            args_c.sample = sample_ii
-            main(args_c)
+    if args.pre_opt == 'all':
+        for pre_opt_ii in ['min_max','standard','normalize']:
+            if args.sample == 'all':
+                for sample_ii in [19, 20, 21]:
+                    print('\n'+50*'='+'\n')
+                    print('\n Sample: {0}\n'.format(sample_ii))
+                    print('\n'+50*'='+'\n')
+                    ## Copy of `args`
+                    args_c = copy.deepcopy(args)
+                    ## Changing galaxy sample int
+                    args_c.sample  = sample_ii
+                    args_c.pre_opt = pre_opt_ii
+                    main(args_c)
+            else:
+                args.sample  = int(args.sample)
+                args.pre_opt = pre_opt_ii
+                main(args)
     else:
-        args.sample = int(args.sample)
-        main(args)
+        if args.sample == 'all':
+            for sample_ii in [19, 20, 21]:
+                print('\n'+50*'='+'\n')
+                print('\n Sample: {0}\n'.format(sample_ii))
+                print('\n'+50*'='+'\n')
+                ## Copy of `args`
+                args_c = copy.deepcopy(args)
+                ## Changing galaxy sample int
+                args_c.sample  = sample_ii
+                main(args_c)
+        else:
+            args.sample  = int(args.sample)
+            main(args)
 
