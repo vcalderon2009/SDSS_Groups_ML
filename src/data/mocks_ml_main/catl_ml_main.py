@@ -390,10 +390,9 @@ def add_to_dict(param_dict):
                     param_dict['cosmo_choice'],
                     param_dict['nmin'],
                     param_dict['halotype'], 
-                    param_dict['perf_opt'],
-                    param_dict['pre_opt']]
+                    param_dict['perf_opt']]
     catl_str     = '{0}_hodn_{1}_clf_{2}_cosmo_{3}_nmin_{4}_halotype_{5}_perf_'
-    catl_str    += '{6}_pre_opt_{7}'
+    catl_str    += '{6}'
     catl_str     = catl_str.format(*catl_str_arr)
     ## Number of CPU's to use
     cpu_number = int(cpu_count() * param_dict['cpu_frac'])
@@ -923,10 +922,11 @@ def saving_data(param_dict, proj_dict, model_fits_dict, train_dict, test_dict):
         dictionary containing the 'testing' data from the catalogue
     """
     ## Filename
-    filepath_str  = '{0}_n_predict_{1}'
+    filepath_str  = '{0}_n_predict_{1}_pre_opt_{2}'
     filepath_str += '_model_fits_dict.p'
     filepath_str  = filepath_str.format(param_dict['catl_str' ],
-                                        param_dict['n_predict'])
+                                        param_dict['n_predict'],
+                                        param_dict['pre_opt'  ])
     filepath = os.path.join(    proj_dict['test_train_dir'],
                                 filepath_str)
     ## Elements to be saved

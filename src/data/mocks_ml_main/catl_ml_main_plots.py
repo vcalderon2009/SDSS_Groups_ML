@@ -335,16 +335,16 @@ def add_to_dict(param_dict):
                     param_dict['cosmo_choice'],
                     param_dict['nmin'],
                     param_dict['halotype'], 
-                    param_dict['perf_opt'],
-                    param_dict['pre_opt']]
+                    param_dict['perf_opt']]
     catl_str_read     = '{0}_hodn_{1}_clf_{2}_cosmo_{3}_nmin_{4}_halotype_{5}_perf_'
-    catl_str_read    += '{6}_pre_opt_{7}'
+    catl_str_read    += '{6}'
     catl_str_read     = catl_str_read.format(*catl_str_arr)
     ##
     ## Figure catalogue string
     catl_str_fig_arr = [catl_str_read,
-                        param_dict['n_predict']]
-    catl_str_fig = '{0}_n_predict_{1}'
+                        param_dict['n_predict'],
+                        param_dict['pre_opt'  ]]
+    catl_str_fig = '{0}_n_predict_{1}_pre_opt_{2}'
     catl_str_fig = catl_str_fig.format(*catl_str_fig_arr)
     ##
     ## Column names
