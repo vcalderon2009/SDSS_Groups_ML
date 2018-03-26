@@ -222,7 +222,7 @@ def get_parser():
                         Option for which preprocessing of the data to use.
                         """,
                         type=str,
-                        choices=['min_max','standard','normalize','no'],
+                        choices=['min_max','standard','normalize','no', 'all'],
                         default='normalize')
     ## Option for removing file
     parser.add_argument('-remove',
@@ -496,7 +496,8 @@ def file_construction_and_execution(params_pd, param_dict):
     # Working directory
     working_dir = os.path.abspath(os.path.dirname(__file__))
     ## Obtaining path to file
-    outfile_name = 'catl_properties_calculations_run.sh'
+    outfile_name = 'catl_properties_calculations_{0}_run.sh'.format(
+        param_dict['analysis_type'])
     outfile_path = os.path.join(working_dir, outfile_name)
     ##
     ## Opening file
