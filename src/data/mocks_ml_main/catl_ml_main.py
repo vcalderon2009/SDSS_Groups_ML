@@ -602,9 +602,9 @@ def training_testing_data(param_dict, proj_dict, test_size=0.25,
                                                         random_state=random_state)
     ##
     ## Assigning `training` and `testing` datasets to dictionary
-    train_dict = {  'X_train': X_train, 'Y_train': Y_train,
+    train_dict = {  'X_train': X_train, 'Y_train': Y_train,\
                     'X_train_ns':X_train_ns, 'Y_train_ns':Y_train_ns}
-    test_dict  = {'X_test' : X_test , 'Y_test' : Y_test,
+    test_dict  = {'X_test' : X_test , 'Y_test' : Y_test,\
                     'X_test_ns':X_test_ns, 'Y_test_ns'}
     ## Adding lists to `param_dict`
     param_dict['predicted_cols' ] = predicted_cols
