@@ -1095,16 +1095,17 @@ def feature_ranking_ml_algs(model_fits_dict, param_dict, proj_dict,
         feat_imp_gen_sort_pd.loc[:,'{0}_gen_rank'.format(skem_key)] = \
                                 feat_imp_gen_sort_pd.rank(ascending=False)
         # K-Folds
-        feat_imp_kf_sort_pd  = pd.DataFrame(feat_imp_kf_sort[:,1].astype(float),
-                                            index=feat_imp_kf_sort[:,0],
-                                            columns=['{0}_kf'.format(skem_key)])
-        feat_imp_kf_sort_pd.loc[:,'{0}_kf_rank'.format(skem_key)] = \
-                                feat_imp_kf_sort_pd.rank(ascending=False)
-        ## Joining DataFrames
-        feat_gen_kf_merged   = pd.merge(    feat_imp_gen_sort_pd,
-                                            feat_imp_kf_sort_pd,
-                                            left_index=True,
-                                            right_index=True)
+        # feat_imp_kf_sort_pd  = pd.DataFrame(feat_imp_kf_sort[:,1].astype(float),
+        #                                     index=feat_imp_kf_sort[:,0],
+        #                                     columns=['{0}_kf'.format(skem_key)])
+        # feat_imp_kf_sort_pd.loc[:,'{0}_kf_rank'.format(skem_key)] = \
+        #                         feat_imp_kf_sort_pd.rank(ascending=False)
+        # ## Joining DataFrames
+        # feat_gen_kf_merged   = pd.merge(    feat_imp_gen_sort_pd,
+        #                                     feat_imp_kf_sort_pd,
+        #                                     left_index=True,
+        #                                     right_index=True)
+        feat_gen_kf_merged = feat_imp_gen_sort_pd
         ## Dropping non-rank columns
         feat_cols_merged = feat_gen_kf_merged.columns.values
         feat_cols_drop   = [s for s in feat_cols_merged if 'rank' not in s]
