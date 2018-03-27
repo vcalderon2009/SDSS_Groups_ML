@@ -307,6 +307,7 @@ def get_analysis_params(param_dict):
                                 ('catl_type'   ,'-abopt'       ,'mr'       ),
                                 ('cosmo_choice','-cosmo'       ,'LasDamas' ),
                                 ('nmin'        ,'-nmin'        ,1          ),
+                                ('sample_frac' ,'-sample_frac' ,0.01       ),
                                 ('perf_opt'    ,'-perf'        ,False      ),
                                 ('n_predict'   ,'-n_predict'   ,1          ),
                                 ('pre_opt'     ,'-pre_opt'     ,'normalize'),
@@ -352,6 +353,9 @@ def get_analysis_params(param_dict):
     ## Number of properties to predict. Default = 1
     params_pd.loc[params_pd['Name']=='n_predict','Value'] = param_dict['n_predict']
     ##
+    ## Fraction of the total sample to use / read
+    params_pd.loc[params_pd['Name']=='sample_frac','Value'] = param_dict['sample_frac']
+    ##
     ## Choosing the amount of CPUs
     params_pd.loc[params_pd['Name']=='cpu_frac','Value'] = param_dict['cpu_frac']
     ##
@@ -370,9 +374,6 @@ def get_analysis_params(param_dict):
         ##
         ## Option for setting the 'random seed'
         params_pd.loc[params_pd['Name']=='seed','Value'] = param_dict['seed']
-        ##
-        ## Fraction of the total sample to use / read
-        params_pd.loc[params_pd['Name']=='sample_frac','Value'] = param_dict['sample_frac']
         ##
         ## Option for shuffling the testing and training dataset when splitting
         params_pd.loc[params_pd['Name']=='shuffle_opt','Value'] = param_dict['shuffle_opt']

@@ -95,7 +95,7 @@ ml_algs_train:
 
 ## Plots the ML figures of the `trained` dataset
 ml_plots_make:
-	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main_make.py -a 'plots' -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -v $(VERBOSE) -pre_opt $(PRE_OPT)
+	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main_make.py -a 'plots' -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -v $(VERBOSE) -pre_opt $(PRE_OPT) -sample_frac $(SAMPLE_FRAC)
 
 ## Run tests to see if all files (Halobias, catalogues) are in order
 test_files:

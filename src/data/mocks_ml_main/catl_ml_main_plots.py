@@ -184,6 +184,12 @@ def get_parser():
                         choices=range(2,1000),
                         metavar='[1-1000]',
                         default=2)
+    ## CPU Counts
+    parser.add_argument('-sample_frac',
+                        dest='sample_frac',
+                        help='fraction of the total dataset to use',
+                        type=float,
+                        default=0.01)
     ## `Perfect Catalogue` Option
     parser.add_argument('-perf',
                         dest='perf_opt',
@@ -343,8 +349,9 @@ def add_to_dict(param_dict):
     ## Figure catalogue string
     catl_str_fig_arr = [catl_str_read,
                         param_dict['n_predict'],
-                        param_dict['pre_opt'  ]]
-    catl_str_fig = '{0}_n_predict_{1}_pre_opt_{2}'
+                        param_dict['pre_opt'  ],
+                        param_dict['sample_frac']]
+    catl_str_fig = '{0}_n_predict_{1}_pre_opt_{2}_sample_frac_{3}'
     catl_str_fig = catl_str_fig.format(*catl_str_fig_arr)
     ##
     ## Column names
