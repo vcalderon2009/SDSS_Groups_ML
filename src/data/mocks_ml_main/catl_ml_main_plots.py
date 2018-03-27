@@ -1278,9 +1278,11 @@ if __name__=='__main__':
                     args_c.pre_opt = pre_opt_ii
                     main(args_c)
             else:
-                args.sample  = int(args.sample)
-                args.pre_opt = pre_opt_ii
-                main(args)
+                ## Copy of `args`
+                args_c = copy.deepcopy(args)
+                args_c.pre_opt = pre_opt_ii
+                args_c.sample  = int(args.sample)
+                main(args_c)
     else:
         if args.sample == 'all':
             for sample_ii in [19, 20, 21]:
