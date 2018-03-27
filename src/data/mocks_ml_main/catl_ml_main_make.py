@@ -455,12 +455,13 @@ def project_const(param_dict):
     ## Constants
     # Environment name
     env_name        = 'sdss_groups_ml'
-    window_name     = 'SDSS_ML_TRAINING_PLOTTING'
     ## Choosing script that will be ran
     if param_dict['analysis_type'] == 'training':
+        window_name     = 'SDSS_ML_TRAINING'
         sub_window_name = 'ML_Training'
         run_file_name   = 'catl_ml_main.py'
     elif param_dict['analysis_type'] == 'plots':
+        window_name     = 'SDSS_ML_PLOTTING'
         sub_window_name = 'ML_Plotting'
         run_file_name   = 'catl_ml_main_plots.py'
     ##
