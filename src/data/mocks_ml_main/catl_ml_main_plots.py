@@ -415,6 +415,8 @@ def directory_skeleton(param_dict, proj_dict):
     ## Figure directory
     figure_dir = os.path.join(  proj_dict['plot_dir'],
                                 proj_str,
+                                'ml_training_figs',
+                                'sample_frac_{0}'.format(param_dict['sample_frac']),
                                 'pre_opt_{0}'.format(param_dict['pre_opt']))
     ##
     ## Creating Directories
