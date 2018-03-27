@@ -1116,7 +1116,7 @@ def feature_ranking_ml_algs(model_fits_dict, param_dict, proj_dict,
                                     right_index=True)
     ##
     ## Deleting temporary column
-    feat_rank_pd.drop(columns=['temp'], inplace=True)
+    feat_rank_pd.drop(['temp'], axis=1, inplace=True)
     ##
     ## Calculating ranking
     feat_rank_pd.loc[:,'rank_sum'] = feat_rank_pd.sum(axis=1)
