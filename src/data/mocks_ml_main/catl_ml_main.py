@@ -639,15 +639,15 @@ def sklearns_models(param_dict, cpu_number):
                                         n_jobs=cpu_number,
                                         random_state=param_dict['seed'])
     # Gradient Boosting Method
-    skem_dict['gradient_boosting'] = skem.GradientBoostingRegressor(
-                                        random_state=param_dict['seed'])
+    # skem_dict['gradient_boosting'] = skem.GradientBoostingRegressor(
+    #                                     random_state=param_dict['seed'])
     # XGBoost Regressor
     skem_dict['XGBoost'          ] = xgboost.XGBRegressor(
                                         n_jobs=cpu_number,
                                         random_state=param_dict['seed'])
     # AdaBoost Regressor
-    skem_dict['AdaBoost'         ] = skem.AdaBoostRegressor(
-                                        random_state=param_dict['seed'])
+    # skem_dict['AdaBoost'         ] = skem.AdaBoostRegressor(
+    #                                     random_state=param_dict['seed'])
     # Neural network
     # skem_dict['neural_network'   ] = skneuro.MLPRegressor(
     #                                     random_state=param_dict['seed'])
