@@ -1108,7 +1108,7 @@ def feature_ranking_ml_algs(model_fits_dict, param_dict, proj_dict,
         ## Dropping non-rank columns
         feat_cols_merged = feat_gen_kf_merged.columns.values
         feat_cols_drop   = [s for s in feat_cols_merged if 'rank' not in s]
-        feat_gen_kf_merged.drop(columns=feat_cols_drop, inplace=True)
+        feat_gen_kf_merged.drop(feat_cols_drop, axis=1, inplace=True)
         ## Merging with main DataFrame
         feat_rank_pd = pd.merge(    feat_rank_pd,
                                     feat_gen_kf_merged,
