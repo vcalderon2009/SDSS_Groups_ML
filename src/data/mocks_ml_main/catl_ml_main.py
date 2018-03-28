@@ -834,7 +834,9 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
     ###
     ### -- Score - Total and K-fold -- ###
     # Normal score
-    model_score_tot = scoring_methods(  X_test, Y_test, model_gen,
+    model_score_tot = scoring_methods(  X_test,
+                                        Y_test,
+                                        model_gen,
                                         score_method=param_dict['score_method'],
                                         threshold=0.1,
                                         perc_val=0.9)
@@ -935,7 +937,7 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
         # Getting Score
         model_kf_kk_score = scoring_methods(    X_test_kf_kk,
                                                 Y_test,
-                                                model_kf_kk
+                                                model_kf_kk,
                                                 score_method=param_dict['score_method'],
                                                 threshold=0.1,
                                                 perc_val=0.9)
