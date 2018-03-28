@@ -534,6 +534,8 @@ def ml_file_read(proj_dict, param_dict):
     filepath_str  = '{0}_model_fits_dict.p'.format(param_dict['catl_str_fig'])
     filepath = os.path.join(    proj_dict['test_train_dir'],
                                 filepath_str)
+    print('{0} Read `filepath` ({1})...Checking if it exists!'.format(
+        param_dict['Prog_msg'], filepath))
     ## Checking if file exists
     try:
         assert(os.path.exists(filepath))
