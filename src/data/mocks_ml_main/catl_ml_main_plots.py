@@ -424,7 +424,8 @@ def directory_skeleton(param_dict, proj_dict):
                                 proj_str,
                                 'ml_training_figs',
                                 'sample_frac_{0}'.format(param_dict['sample_frac']),
-                                'pre_opt_{0}'.format(param_dict['pre_opt']))
+                                'pre_opt_{0}'.format(param_dict['pre_opt']),
+                                'score_method_{0}'.format(param_dict['score_method']))
     ##
     ## Creating Directories
     catl_dir_arr = [ext_dir, processed_dir, int_dir, raw_dir, test_train_dir]
