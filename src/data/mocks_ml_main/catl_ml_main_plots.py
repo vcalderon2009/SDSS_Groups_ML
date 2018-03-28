@@ -592,7 +592,8 @@ def feature_imp_chart(model_fits_dict, param_dict, proj_dict,
     fig_number: int, optional (default = 1)
         number of figure in the workflow
     """
-    Prog_msg = param_dict['Prog_msg']
+    Prog_msg  = param_dict['Prog_msg']
+    plot_dict = param_dict['plot_dict']
     ## Constants
     feat_cols_dict = param_dict['feat_cols_dict']
     ## List of algorithms being used
@@ -648,6 +649,9 @@ def feature_imp_chart(model_fits_dict, param_dict, proj_dict,
         ## Ticks
         ax_data_major_loc  = ticker.MultipleLocator(0.05)
         ax1.xaxis.set_major_locator(ax_data_major_loc)
+        ## Labels
+        x_label = r'$\textrm{Feature Importance} \rightarrow$'
+        ax1.set_xlabel(x_label, fontsize=plot_dict['size_label'])
         ##
         ## Saving figure
         if fig_fmt=='pdf':
@@ -685,7 +689,8 @@ def model_score_chart(model_fits_dict, param_dict, proj_dict,
     fig_number: int, optional (default = 2)
         number of figure in the workflow
     """
-    Prog_msg = param_dict['Prog_msg']
+    Prog_msg  = param_dict['Prog_msg']
+    plot_dict = param_dict['plot_dict']
     ##
     ## Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
