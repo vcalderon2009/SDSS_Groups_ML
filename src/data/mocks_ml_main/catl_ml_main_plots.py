@@ -354,9 +354,6 @@ def add_to_dict(param_dict):
     catl_str_fig = '{0}_n_predict_{1}_pre_opt_{2}_sample_frac_{3}'
     catl_str_fig = catl_str_fig.format(*catl_str_fig_arr)
     ##
-    ## Column names
-    ml_dict_cols_names = ml_file_data_cols()
-    ##
     ## Plotting constants
     plot_dict = {   'size_label':18,
                     'size_title':20}
@@ -369,7 +366,6 @@ def add_to_dict(param_dict):
     param_dict['speed_c'           ] = speed_c
     param_dict['catl_str_read'     ] = catl_str_read
     param_dict['catl_str_fig'      ] = catl_str_fig
-    param_dict['ml_dict_cols_names'] = ml_dict_cols_names
     param_dict['plot_dict'         ] = plot_dict
 
     return param_dict
@@ -445,9 +441,17 @@ def directory_skeleton(param_dict, proj_dict):
 ## --------- Preparing Data ------------##
 
 ## Galaxy and Property Names
-def ml_file_data_cols():
+def ml_file_data_cols(param_dict, param_dict_ml):
     """
     Substitutes for the column names in the `ml_file`
+
+    Parameters
+    ------------
+    param_dict: python dictionary
+        dictionary with `project` variables
+
+    param_dict_ml: python dictionary
+        dictionary with `project` variables used when training the algorithms
 
     Returns
     ---------
@@ -479,8 +483,22 @@ def ml_file_data_cols():
                             'g_brightest':"If galaxy is group's brightest galaxy",
                             'logssfr':"Log of Specific star formation rate ",
                             'sersic': "Galaxy's morphology"}
+    ##
+    ## Feature labels
+    features_cols_ml = param_dict_ml['features_cols']
+    ##
+    ## Intersection between column names
+    feat_cols_intersect = num.intersect1d(  list(ml_dict_cols_names.keys()),
+                                            features_cols_ml)
+    ##
+    ## New dictionary
+    feat_cols_dict = {key:ml_dict_cols_names[key] for key in \
+                        feat_cols_intersect}
+    ##
+    ## Saving to `param_dict`
+    param_dict['feat_cols_dict'] = feat_cols_dict
 
-    return ml_dict_cols_names
+    return param_dict
 
 ## Reading in File
 def ml_file_read(proj_dict, param_dict):
@@ -562,7 +580,7 @@ def feature_imp_chart(model_fits_dict, param_dict, proj_dict,
     """
     Prog_msg = param_dict['Prog_msg']
     ## Constants
-    ml_dict_cols_names = param_dict['ml_dict_cols_names']
+    feat_cols_dict = param_dict['feat_cols_dict']
     ## List of algorithms being used
     skem_key_arr = num.sort(list(model_fits_dict.keys()))
     ## Looping over all algorithms
@@ -593,13 +611,8 @@ def feature_imp_chart(model_fits_dict, param_dict, proj_dict,
                                             right_index=True)
         ## Renaming indices
         # Finding set of common property labels
-        feat_gen_kf_merged_idx       = feat_gen_kf_merged.index.values
-        feat_gen_kf_merged_intersect = num.intersect1d(feat_gen_kf_merged_idx,
-                                                list(ml_dict_cols_names.keys()))
-        ml_dict_cols_names_select = {key:ml_dict_cols_names[key] for key in \
-                                        feat_gen_kf_merged_intersect}
         # Renaming indices
-        feat_gen_kf_merged.rename(  index=ml_dict_cols_names, inplace=True)
+        feat_gen_kf_merged.rename(  index=feat_cols_dict, inplace=True)
         ## Sorting by descending values
         feat_gen_kf_merged_sort = feat_gen_kf_merged.sort_values(
                                         by=['K-Fold','General'], ascending=False)
@@ -935,8 +948,8 @@ def cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict,
     """
     Prog_msg = param_dict['Prog_msg']
     ## Constants
-    ml_dict_cols_names = param_dict['ml_dict_cols_names']
-    plot_dict          = param_dict['plot_dict']
+    feat_cols_dict = param_dict['feat_cols_dict']
+    plot_dict      = param_dict['plot_dict'     ]
     ## List of algorithms being used
     skem_key_arr = num.sort(list(model_fits_dict.keys()))
     ## Looping over all algorithms
@@ -957,13 +970,8 @@ def cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict,
         # feat_score_cumu_pd.loc[:,'idx'] = num.arange(len(feat_score_cumu_pd))
         feat_score_cumu_pd = feat_score_cumu_pd.astype(float)
         ## Finding set of common property labels
-        feat_score_cumu_pd_cols = feat_score_cumu_pd.columns.values
-        feat_score_cumu_pd_intersect = num.intersect1d(feat_score_cumu_pd_cols,
-                                        list(ml_dict_cols_names.keys()))
-        ml_dict_cols_names_select = {key:ml_dict_cols_names[key] for key \
-                                            in feat_score_cumu_pd_intersect}
         ## Renaming index
-        feat_score_cumu_pd.rename(index=ml_dict_cols_names_select, inplace=True)
+        feat_score_cumu_pd.rename(index=feat_cols_dict, inplace=True)
         # Number of features
         n_feat = len(feat_score_cumu_pd)
         ##
@@ -1074,8 +1082,8 @@ def feature_ranking_ml_algs(model_fits_dict, param_dict, proj_dict,
                                 fig_number,
                                 param_dict['catl_str_fig']))
     ## Constants
-    ml_dict_cols_names = param_dict['ml_dict_cols_names']
-    plot_dict          = param_dict['plot_dict']
+    feat_cols_dict = param_dict['feat_cols_dict']
+    plot_dict      = param_dict['plot_dict'     ]
     ## List of algorithms being used
     skem_key_arr = num.sort(list(model_fits_dict.keys()))
     # Number of ML algorithms
@@ -1131,15 +1139,8 @@ def feature_ranking_ml_algs(model_fits_dict, param_dict, proj_dict,
     ## Ordering by rank
     feat_rank_pd.sort_values('rank_sum', ascending=True, inplace=True)
     ##
-    ## Finding set of common property labels
-    feat_rank_pd_cols = feat_rank_pd.columns.values
-    feat_rank_pd_intersect = num.intersect1d(feat_rank_pd_cols,
-                                list(ml_dict_cols_names.keys()))
-    ml_dict_cols_names_select = {key:ml_dict_cols_names[key] for key in \
-                                    feat_rank_pd_intersect}
-    ##
     ## Renaming columns
-    feat_rank_pd.rename(index=ml_dict_cols_names_select, inplace=True)
+    feat_rank_pd.rename(index=feat_cols_dict, inplace=True)
     ##
     ## Excluding `rank_sum` column
     feat_rank_col_exclude = feat_rank_pd.columns.difference(['rank_sum'])
@@ -1219,7 +1220,7 @@ def main(args):
     proj_dict  = directory_skeleton(param_dict, cu.cookiecutter_paths('./'))
     ##
     ## Printing out project variables
-    keys_avoid_arr = ['Prog_msg', 'ml_dict_cols_names']
+    keys_avoid_arr = ['Prog_msg', 'feat_cols_dict']
     print('\n'+50*'='+'\n')
     for key, key_val in sorted(param_dict.items()):
         if (key not in keys_avoid_arr):
@@ -1232,6 +1233,9 @@ def main(args):
         train_dict     ,
         test_dict      ,
         param_dict_ml  ) = ml_file_read(proj_dict, param_dict)
+    ##
+    ## Feature keys
+    param_dict = ml_file_data_cols(param_dict, param_dict_ml)
     ##
     ## Feature Importance - Bar Chart - Different Algorithms
     feature_imp_chart(model_fits_dict, param_dict, proj_dict)
