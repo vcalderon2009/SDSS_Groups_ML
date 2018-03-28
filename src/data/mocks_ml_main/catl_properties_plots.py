@@ -533,6 +533,10 @@ def catl_file_read_clean(param_dict, proj_dict, random_state=0,
     ## Dropping NaN's
     if dropna_opt:
         catl_pd.dropna(how='any', inplace=True)
+    ##
+    ## Dropping certain columns
+    catl_drop_arr = ['groupid', 'halo_rvir', 'galtype', 'halo_ngal']
+    catl_pd       = catl_pd.drop(catl_drop_arr, axis=1)
     ## Temporarily fixing 'rmed'
     ## Unit constant
     unit_const = ((3*num.pi/2.) * ((u.km/u.s)**2) * (u.Mpc) / ac.G).to(u.Msun)
@@ -547,6 +551,68 @@ def catl_file_read_clean(param_dict, proj_dict, random_state=0,
         catl_pd.loc[:,mdyn_kk] = mdyn_val
 
     return catl_pd
+
+## Galaxy and Property Names
+def ml_file_data_cols(catl_pd, param_dict):
+    """
+    Substitutes for the column names in the `ml_file`
+
+    Parameters
+    ------------
+    catl_pd: pandas DataFrame
+        DataFrame containing galaxy and group information
+
+    param_dict: python dictionary
+        dictionary with `project` variables
+
+    Returns
+    ---------
+    ml_dict_cols_names: python dictionary
+        dictionary with column names for each column in the ML file
+    """
+    ml_dict_cols_names = {  'GG_r_tot':"Total Radius (G)",
+                            'GG_sigma_v': "Velocity Dispersion (G)",
+                            'GG_mr_brightest':"Lum. of Brightest Galaxy (G)",
+                            'g_galtype':"Group galaxy type",
+                            'GG_r_med':"Median radius (G)",
+                            'GG_mr_ratio': "Luminosity ratio (G,1-2)",
+                            'GG_logssfr': "log(sSFR) (G)",
+                            'GG_mdyn_rmed':"Dynamical mass at median radius (G)",
+                            'GG_dist_cluster':"Distance to closest cluster (G)",
+                            'GG_M_r':"Total Brightness (G)",
+                            'GG_rproj':"Total Rproj (G)",
+                            'GG_shape':"Group's shape (G)",
+                            'GG_mdyn_rproj':"Dynamical mass at Rproj (G)",
+                            'GG_dens_10.0':"Density at 10 Mpc/h (G)",
+                            'GG_dens_5.0':"Density at 5 Mpc/h (G)",
+                            'GG_dens_2.0':"Density at 2 Mpc/h (G)",
+                            'GG_M_group':"Group's Ab. Matched Mass (G)",
+                            'GG_sigma_v_rmed':"Velocity Dispersion at Rmed (G)",
+                            'GG_ngals':"Group richness (G)",
+                            'M_r':"Galaxy's luminosity",
+                            'g_r':"(g-r) galaxy color",
+                            'dist_centre_group':"Distance to Group's centre",
+                            'g_brightest':"If galaxy is group's brightest galaxy",
+                            'logssfr':"Log of Specific star formation rate ",
+                            'sersic': "Galaxy's morphology",
+                            'M_h':"Galaxy's Halo mass"}
+    ##
+    ## Feature labels
+    features_cols = catl_pd.columns.values
+    ##
+    ## Intersection between column names
+    feat_cols_intersect = num.intersect1d(  list(ml_dict_cols_names.keys()),
+                                            features_cols)
+    ##
+    ## New dictionary
+    feat_cols_dict = {key:ml_dict_cols_names[key] for key in \
+                        feat_cols_intersect}
+    ##
+    ## Saving to `param_dict`
+    param_dict['feat_cols_dict'] = feat_cols_dict
+
+    return param_dict
+
 
 ## --------- Plotting Functions ------------##
 
@@ -619,7 +685,7 @@ def group_mass_comparison(catl_pd, param_dict, proj_dict,
     ## Statistics
     mass_dict = {}
     for kk, (type_kk, mass_kk) in enumerate(zip(['ham', 'dyn'],
-                                                [mass_ham, mass_dyn])):
+                                                [frac_diff_ham, frac_diff_dyn])):
         ## Binning
         (   x_stat   ,
             y_stat   ,
@@ -678,7 +744,7 @@ def group_mass_comparison(catl_pd, param_dict, proj_dict,
                         label=title_kk)
     ##
     ## Legend
-    leg = ax1.legend(loc='upper left', numpoints=1, frameon=False,
+    leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
         prop={'size':14})
     leg.get_frame().set_facecolor('none')
     ## Ticks
@@ -695,6 +761,129 @@ def group_mass_comparison(catl_pd, param_dict, proj_dict,
     ## Labels
     ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
     ax1.set_ylabel(ylabel, fontsize=plot_dict['size_label'])
+    ##
+    ## Saving figure
+    if fig_fmt=='pdf':
+        plt.savefig(fname, bbox_inches='tight')
+    else:
+        plt.savefig(fname, bbox_inches='tight', dpi=400)
+    print('{0} Figure saved as: {1}'.format(Prog_msg, fname))
+    plt.clf()
+    plt.close()
+
+## Covariance matrix of the different properties/features
+def covariance_plot(catl_pd, param_dict, proj_dict,
+    fig_fmt='pdf', figsize=(10,8), fig_number=2):
+    """
+    Covariance matrix of different features
+
+    Parameters
+    -----------
+    catl_pd: pandas DataFrame
+        DataFrame containing galaxy and group information
+
+    param_dict: python dictionary
+        dictionary with `project` variables
+
+    proj_dict: python dictionary
+        dictionary with info of the project that uses the
+        `Data Science` Cookiecutter template.
+
+    fig_fmt: string, optional (default = 'pdf')
+        extension used to save the figure
+
+    figsize: tuple, optional (10,8)
+        size of the output figure
+
+    fig_number: int, optional (default = 2)
+        number of figure in the workflow
+    """
+    Prog_msg   = param_dict['Prog_msg']
+    ## Filename
+    fname    = os.path.join(    proj_dict['figure_dir'],
+                                'Fig_{0}_{1}_feature_covariance.{2}'.format(
+                                    fig_number,
+                                    param_dict['catl_str'],
+                                    fig_fmt))
+    ## Renaming properties
+    catl_pd_copy = catl_pd.copy()
+    catl_pd_copy.rename(columns=param_dict['feat_cols_dict'], inplace=True)
+    ## Figure details
+    plt.clf()
+    plt.close()
+    fig = plt.figure(figsize=figsize)
+    ax1 = fig.add_subplot(111, facecolor='white')
+    # Correlation
+    corr = catl_pd_copy.corr()
+    # Generate a mask for the upper triangle
+    mask = num.zeros_like(corr, dtype=num.bool)
+    mask[num.triu_indices_from(mask)] = True
+    # Generate a custom diverging colormap
+    cmap = sns.diverging_palette(220, 10, as_cmap=True)
+
+    # Draw the heatmap with the mask and correct aspect ratio
+    sns.heatmap(corr, mask=mask, cmap=cmap, vmax=1.0, vmin=-1., center=0,
+                square=True, linewidths=.5, cbar_kws={"shrink": .5},
+                ax=ax1)
+    ##
+    ## Saving figure
+    if fig_fmt=='pdf':
+        plt.savefig(fname, bbox_inches='tight')
+    else:
+        plt.savefig(fname, bbox_inches='tight', dpi=400)
+    print('{0} Figure saved as: {1}'.format(Prog_msg, fname))
+    plt.clf()
+    plt.close()
+
+## Cluster Map
+def cluster_map(catl_pd, param_dict, proj_dict,
+    fig_fmt='pdf', figsize=(10,8), fig_number=3):
+    """
+    Covariance matrix of different features
+
+    Parameters
+    -----------
+    catl_pd: pandas DataFrame
+        DataFrame containing galaxy and group information
+
+    param_dict: python dictionary
+        dictionary with `project` variables
+
+    proj_dict: python dictionary
+        dictionary with info of the project that uses the
+        `Data Science` Cookiecutter template.
+
+    fig_fmt: string, optional (default = 'pdf')
+        extension used to save the figure
+
+    figsize: tuple, optional (10,8)
+        size of the output figure
+
+    fig_number: int, optional (default = 3)
+        number of figure in the workflow
+    """
+    Prog_msg   = param_dict['Prog_msg']
+    ## Filename
+    fname    = os.path.join(    proj_dict['figure_dir'],
+                                'Fig_{0}_{1}_feature_covariance.{2}'.format(
+                                    fig_number,
+                                    param_dict['catl_str'],
+                                    fig_fmt))
+    ## Renaming properties
+    catl_pd_copy = catl_pd.copy()
+    catl_pd_copy.rename(columns=param_dict['feat_cols_dict'], inplace=True)
+    ## Resample
+    catl_pd_copy.sample(frac=0.1)
+    ## Figure details
+    plt.clf()
+    plt.close()
+    fig = plt.figure(figsize=figsize)
+    ax1 = fig.add_subplot(111, facecolor='white')
+    # Cluster map
+    sns.clustermap( catl_pd_copy,
+                    robust=True,
+                    cmap="mako",
+                    ax=ax1)
     ##
     ## Saving figure
     if fig_fmt=='pdf':
@@ -741,11 +930,19 @@ def main(args):
                                     shuffle_opt =param_dict['shuffle_opt'],
                                     dropna_opt  =param_dict['dropna_opt'],
                                     sample_frac =param_dict['sample_frac'])
+    ##
+    ## Feature keys
+    param_dict = ml_file_data_cols(catl_pd, param_dict)
     ###
     ### ------ Figures ------ ###
-    ###
+    ##
     ## Comparison of estimated group masses via HAM and Dynamical Masses
     group_mass_comparison(catl_pd, param_dict, proj_dict)
+    ##
+    ## Covariance matrix
+    covariance_plot(catl_pd, param_dict, proj_dict)
+    ##
+    ##
 
 
 
