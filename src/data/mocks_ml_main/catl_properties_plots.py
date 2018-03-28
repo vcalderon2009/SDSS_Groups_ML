@@ -3,7 +3,7 @@
 
 # Victor Calderon
 # Created      : 03/26/2018
-# Last Modified: 03/26/2018
+# Last Modified: 03/28/2018
 # Vanderbilt University
 from __future__ import print_function, division, absolute_import
 __author__     =['Victor Calderon']
@@ -326,6 +326,10 @@ def add_to_dict(param_dict):
     ## Number of CPU's to use
     cpu_number = int(cpu_count() * param_dict['cpu_frac'])
     ##
+    ## Plotting constants
+    plot_dict = {   'size_label':18,
+                    'size_title':20}
+    ##
     ## Saving to `param_dict`
     param_dict['sample_s'    ] = sample_s
     param_dict['sample_Mr'   ] = sample_Mr
@@ -334,6 +338,7 @@ def add_to_dict(param_dict):
     param_dict['speed_c'     ] = speed_c
     param_dict['catl_str'    ] = catl_str
     param_dict['cpu_number'  ] = cpu_number
+    param_dict['plot_dict'   ] = plot_dict
 
     return param_dict
 
@@ -415,6 +420,57 @@ def directory_skeleton(param_dict, proj_dict):
 
     return proj_dict
 
+## --------- Tools function ------------##
+
+## Fractional difference
+def frac_diff_calc(pred, truth, perc=True, log_opt=False):
+    """
+    Computes the fractional difference between `pred` and `truth`
+
+    Parameters
+    ------------
+    pred: numpy.ndarray
+        array consisting of the `predicted` values
+
+    truth: numpy.ndarray
+        array consisting of the `truth` values
+
+    perc: boolean, optional (default = True)
+        option for returning the `frac_diff` in percentage or plain fraction
+
+    log_opt: boolean, optional (default = False)
+        If True, it assumes both `pred` and `truth` are in `log10` base.
+        If False, it performs the calculation as usual.
+    
+    Returns
+    ------------
+    frac_diff: numpy.ndarray
+        array with the `fractional difference` values between 
+        `pred` and `truth`
+    """
+    assert(pred.shape == truth.shape)
+    ## Initializing array
+    frac_diff = num.zeros(pred.shape[0])*num.nan
+    ## Filter out results
+    pred_finite_idx = num.where(pred != 0)[0]
+    pred_finite     = pred [pred_finite_idx]
+    truth_finite    = truth[pred_finite_idx]
+    ## If values are in log
+    if log_opt:
+        pred_finite  = 10**pred_finite
+        truth_finite = 10**truth_finite
+    ## Calculating fractional difference
+    frac_diff_vals = (pred_finite - truth_finite)/truth_finite
+    ## If precentage
+    if perc:
+        frac_diff_vals *= 100.
+    ##
+    ## Assigning to array
+    frac_diff[pred_finite_idx] = frac_diff_vals
+
+    return frac_diff
+
+
 ## --------- Preparing Data ------------##
 
 # Reading in data and cleaning it in
@@ -478,8 +534,178 @@ def catl_file_read_clean(param_dict, proj_dict, random_state=0,
     if dropna_opt:
         catl_pd.dropna(how='any', inplace=True)
     ## Temporarily fixing 'rmed'
+    ## Unit constant
+    unit_const = ((3*num.pi/2.) * ((u.km/u.s)**2) * (u.Mpc) / ac.G).to(u.Msun)
+    unit_const_val = unit_const.value
+    # Median Radius
+    for mdyn_kk in ['GG_mdyn_rmed', 'GG_mdyn_rproj']:
+        mdyn_val               = catl_pd[mdyn_kk].values * unit_const_val
+        mdyn_val_idx           = num.where(mdyn_val != 0)[0]
+        mdyn_val_idx_val       = num.log10(mdyn_val[mdyn_val_idx])
+        mdyn_val[mdyn_val_idx] = mdyn_val_idx_val
+        # Saving to `catl_pd`
+        catl_pd.loc[:,mdyn_kk] = mdyn_val
 
     return catl_pd
+
+## --------- Plotting Functions ------------##
+
+## Comparison between estimated group masses via HAM and dynamical mass
+def group_mass_comparison(catl_pd, param_dict, proj_dict,
+    bin_width = 0.4, arr_len=10, bin_statval='left', statfunction=num.nanmean,
+    fig_fmt='pdf', figsize=(10,8), fig_number=1):
+    """
+    Comparison of estimated group masses.
+
+    Parameters
+    -----------
+    catl_pd: pandas DataFrame
+        DataFrame containing galaxy and group information
+
+    param_dict: python dictionary
+        dictionary with `project` variables
+
+    proj_dict: python dictionary
+        dictionary with info of the project that uses the
+        `Data Science` Cookiecutter template.
+
+    bin_width: float, optional (default = 0.4)
+        width of the bin used for the `truth` axis
+
+    arr_len: int, optional (default=0)
+        Minimum number of elements in bins
+
+    bin_statval: string, optional (default='average')
+        Option for where to plot the bin values of X1_arr and Y1_arr.
+        - 'average': Returns the x-points at the average x-value of the bin
+        - 'left'   : Returns the x-points at the left-edge of the x-axis bin
+        - 'right'  : Returns the x-points at the right-edge of the x-axis bin
+
+    statfunction: statistical function, optional (default=numpy.mean)
+        Numerical function to calculate on bins of data.
+        - numpy.nanmean  : mean value for each bin + error in the mean.
+        - numpy.nanmedian: median value for each bin + error in the median.
+
+    fig_fmt: string, optional (default = 'pdf')
+        extension used to save the figure
+
+    figsize: tuple, optional (12,15.5)
+        size of the output figure
+
+    fig_number: int, optional (default = 1)
+        number of figure in the workflow
+    """
+    Prog_msg   = param_dict['Prog_msg']
+    ## Constants
+    cm         = plt.cm.get_cmap('viridis')
+    plot_dict  = param_dict['plot_dict']
+    ham_color  = 'red'
+    dyn_color  = 'blue'
+    halo_color = 'black'
+    alpha      = 0.3
+    ## Filename
+    fname    = os.path.join(    proj_dict['figure_dir'],
+                                'Fig_{0}_{1}_group_mass_comparison.{2}'.format(
+                                    fig_number,
+                                    param_dict['catl_str'],
+                                    fig_fmt))
+    ## Determining values
+    mass_ham  = catl_pd['GG_M_group'   ].values
+    mass_dyn  = catl_pd['GG_mdyn_rproj'].values
+    mass_halo = catl_pd['M_h'          ].values
+    ## Fractional differences
+    frac_diff_ham = frac_diff_calc(mass_ham, mass_halo, perc=True, log_opt=False)
+    frac_diff_dyn = frac_diff_calc(mass_dyn, mass_halo, perc=True, log_opt=False)
+    ## Statistics
+    mass_dict = {}
+    for kk, (type_kk, mass_kk) in enumerate(zip(['ham', 'dyn'],
+                                                [mass_ham, mass_dyn])):
+        ## Binning
+        (   x_stat   ,
+            y_stat   ,
+            y_std    ,
+            y_std_err) = cu.Mean_Std_calculations_One_array(mass_halo,
+                                                            mass_kk,
+                                                            base=bin_width,
+                                                            arr_len=arr_len,
+                                                            bin_statval=bin_statval,
+                                                            statfunction=statfunction)
+        # Limits
+        y_lower_kk = y_stat - y_std
+        y_upper_kk = y_stat + y_std
+        ##
+        ## Saving to dictionary
+        mass_dict[type_kk]           = {}
+        mass_dict[type_kk]['x_val' ] = mass_halo
+        mass_dict[type_kk]['y_val' ] = mass_kk
+        mass_dict[type_kk]['x_stat'] = x_stat
+        mass_dict[type_kk]['y_stat'] = y_stat
+        mass_dict[type_kk]['y_err' ] = y_std
+        mass_dict[type_kk]['y_low' ] = y_lower_kk
+        mass_dict[type_kk]['y_high'] = y_upper_kk
+    ##
+    ## Figure details
+    #
+    # Labels
+    xlabel = r'\boldmath$\log M_{halo,\textrm{true}}\left[ h^{-1} M_{\odot}\right]$'
+    ylabel = r'Fractional Difference \boldmath$[\%]$'
+    ##
+    plt.clf()
+    plt.close()
+    fig = plt.figure(figsize=figsize)
+    ax1 = fig.add_subplot(111, facecolor='white')
+    ## Horizontal line
+    ax1.axhline(y=0, color='black', linestyle='--', zorder=10)
+    ##
+    ## Plotttin Fractional differences
+    for kk, (type_kk, color_kk) in enumerate(zip(   ['ham', 'dyn'],
+                                                    [ham_color, dyn_color])):
+        # Reading data
+        x_stat = mass_dict[type_kk]['x_stat']
+        y_stat = mass_dict[type_kk]['y_stat']
+        y_err  = mass_dict[type_kk]['y_err' ]
+        y_low  = mass_dict[type_kk]['y_low' ]
+        y_high = mass_dict[type_kk]['y_high']
+        # Title
+        title_kk = type_kk.title()
+        # Plotting
+        ax1.plot(   x_stat,
+                    y_stat,
+                    color=color_kk,
+                    linestyle='-',
+                    marker='o')
+        ax1.fill_between(x_stat, y_low, y_high, color=color_kk, alpha=alpha,
+                        label=title_kk)
+    ##
+    ## Legend
+    leg = ax1.legend(loc='upper left', numpoints=1, frameon=False,
+        prop={'size':14})
+    leg.get_frame().set_facecolor('none')
+    ## Ticks
+    # X-axis
+    ax_xaxis_major_loc = ticker.MultipleLocator(bin_width)
+    ax1.xaxis.set_major_locator(ax_xaxis_major_loc)
+    # Y-axis
+    yaxis_major_ticker = 5
+    yaxis_minor_ticker = 1
+    ax_yaxis_major_loc = ticker.MultipleLocator(yaxis_major_ticker)
+    ax_yaxis_minor_loc = ticker.MultipleLocator(yaxis_minor_ticker)
+    ax1.yaxis.set_major_locator(ax_yaxis_major_loc)
+    ax1.yaxis.set_minor_locator(ax_yaxis_minor_loc)
+    ## Labels
+    ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
+    ax1.set_ylabel(ylabel, fontsize=plot_dict['size_label'])
+    ##
+    ## Saving figure
+    if fig_fmt=='pdf':
+        plt.savefig(fname, bbox_inches='tight')
+    else:
+        plt.savefig(fname, bbox_inches='tight', dpi=400)
+    print('{0} Figure saved as: {1}'.format(Prog_msg, fname))
+    plt.clf()
+    plt.close()
+
+
 
 ## --------- Main Function ------------##
 
@@ -515,6 +741,12 @@ def main(args):
                                     shuffle_opt =param_dict['shuffle_opt'],
                                     dropna_opt  =param_dict['dropna_opt'],
                                     sample_frac =param_dict['sample_frac'])
+    ###
+    ### ------ Figures ------ ###
+    ###
+    ## Comparison of estimated group masses via HAM and Dynamical Masses
+    group_mass_comparison(catl_pd, param_dict, proj_dict)
+
 
 
 

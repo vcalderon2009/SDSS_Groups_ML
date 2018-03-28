@@ -74,7 +74,7 @@ def myfloor(x, base=10):
 
     return n_low
 
-def Bootstrap_Estimator(data, statfunction=num.mean, method='module', \
+def Bootstrap_Estimator(data, statfunction=num.nanmean, method='module', \
     n_samples=10000, alpha=0.05, output='errorbar'):
     """
     Calcualtes confidence interval within 5 percent for 'data' array.
@@ -275,11 +275,11 @@ def Mean_Std_calculations_One_array( X1_arr, Y1_arr, base=1., n_samples=10000,\
     Y1_stat_arr = num.array([ statfunction(Y1_arr[X1_dig_arr==ii]) if 
         len(Y1_arr[X1_dig_arr==ii]) > arr_len else failval for ii 
         in range(1, len(X1_bins_arr))])
-    Y1_std_arr = num.array([ num.std(Y1_arr[X1_dig_arr==ii]) if 
+    Y1_std_arr = num.array([ num.nanstd(Y1_arr[X1_dig_arr==ii]) if 
         len(Y1_arr[X1_dig_arr==ii]) > arr_len else failval for ii 
         in range(1, len(X1_bins_arr))])
     Y1_std_err_arr = num.array([ 
-        num.std(Y1_arr[X1_dig_arr==ii])/math.sqrt(len(Y1_arr[X1_dig_arr==ii])) if 
+        num.nanstd(Y1_arr[X1_dig_arr==ii])/math.sqrt(len(Y1_arr[X1_dig_arr==ii])) if 
         len(Y1_arr[X1_dig_arr==ii]) > arr_len else failval for ii 
         in range(1, len(X1_bins_arr))])
     if arr_digit=='y' or arr_digit=='o':
@@ -300,7 +300,7 @@ def Mean_Std_calculations_One_array( X1_arr, Y1_arr, base=1., n_samples=10000,\
         Y1_bins_data   = Y1_bins_data  [X1_failval_idx]
 
     # Correcting error if statfunction == numpy.median
-    if statfunction==num.median:
+    if statfunction==num.nanmedian:
         Y1_std_err_arr *= 1.253
 
     # Returning Percentiles
@@ -462,11 +462,11 @@ def Mean_Std_calculations_Two_array( X1_arr, Y1_arr, X2_arr, Y2_arr,
     Y1_stat_arr = num.array([ statfunction(Y1_arr[X1_dig_arr==ii]) if 
         len(Y1_arr[X1_dig_arr==ii]) > arr_len else failval for ii 
         in range(1, len(X_bins_arr))])
-    Y1_std_arr = num.array([ num.std(Y1_arr[X1_dig_arr==ii]) if 
+    Y1_std_arr = num.array([ num.nanstd(Y1_arr[X1_dig_arr==ii]) if 
         len(Y1_arr[X1_dig_arr==ii]) > arr_len else failval for ii 
         in range(1, len(X_bins_arr))])
     Y1_std_err_arr = num.array([ 
-        num.std(Y1_arr[X1_dig_arr==ii])/math.sqrt(len(Y1_arr[X1_dig_arr==ii])) if 
+        num.nanstd(Y1_arr[X1_dig_arr==ii])/math.sqrt(len(Y1_arr[X1_dig_arr==ii])) if 
         len(Y1_arr[X1_dig_arr==ii]) > arr_len else failval for ii 
         in range(1, len(X_bins_arr))])
     if arr_digit=='y' or arr_digit=='o':
@@ -487,7 +487,7 @@ def Mean_Std_calculations_Two_array( X1_arr, Y1_arr, X2_arr, Y2_arr,
         Y1_bins_data   = Y1_bins_data  [X1_failval_idx]
 
     # Correcting error if statfunction == numpy.median
-    if statfunction==num.median:
+    if statfunction==num.nanmedian:
         Y1_std_err_arr *= 1.253
 
     # Data in bins - Second Population
@@ -508,11 +508,11 @@ def Mean_Std_calculations_Two_array( X1_arr, Y1_arr, X2_arr, Y2_arr,
     Y2_stat_arr = num.array([ statfunction(Y2_arr[X2_dig_arr==ii]) if 
         len(Y2_arr[X2_dig_arr==ii]) > arr_len else failval for ii 
         in range(1, len(X_bins_arr))])
-    Y2_std_arr = num.array([ num.std(Y2_arr[X2_dig_arr==ii]) if 
+    Y2_std_arr = num.array([ num.nanstd(Y2_arr[X2_dig_arr==ii]) if 
         len(Y2_arr[X2_dig_arr==ii]) > arr_len else failval for ii 
         in range(1, len(X_bins_arr))])
     Y2_std_err_arr = num.array([ 
-        num.std(Y2_arr[X2_dig_arr==ii])/math.sqrt(len(Y2_arr[X2_dig_arr==ii])) if 
+        num.nanstd(Y2_arr[X2_dig_arr==ii])/math.sqrt(len(Y2_arr[X2_dig_arr==ii])) if 
         len(Y2_arr[X2_dig_arr==ii]) > arr_len else failval for ii 
         in range(1, len(X_bins_arr))])
     if arr_digit=='y' or arr_digit=='o':
@@ -533,7 +533,7 @@ def Mean_Std_calculations_Two_array( X1_arr, Y1_arr, X2_arr, Y2_arr,
         Y2_bins_data   = Y2_bins_data  [X2_failval_idx]
 
     # Correcting error if statfunction == numpy.median
-    if statfunction==num.median:
+    if statfunction==num.nanmedian:
         Y2_std_err_arr *= 1.253
 
     # Returns
