@@ -91,11 +91,11 @@ catl_props:
 	@python $(SRC_DIR)/mocks_ml_main/catl_properties_calculations_make.py -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -v $(VERBOSE)
 
 ## Trains ML algorithms on the `merged` dataset
-ml_algs_train:
+ml_train:
 	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main_make.py -a 'training' -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -shuffle_opt $(SHUFFLE_OPT) -kf_splits $(KF_SPLITS) -n_predict $(N_PREDICT) -test_size $(TEST_SIZE) -sample_frac $(SAMPLE_FRAC) -dropna_opt $(DROP_NA) -v $(VERBOSE) -pre_opt $(PRE_OPT) -score_method $(SCORE_METHOD)
 
 ## Plots the ML figures of the `trained` dataset
-ml_plots_make:
+ml_plots:
 	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main_make.py -a 'plots' -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -v $(VERBOSE) -pre_opt $(PRE_OPT) -sample_frac $(SAMPLE_FRAC) -score_method $(SCORE_METHOD)
 
 ## Run tests to see if all files (Halobias, catalogues) are in order
