@@ -574,8 +574,9 @@ def training_testing_data(param_dict, proj_dict, test_size=0.25,
     elif param_dict['n_predict'] == 3:
         predicted_cols = ['M_h', 'galtype']
     # features_cols  = [s for s in catl_cols if s not in predicted_cols]
-    features_cols = [   'M_r','GG_mr_brightest','g_r','GG_rproj','GG_sigma_v',
-                        'GG_M_r','GG_ngals','GG_M_group']
+    # features_cols = [   'M_r','GG_mr_brightest','g_r','GG_rproj','GG_sigma_v',
+    #                     'GG_M_r','GG_ngals','GG_M_group']
+    features_cols = [   'mdyn_rproj','GG_M_group']
     # Creating new DataFrames
     pred_arr = catl_pd.loc[:,predicted_cols].values
     feat_arr = catl_pd.loc[:,features_cols ].values
