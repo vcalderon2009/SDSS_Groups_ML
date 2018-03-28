@@ -1275,14 +1275,29 @@ def group_dynamical_mass(group_ii_pd, group_mod_pd):
     group_mod_pd: pandas DataFrame
         DataFrame, to which to add the group properties
     """
+    ## Unit constant
+    unit_const = ((3*num.pi/2.) * ((u.km/u.s)**2) * (u.Mpc) / ac.G).to(u.Msun)
+    unit_const_val = unit_const.value
     ## Dynamical mass at the median radius
     mdyn_med = ((group_mod_pd['sigma_v_rmed']**2)*group_mod_pd['r_med']).values
     ## Dynamical mass at the virial radius
     mdyn_proj = ((group_ii_pd['GG_sigma_v']**2)*group_ii_pd['GG_rproj']).values
     ##
+    ## Correcting units
+    # Median Radius
+    mdyn_med_mod                   = mdyn_med * unit_const_val
+    mdyn_med_mod_idx               = num.where(mdyn_med_mod != 0)[0]
+    mdyn_med_mod_idx_val           = num.log10(mdyn_med_mod[mdyn_med_mod_idx])
+    mdyn_med_mod[mdyn_med_mod_idx] = mdyn_med_mod_idx_val
+    # virial radius
+    mdyn_proj_mod                   = mdyn_proj * unit_const_val
+    mdyn_proj_mod_idx               = num.where(mdyn_proj_mod != 0)[0]
+    mdyn_proj_mod_idx_val           = num.log10(mdyn_proj_mod[mdyn_proj_mod_idx])
+    mdyn_proj_mod[mdyn_proj_mod_idx] = mdyn_proj_mod_idx_val
+    ##
     ## Assigning to `group_mod_pd`
-    group_mod_pd.loc[:,'mdyn_rmed' ] = mdyn_med
-    group_mod_pd.loc[:,'mdyn_rproj'] = mdyn_proj
+    group_mod_pd.loc[:,'mdyn_rmed' ] = mdyn_med_mod
+    group_mod_pd.loc[:,'mdyn_rproj'] = mdyn_proj_mod
 
     return group_mod_pd
 
