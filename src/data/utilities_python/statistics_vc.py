@@ -166,7 +166,7 @@ def Bins_array_create(arr, base=10):
     return bins_arr
 
 def Mean_Std_calculations_One_array( X1_arr, Y1_arr, base=1., n_samples=10000,\
-    alpha=0.05, arr_len=0, arr_digit='n', statfunction=num.mean, weights=None,\
+    alpha=0.05, arr_len=0, arr_digit='n', statfunction=num.nanmean, weights=None,\
     bin_statval='average', failval=-1.e7, return_perc=False):
     """
     Calculates statistics of two arrays, e.g. scatter, error in 'statfunction', 
@@ -333,7 +333,7 @@ def Mean_Std_calculations_One_array( X1_arr, Y1_arr, base=1., n_samples=10000,\
 
 def Mean_Std_calculations_Two_array( X1_arr, Y1_arr, X2_arr, Y2_arr, 
     base=1., n_samples=10000,\
-    alpha=0.05, arr_len=0, arr_digit='n', statfunction=num.mean, weights=None,\
+    alpha=0.05, arr_len=0, arr_digit='n', statfunction=num.nanmean, weights=None,\
     bin_statval='average', failval=-1.e7):
     """
     Calculates statistics of two arrays, e.g. scatter, error in 'statfunction', 
