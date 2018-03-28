@@ -956,8 +956,14 @@ def cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict,
                                             columns=['score_cumu'])
         # feat_score_cumu_pd.loc[:,'idx'] = num.arange(len(feat_score_cumu_pd))
         feat_score_cumu_pd = feat_score_cumu_pd.astype(float)
+        ## Finding set of common property labels
+        feat_score_cumu_pd_cols = feat_score_cumu_pd.columns.values
+        feat_score_cumu_pd_intersect = num.intersect1d(feat_score_cumu_pd_cols,
+                                        list(ml_dict_cols_names.keys()))
+        ml_dict_cols_names_select = {key:ml_dict_cols_names[key] for key \
+                                            in feat_score_cumu_pd_intersect}
         ## Renaming index
-        feat_score_cumu_pd.rename(index=ml_dict_cols_names, inplace=True)
+        feat_score_cumu_pd.rename(index=ml_dict_cols_names_select, inplace=True)
         # Number of features
         n_feat = len(feat_score_cumu_pd)
         ##
@@ -1125,8 +1131,15 @@ def feature_ranking_ml_algs(model_fits_dict, param_dict, proj_dict,
     ## Ordering by rank
     feat_rank_pd.sort_values('rank_sum', ascending=True, inplace=True)
     ##
+    ## Finding set of common property labels
+    feat_rank_pd_cols = feat_rank_pd.columns.values
+    feat_rank_pd_intersect = num.intersect1d(feat_rank_pd_cols,
+                                list(ml_dict_cols_names.keys()))
+    ml_dict_cols_names_select = {key:ml_dict_cols_names[key] for key in \
+                                    feat_rank_pd_intersect}
+    ##
     ## Renaming columns
-    feat_rank_pd.rename(index=ml_dict_cols_names, inplace=True)
+    feat_rank_pd.rename(index=ml_dict_cols_names_select, inplace=True)
     ##
     ## Excluding `rank_sum` column
     feat_rank_col_exclude = feat_rank_pd.columns.difference(['rank_sum'])
