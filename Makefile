@@ -36,6 +36,7 @@ SAMPLE_FRAC  = 0.01
 DROP_NA      = "True"
 N_PREDICT    = 1
 PRE_OPT      = 'standard'
+SCORE_METHOD = 'threshold'
 
 ifeq (,$(shell which conda))
 HAS_CONDA=False
@@ -91,11 +92,11 @@ catl_props:
 
 ## Trains ML algorithms on the `merged` dataset
 ml_algs_train:
-	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main_make.py -a 'training' -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -shuffle_opt $(SHUFFLE_OPT) -kf_splits $(KF_SPLITS) -n_predict $(N_PREDICT) -test_size $(TEST_SIZE) -sample_frac $(SAMPLE_FRAC) -dropna_opt $(DROP_NA) -v $(VERBOSE) -pre_opt $(PRE_OPT)
+	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main_make.py -a 'training' -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -shuffle_opt $(SHUFFLE_OPT) -kf_splits $(KF_SPLITS) -n_predict $(N_PREDICT) -test_size $(TEST_SIZE) -sample_frac $(SAMPLE_FRAC) -dropna_opt $(DROP_NA) -v $(VERBOSE) -pre_opt $(PRE_OPT) -score_method $(SCORE_METHOD)
 
 ## Plots the ML figures of the `trained` dataset
 ml_plots_make:
-	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main_make.py -a 'plots' -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -v $(VERBOSE) -pre_opt $(PRE_OPT) -sample_frac $(SAMPLE_FRAC)
+	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main_make.py -a 'plots' -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -v $(VERBOSE) -pre_opt $(PRE_OPT) -sample_frac $(SAMPLE_FRAC) -score_method $(SCORE_METHOD)
 
 ## Run tests to see if all files (Halobias, catalogues) are in order
 test_files:

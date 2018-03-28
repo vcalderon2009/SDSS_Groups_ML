@@ -224,6 +224,15 @@ def get_parser():
                         type=str,
                         choices=['min_max','standard','normalize','no', 'all'],
                         default='normalize')
+    ## Option for determining scoring
+    parser.add_argument('-score_method',
+                        dest='score_method',
+                        help="""
+                        Option for determining which scoring method to use.
+                        """,
+                        type=str,
+                        choices=['perc', 'threshold', 'model_score'],
+                        default='threshold')
     ## Option for removing file
     parser.add_argument('-remove',
                         dest='remove_files',
@@ -295,6 +304,7 @@ def get_analysis_params(param_dict):
                                 ('shuffle_opt' ,'-shuffle_opt' ,'True'     ),
                                 ('dropna_opt'  ,'-dropna_opt'  ,'True'     ),
                                 ('pre_opt'     ,'-pre_opt'     ,'normalize'),
+                                ('score_method','-score_method','threshold'),
                                 ('seed'        ,'-seed'        ,1          ),
                                 ('cpu_frac'    ,'-cpu'         ,0.75       ),
                                 ('remove_files','-remove'      ,'False'    ),
@@ -311,6 +321,7 @@ def get_analysis_params(param_dict):
                                 ('perf_opt'    ,'-perf'        ,False      ),
                                 ('n_predict'   ,'-n_predict'   ,1          ),
                                 ('pre_opt'     ,'-pre_opt'     ,'normalize'),
+                                ('score_method','-score_method','threshold'),
                                 ('cpu_frac'    ,'-cpu'         ,0.75       ),
                                 ('remove_files','-remove'      ,'False'    ),
                                 ('verbose'     ,'-v'           ,'False'    )])
@@ -364,6 +375,9 @@ def get_analysis_params(param_dict):
     ##
     ## Option for which preprocessing of the data to use
     params_pd.loc[params_pd['Name']=='pre_opt','Value'] = param_dict['pre_opt']
+    ##
+    ## Option for which preprocessing of the data to use
+    params_pd.loc[params_pd['Name']=='score_method','Value'] = param_dict['score_method']
     ## Choosing if to delete files
     if param_dict['remove_files']:
         ## Overwriting `remove_files` from `params_pd`

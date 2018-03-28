@@ -213,6 +213,15 @@ def get_parser():
                         type=str,
                         choices=['min_max','standard','normalize','no', 'all'],
                         default='normalize')
+    ## Option for determining scoring
+    parser.add_argument('-score_method',
+                        dest='score_method',
+                        help="""
+                        Option for determining which scoring method to use.
+                        """,
+                        type=str,
+                        choices=['perc', 'threshold', 'model_score'],
+                        default='threshold')
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -350,9 +359,11 @@ def add_to_dict(param_dict):
     catl_str_fig_arr = [catl_str_read,
                         param_dict['n_predict'],
                         param_dict['pre_opt'  ],
-                        param_dict['sample_frac']]
-    catl_str_fig = '{0}_n_predict_{1}_pre_opt_{2}_sample_frac_{3}'
-    catl_str_fig = catl_str_fig.format(*catl_str_fig_arr)
+                        param_dict['sample_frac'],
+                        param_dict['score_method']]
+    catl_str_fig  = '{0}_n_predict_{1}_pre_opt_{2}_sample_frac_{3}'
+    catl_str_fig += '_score_method_{4}'
+    catl_str_fig  = catl_str_fig.format(*catl_str_fig_arr)
     ##
     ## Plotting constants
     plot_dict = {   'size_label':18,
@@ -824,6 +835,12 @@ def frac_diff_model(model_fits_dict, test_dict, param_dict, proj_dict,
     Mh_ham_idx    = num.where(features_cols == Mh_ham_key)[0]
     mgroup_ham    = test_dict['X_test_ns'].T[Mh_ham_idx].flatten()
     mh_true_arr   = test_dict['Y_test_ns'].flatten()
+    ## Dynamical masss
+    Mh_dyn_key      = 'GG_mdyn_rproj'
+    Mh_dyn_idx      = num.where(features_cols == Mh_dyn_key)[0]
+    mgroup_dyn      = test_dict['X_test_ns'].T[Mh_dyn_idx].flatten()
+    mh_true_dyn_arr = test_dict['Y_test_ns'].flatten()
+    # Omitting zeros
     # Fractional difference M_Ham and True mass
     frac_diff_mham_mh = 100.*(mgroup_ham - mh_true_arr)/mh_true_arr
     # Binning data

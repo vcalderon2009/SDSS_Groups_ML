@@ -64,6 +64,7 @@ import sklearn.ensemble         as skem
 import sklearn.neural_network   as skneuro
 import sklearn.preprocessing    as skpre
 import xgboost
+import scipy
 
 ## Functions
 
@@ -253,7 +254,16 @@ def get_parser():
                         """,
                         type=str,
                         choices=['min_max','standard','normalize', 'no', 'all'],
-                        default='normalize')
+                        default='standard')
+    ## Option for determining scoring
+    parser.add_argument('-score_method',
+                        dest='score_method',
+                        help="""
+                        Option for determining which scoring method to use.
+                        """,
+                        type=str,
+                        choices=['perc', 'threshold', 'model_score'],
+                        default='threshold')
     ## Preprocessing Option
     parser.add_argument('-remove',
                         dest='remove_files',
@@ -490,6 +500,69 @@ def directory_skeleton(param_dict, proj_dict):
     proj_dict['test_train_dir'         ] = test_train_dir
 
     return proj_dict
+
+## --------- Scoring tools ------------##
+
+# Scoring methods
+def scoring_methods(feat_arr, truth_arr, model_used,
+    score_method='perc', threshold=0.1, perc_val=0.9):
+    """
+    Determines the overall score for given arrays `pred_arr` and `truth_arr`.
+
+    Parameters
+    ------------
+    feat_arr: numpy.ndarray
+        array consisting of the `features` values
+
+    truth: numpy.ndarray
+        array consisting of the `truth` values
+
+    model_used: sklearn object
+        model used to estimate the score if `score_method == 'model_score'`
+    
+    score_method: string, optional (default = 'perc')
+        Type of scoring to use when determining how well an algorithm 
+        performs.
+        Options:
+            - 'perc': Use percentage and rank-ordering of the values
+            - 'threshold': Score based on difference of `threshold` or less 
+                            from the true value
+            - `model_score`: Out-of-the-box method from sklearn to determine 
+                    the success of a ML model.
+
+    threshold: float, optional (default = 0.1)
+        value to use when calculating the error within `threshold` value 
+        from the truth
+
+    perc_val: float, optional (default = 0.9)
+        value used when determining score within some `perc_val` percentile
+        value from [0,1]
+    
+    Returns
+    ------------
+    method_score: float
+        overall score from `pred_arr` to predict `truth_arr`
+    """
+    ## Converting method
+    ## Choosing method
+    # `Percentile` method
+    if score_method == 'perc':
+        pred_arr     = model_used.predict(feat_arr)
+        pred_err     = num.abs(pred_arr - truth_arr)
+        method_score = scipy.stats.scoreatpercentile(pred_err, 100.*perc_val)
+    ## Threshold method
+    if score_method == 'threshold':
+        pred_arr     = model_used.predict(feat_arr)
+        pred_err     = num.abs(pred_arr - truth_arr)
+        pred_thresh  = len(pred_err[pred_err <= threshold])
+        method_score = pred_thresh / len(pred_arr)
+    ## Model Score
+    if score_method == 'model_score':
+        method_score = model_used.score(feat_arr, truth_arr)
+
+    return method_score
+
+
 
 ## --------- Preparing Data ------------##
 
@@ -761,7 +834,10 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
     ###
     ### -- Score - Total and K-fold -- ###
     # Normal score
-    model_score_tot = model_gen.score(X_test, Y_test)
+    model_score_tot = scoring_methods(  X_test, Y_test, model_gen,
+                                        score_method=param_dict['score_method'],
+                                        threshold=0.1,
+                                        perc_val=0.9)
     # K-fold
     # Choosing which method to use
     kf_models_arr      = [[] for kk in range(kf_splits)]
@@ -780,7 +856,12 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
         model_kf = sklearn.base.clone(param_dict['skem_dict'][skem_key])
         model_kf.fit(X_train_kk, Y_train_kk)
         ## Calculating Score
-        kf_kk_score          = model_kf.score(X_test_kk, Y_test_kk)
+        kf_kk_score          = scoring_methods( X_test_kk,
+                                                Y_test_kk,
+                                                model_kf,
+                                                score_method=param_dict['score_method'],
+                                                threshold=0.1,
+                                                perc_val=0.9)
         ## Saving to array
         kf_scores[kk]        = kf_kk_score
         ## Feature importances
@@ -838,7 +919,12 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
         X_test_gen_kk  = X_test.T [feat_imp_gen_sort_idx[0:kk+1]].T
         model_gen_kk.fit(X_train_gen_kk, Y_train)
         # Getting Score
-        model_gen_kk_score = model_gen_kk.score(X_test_gen_kk, Y_test)
+        model_gen_kk_score = scoring_methods(   X_test_gen_kk,
+                                                Y_test,
+                                                model_gen_kk,
+                                                score_method=param_dict['score_method'],
+                                                threshold=0.1,
+                                                perc_val=0.9)
         ##
         ## ---- K-fold ---- ##
         model_kf_kk = sklearn.base.clone(param_dict['skem_dict'][skem_key])
@@ -847,7 +933,12 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
         X_test_kf_kk  = X_test.T [feat_imp_kf_sort_idx[0:kk+1]].T
         model_kf_kk.fit(X_train_kf_kk, Y_train)
         # Getting Score
-        model_kf_kk_score = model_kf_kk.score(X_test_kf_kk, Y_test)
+        model_kf_kk_score = scoring_methods(    X_test_kf_kk,
+                                                Y_test,
+                                                model_kf_kk
+                                                score_method=param_dict['score_method'],
+                                                threshold=0.1,
+                                                perc_val=0.9)
         ##
         ## ---- Saving to array ---- ##
         feat_score_gen_arr[kk] = model_gen_kk_score
@@ -946,11 +1037,13 @@ def saving_data(param_dict, proj_dict, model_fits_dict, train_dict, test_dict):
     """
     ## Filename
     filepath_str  = '{0}_n_predict_{1}_pre_opt_{2}_sample_frac_{3}'
+    filepath_str += '_score_method_{4}'
     filepath_str += '_model_fits_dict.p'
     filepath_str  = filepath_str.format(param_dict['catl_str' ],
                                         param_dict['n_predict'],
                                         param_dict['pre_opt'  ],
-                                        param_dict['sample_frac'])
+                                        param_dict['sample_frac'],
+                                        param_dict['score_method'])
     filepath = os.path.join(    proj_dict['test_train_dir'],
                                 filepath_str)
     ## Elements to be saved
