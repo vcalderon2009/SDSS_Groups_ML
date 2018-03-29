@@ -1263,45 +1263,45 @@ def feature_ranking_ml_algs(model_fits_dict, param_dict, proj_dict,
     feat_rank_pd_mod.rename(columns=dict(zip(   feat_rank_pd_mod_cols,
                                                 feat_rank_pd_mod_cols_mod)),
                             inplace=True)
-    with sns.set(font_scale=2):
-        ##
-        ## Plotting details
-        plt.clf()
-        plt.close()
-        fig = plt.figure(figsize=figsize)
-        ax1 = fig.add_subplot(111, facecolor='white')
-        # Axis labels
-        xlabel = r'$\leftarrow \textrm{Importance ranking}$'
-        ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
-        # Plotting
-        # Width
-        if stacked_opt:
-            feat_rank_pd_mod.plot(  kind='barh',
-                                    stacked=stacked_opt,
-                                    ax=ax1,
-                                    legend=True)
-        else:
-            feat_rank_pd_mod.plot(  kind='barh',
-                                    stacked=stacked_opt,
-                                    ax=ax1,
-                                    legend=True,
-                                    width=0.5)
-        ## Ticks
-        ax_data_major_loc  = ticker.MultipleLocator(10)
-        ax_data_minor_loc  = ticker.MultipleLocator(5.)
-        ax1.xaxis.set_major_locator(ax_data_major_loc)
-        ax1.xaxis.set_minor_locator(ax_data_minor_loc)
-        # Inverting axis
-        ax1.invert_yaxis()
-        ##
-        ## Saving figure
-        if fig_fmt=='pdf':
-            plt.savefig(fname, bbox_inches='tight')
-        else:
-            plt.savefig(fname, bbox_inches='tight', dpi=400)
-        print('{0} Figure saved as: {1}'.format(Prog_msg, fname))
-        plt.clf()
-        plt.close()
+    ##
+    ## Plotting details
+    plt.clf()
+    plt.close()
+    fig = plt.figure(figsize=figsize)
+    ax1 = fig.add_subplot(111, facecolor='white')
+    # Axis labels
+    xlabel = r'$\leftarrow \textrm{Importance ranking}$'
+    ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
+    # Plotting
+    # Width
+    if stacked_opt:
+        b = feat_rank_pd_mod.plot(  kind='barh',
+                                stacked=stacked_opt,
+                                ax=ax1,
+                                legend=True)
+    else:
+        b = feat_rank_pd_mod.plot(  kind='barh',
+                                stacked=stacked_opt,
+                                ax=ax1,
+                                legend=True,
+                                width=0.5)
+    b.tick_params(labelsize=5)
+    ## Ticks
+    ax_data_major_loc  = ticker.MultipleLocator(10)
+    ax_data_minor_loc  = ticker.MultipleLocator(5.)
+    ax1.xaxis.set_major_locator(ax_data_major_loc)
+    ax1.xaxis.set_minor_locator(ax_data_minor_loc)
+    # Inverting axis
+    ax1.invert_yaxis()
+    ##
+    ## Saving figure
+    if fig_fmt=='pdf':
+        plt.savefig(fname, bbox_inches='tight')
+    else:
+        plt.savefig(fname, bbox_inches='tight', dpi=400)
+    print('{0} Figure saved as: {1}'.format(Prog_msg, fname))
+    plt.clf()
+    plt.close()
 
 
 
