@@ -426,7 +426,7 @@ def get_analysis_params(param_dict):
         params_pd.loc[params_pd['Name']=='hidden_layers','Value'] = param_dict['hidden_layers']
         ##
         ## Threshold value used for when `score_method == 'threshold'`
-        params_pd.loc[params_pd['Name']=='perc','Value'] = param_dict['perc']
+        params_pd.loc[params_pd['Name']=='perc_val','Value'] = param_dict['perc_val']
         ##
         ## Threshold value used for when `score_method == 'threshold'`
         params_pd.loc[params_pd['Name']=='threshold','Value'] = param_dict['threshold']
