@@ -33,8 +33,8 @@ matplotlib.use( 'Agg' )
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 plt.rc('text', usetex=True)
-from astropy.visualization import astropy_mpl_style
-plt.style.use(astropy_mpl_style)
+# from astropy.visualization import astropy_mpl_style
+# plt.style.use(astropy_mpl_style)
 import seaborn as sns
 #sns.set()
 from tqdm import tqdm
