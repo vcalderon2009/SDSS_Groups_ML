@@ -189,6 +189,12 @@ def get_parser():
                         than 2""",
                         type=int,
                         default=3)
+    ## Number of hidden layers to use
+    parser.add_argument('-hidden_layers',
+                        dest='hidden_layers',
+                        help='Number of hidden layers to use for neural network',
+                        type=int,
+                        default=1000)
     ## Total number of properties to predict. Default = 1
     parser.add_argument('-n_predict',
                         dest='n_predict',
@@ -289,26 +295,27 @@ def get_analysis_params(param_dict):
     #
     # For `mocks`
     if param_dict['analysis_type'] == 'training':
-        params_arr = num.array([('hod_n'       ,'-hod_model_n' ,0          ),
-                                ('halotype'    ,'-halotype'    ,'so'       ),
-                                ('clf_method'  ,'-clf_method'  ,3          ),
-                                ('sample'      ,'-sample'      ,'19'       ),
-                                ('catl_type'   ,'-abopt'       ,'mr'       ),
-                                ('cosmo_choice','-cosmo'       ,'LasDamas' ),
-                                ('nmin'        ,'-nmin'        ,1          ),
-                                ('sample_frac' ,'-sample_frac' ,0.01       ),
-                                ('perf_opt'    ,'-perf'        ,False      ),
-                                ('test_size'   ,'-test_size'   ,0.25       ),
-                                ('kf_splits'   ,'-kf_splits'   ,3          ),
-                                ('n_predict'   ,'-n_predict'   ,1          ),
-                                ('shuffle_opt' ,'-shuffle_opt' ,'True'     ),
-                                ('dropna_opt'  ,'-dropna_opt'  ,'True'     ),
-                                ('pre_opt'     ,'-pre_opt'     ,'normalize'),
-                                ('score_method','-score_method','threshold'),
-                                ('seed'        ,'-seed'        ,1          ),
-                                ('cpu_frac'    ,'-cpu'         ,0.75       ),
-                                ('remove_files','-remove'      ,'False'    ),
-                                ('verbose'     ,'-v'           ,'False'    )])
+        params_arr = num.array([('hod_n'        ,'-hod_model_n'  ,0          ),
+                                ('halotype'     ,'-halotype'     ,'so'       ),
+                                ('clf_method'   ,'-clf_method'   ,3          ),
+                                ('sample'       ,'-sample'       ,'19'       ),
+                                ('catl_type'    ,'-abopt'        ,'mr'       ),
+                                ('cosmo_choice' ,'-cosmo'        ,'LasDamas' ),
+                                ('nmin'         ,'-nmin'         ,1          ),
+                                ('sample_frac'  ,'-sample_frac'  ,0.01       ),
+                                ('perf_opt'     ,'-perf'         ,False      ),
+                                ('test_size'    ,'-test_size'    ,0.25       ),
+                                ('kf_splits'    ,'-kf_splits'    ,3          ),
+                                ('kf_splits'    ,'-kf_splits'    ,3          ),
+                                ('hidden_layers','-hidden_layers',1000       ),
+                                ('shuffle_opt'  ,'-shuffle_opt'  ,'True'     ),
+                                ('dropna_opt'   ,'-dropna_opt'   ,'True'     ),
+                                ('pre_opt'      ,'-pre_opt'      ,'normalize'),
+                                ('score_method' ,'-score_method' ,'threshold'),
+                                ('seed'         ,'-seed'         ,1          ),
+                                ('cpu_frac'     ,'-cpu'          ,0.75       ),
+                                ('remove_files' ,'-remove'       ,'False'    ),
+                                ('verbose'      ,'-v'            ,'False'    )])
     elif param_dict['analysis_type'] == 'plots':
         params_arr = num.array([('hod_n'       ,'-hod_model_n' ,0          ),
                                 ('halotype'    ,'-halotype'    ,'so'       ),
@@ -355,11 +362,9 @@ def get_analysis_params(param_dict):
     ##
     ## Minimum number of galaxies in galaxy group
     params_pd.loc[params_pd['Name']=='nmin','Value'] = param_dict['nmin']
-
     ##
     ## Option for using 'perfect' catalogues
     params_pd.loc[params_pd['Name']=='perf_opt','Value'] = param_dict['perf_opt']
-
     ##
     ## Number of properties to predict. Default = 1
     params_pd.loc[params_pd['Name']=='n_predict','Value'] = param_dict['n_predict']
@@ -400,6 +405,9 @@ def get_analysis_params(param_dict):
         ##
         ## Number of K-Folds to use when estimating the score of the model
         params_pd.loc[params_pd['Name']=='kf_splits','Value'] = param_dict['kf_splits']
+        ##
+        ## Number of K-Folds to use when estimating the score of the model
+        params_pd.loc[params_pd['Name']=='hidden_layers','Value'] = param_dict['hidden_layers']
     ##
     ## Only for `plots`
     ##
