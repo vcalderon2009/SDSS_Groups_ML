@@ -1285,7 +1285,7 @@ def feature_ranking_ml_algs(model_fits_dict, param_dict, proj_dict,
                                 ax=ax1,
                                 legend=True,
                                 width=0.5)
-    b.tick_params(labelsize=5)
+    b.tick_params(labelsize=15)
     ## Ticks
     ax_data_major_loc  = ticker.MultipleLocator(10)
     ax_data_minor_loc  = ticker.MultipleLocator(5.)
