@@ -1045,8 +1045,8 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
     model_dict['true_halo_ham'           ] = true_halo_ham
     model_dict['pred_dyn_mod'            ] = pred_dyn_mod
     model_dict['true_halo_dyn_mod'       ] = true_halo_dyn_mod
-    model_dict['frac_diff_ham'           ] = pred_dyn_mod
-    model_dict['frac_diff_dyn'           ] = pred_dyn_mod
+    model_dict['frac_diff_ham'           ] = frac_diff_ham
+    model_dict['frac_diff_dyn'           ] = frac_diff_dyn
     ##
     ## Only for algorithms that are not `neural_network`
     if skem_key != 'neural_network':
