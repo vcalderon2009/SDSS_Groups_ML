@@ -1087,7 +1087,7 @@ def cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict,
         if param_dict['score_method'] == 'model_score':
             ax1.set_xlim(0, 100.)
         else:
-            pass
+            ax1.set_xlim(0, 1.)
         # Y-axis
         y_offset = 0.5
         ax1.set_ylim(0-y_offset, n_feat-y_offset)
