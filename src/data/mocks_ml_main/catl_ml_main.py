@@ -894,73 +894,70 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
     ##
     ## ------- Feature Importance ------- ##
     ##
-    ## Feature Importance - Sorted from highest to lowest
-    #  -- General
-    feat_imp_gen          = num.vstack(zip( feat_cols,
-                                            model_gen.feature_importances_))
-    feat_imp_gen_sort_idx = num.argsort(feat_imp_gen[:,1])[::-1]
-    feat_imp_gen_sort     = feat_imp_gen[feat_imp_gen_sort_idx]
-    #  -- K-folds
-    feat_imp_kf_mean     = num.mean(kdf_features_imp.T, axis=1)
-    feat_imp_kf          = num.vstack(zip(feat_cols, feat_imp_kf_mean))
-    feat_imp_kf_sort_idx = num.argsort(feat_imp_kf[:,1])[::-1]
-    feat_imp_kf_sort     = feat_imp_kf[feat_imp_kf_sort_idx]
-    ##
-    ## ------- Scores after evaluating with different features ------- ##
-    ##
-    # General and K-folds
-    feat_score_gen_arr = num.zeros(n_feat)
-    feat_score_kf_arr  = num.zeros(n_feat)
-    # Looping over features
-    tqdm_desc   = 'Scores for different Feature Importances: '
-    tqdm_kf_obj = tqdm(range(n_feat), desc=tqdm_desc)
-    for kk in tqdm_kf_obj:
-        ## ---- General ---- ##
-        # Initializing model
-        model_gen_kk = sklearn.base.clone(param_dict['skem_dict'][skem_key])
-        # Training model
-        X_train_gen_kk = X_train.T[feat_imp_gen_sort_idx[0:kk+1]].T
-        X_test_gen_kk  = X_test.T [feat_imp_gen_sort_idx[0:kk+1]].T
-        model_gen_kk.fit(X_train_gen_kk, Y_train)
-        # Getting Score
-        model_gen_kk_score = scoring_methods(   X_test_gen_kk,
-                                                Y_test,
-                                                model_gen_kk,
-                                                score_method=param_dict['score_method'],
-                                                threshold=0.1,
-                                                perc_val=0.9)
+    if skem_key != 'neural_network':
+        ## Feature Importance - Sorted from highest to lowest
+        #  -- General
+        feat_imp_gen          = num.vstack(zip( feat_cols,
+                                                model_gen.feature_importances_))
+        feat_imp_gen_sort_idx = num.argsort(feat_imp_gen[:,1])[::-1]
+        feat_imp_gen_sort     = feat_imp_gen[feat_imp_gen_sort_idx]
+        #  -- K-folds
+        feat_imp_kf_mean     = num.mean(kdf_features_imp.T, axis=1)
+        feat_imp_kf          = num.vstack(zip(feat_cols, feat_imp_kf_mean))
+        feat_imp_kf_sort_idx = num.argsort(feat_imp_kf[:,1])[::-1]
+        feat_imp_kf_sort     = feat_imp_kf[feat_imp_kf_sort_idx]
         ##
-        ## ---- K-fold ---- ##
-        model_kf_kk = sklearn.base.clone(param_dict['skem_dict'][skem_key])
-        # Training model
-        X_train_kf_kk = X_train.T[feat_imp_kf_sort_idx[0:kk+1]].T
-        X_test_kf_kk  = X_test.T [feat_imp_kf_sort_idx[0:kk+1]].T
-        model_kf_kk.fit(X_train_kf_kk, Y_train)
-        # Getting Score
-        model_kf_kk_score = scoring_methods(    X_test_kf_kk,
-                                                Y_test,
-                                                model_kf_kk,
-                                                score_method=param_dict['score_method'],
-                                                threshold=0.1,
-                                                perc_val=0.9)
+        ## ------- Scores after evaluating with different features ------- ##
         ##
-        ## ---- Saving to array ---- ##
-        feat_score_gen_arr[kk] = model_gen_kk_score
-        feat_score_kf_arr [kk] = model_kf_kk_score
-    # Joining Keys
-    feat_score_gen_cumu = num.vstack(zip(   feat_imp_gen_sort[:,0],
-                                            feat_score_gen_arr))
-    feat_score_kf_cumu  = num.vstack(zip(   feat_imp_kf_sort[:,0],
-                                            feat_score_kf_arr))
+        # General and K-folds
+        feat_score_gen_arr = num.zeros(n_feat)
+        feat_score_kf_arr  = num.zeros(n_feat)
+        # Looping over features
+        tqdm_desc   = 'Scores for different Feature Importances: '
+        tqdm_kf_obj = tqdm(range(n_feat), desc=tqdm_desc)
+        for kk in tqdm_kf_obj:
+            ## ---- General ---- ##
+            # Initializing model
+            model_gen_kk = sklearn.base.clone(param_dict['skem_dict'][skem_key])
+            # Training model
+            X_train_gen_kk = X_train.T[feat_imp_gen_sort_idx[0:kk+1]].T
+            X_test_gen_kk  = X_test.T [feat_imp_gen_sort_idx[0:kk+1]].T
+            model_gen_kk.fit(X_train_gen_kk, Y_train)
+            # Getting Score
+            model_gen_kk_score = scoring_methods(   X_test_gen_kk,
+                                                    Y_test,
+                                                    model_gen_kk,
+                                                    score_method=param_dict['score_method'],
+                                                    threshold=0.1,
+                                                    perc_val=0.9)
+            ##
+            ## ---- K-fold ---- ##
+            model_kf_kk = sklearn.base.clone(param_dict['skem_dict'][skem_key])
+            # Training model
+            X_train_kf_kk = X_train.T[feat_imp_kf_sort_idx[0:kk+1]].T
+            X_test_kf_kk  = X_test.T [feat_imp_kf_sort_idx[0:kk+1]].T
+            model_kf_kk.fit(X_train_kf_kk, Y_train)
+            # Getting Score
+            model_kf_kk_score = scoring_methods(    X_test_kf_kk,
+                                                    Y_test,
+                                                    model_kf_kk,
+                                                    score_method=param_dict['score_method'],
+                                                    threshold=0.1,
+                                                    perc_val=0.9)
+            ##
+            ## ---- Saving to array ---- ##
+            feat_score_gen_arr[kk] = model_gen_kk_score
+            feat_score_kf_arr [kk] = model_kf_kk_score
+        # Joining Keys
+        feat_score_gen_cumu = num.vstack(zip(   feat_imp_gen_sort[:,0],
+                                                feat_score_gen_arr))
+        feat_score_kf_cumu  = num.vstack(zip(   feat_imp_kf_sort[:,0],
+                                                feat_score_kf_arr))
     ##
     ## Saving to dicitoanry
     model_dict = {}
     model_dict['model_score_tot'         ] = model_score_tot
     model_dict['kf_scores'               ] = kf_scores
-    model_dict['feat_imp_gen_sort'       ] = feat_imp_gen_sort
-    model_dict['feat_imp_kf_sort'        ] = feat_imp_kf_sort
-    model_dict['feat_score_gen_cumu'     ] = feat_score_gen_cumu
-    model_dict['feat_score_kf_cumu'      ] = feat_score_kf_cumu
     model_dict['model_gen'               ] = model_gen
     model_dict['kf_models_arr'           ] = kf_models_arr
     model_dict['model_gen_prediction_arr'] = model_gen_prediction_arr
@@ -968,6 +965,13 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
     model_dict['model_gen_truth_arr'     ] = model_gen_truth_arr
     model_dict['model_kf_prediction_arr' ] = model_kf_prediction_arr
     model_dict['model_kf_frac_diff_arr'  ] = model_kf_frac_diff_arr
+    ##
+    ## Only for algorithms that are not `neural_network`
+    if skem_key != 'neural_network':
+        model_dict['feat_imp_gen_sort'       ] = feat_imp_gen_sort
+        model_dict['feat_imp_kf_sort'        ] = feat_imp_kf_sort
+        model_dict['feat_score_gen_cumu'     ] = feat_score_gen_cumu
+        model_dict['feat_score_kf_cumu'      ] = feat_score_kf_cumu
 
     return model_dict
 
