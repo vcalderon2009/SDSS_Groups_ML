@@ -970,12 +970,16 @@ def frac_diff_model(model_fits_dict, test_dict, param_dict, proj_dict,
         prop={'size':14})
     leg.get_frame().set_facecolor('none')
     ## Ticks
-    # X-axis
-    ax_xaxis_major_loc = ticker.MultipleLocator(bin_width)
+    # Y-axis
+    xaxis_major_ticker = 1
+    xaxis_minor_ticker = 0.2
+    ax_xaxis_major_loc = ticker.MultipleLocator(xaxis_major_ticker)
+    ax_xaxis_minor_loc = ticker.MultipleLocator(xaxis_minor_ticker)
     ax1.xaxis.set_major_locator(ax_xaxis_major_loc)
+    ax1.Xaxis.set_minor_locator(ax_xaxis_minor_loc)
     # Y-axis
     yaxis_major_ticker = 5
-    yaxis_minor_ticker = 1
+    yaxis_minor_ticker = 2
     ax_yaxis_major_loc = ticker.MultipleLocator(yaxis_major_ticker)
     ax_yaxis_minor_loc = ticker.MultipleLocator(yaxis_minor_ticker)
     ax1.yaxis.set_major_locator(ax_yaxis_major_loc)
