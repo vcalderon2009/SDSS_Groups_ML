@@ -534,7 +534,7 @@ def catl_file_read_clean(param_dict, proj_dict, random_state=0,
     if dropna_opt:
         catl_pd.dropna(how='any', inplace=True)
     ##  Temporarily fixing `GG_mdyn_rproj`
-    catl_pd.loc[:,'GG_mdyn_rproj'] /= 0.94
+    catl_pd.loc[:,'GG_mdyn_rproj'] /= 0.96
     ##
     ## Dropping certain columns
     catl_drop_arr = ['groupid', 'halo_rvir', 'galtype', 'halo_ngal']

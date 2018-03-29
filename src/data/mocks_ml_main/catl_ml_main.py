@@ -661,7 +661,7 @@ def training_testing_data(param_dict, proj_dict, test_size=0.25,
         catl_pd.dropna(how='any', inplace=True)
     ##
     ##  Temporarily fixing `GG_mdyn_rproj`
-    catl_pd.loc[:,'GG_mdyn_rproj'] /= 0.94
+    catl_pd.loc[:,'GG_mdyn_rproj'] /= 0.96
     ##
     ## Separing `features` and `predicted values`
     catl_cols      = catl_pd.columns.values
