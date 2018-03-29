@@ -826,8 +826,8 @@ def frac_diff_model(model_fits_dict, test_dict, param_dict, proj_dict,
     cm           = plt.cm.get_cmap('viridis')
     plot_dict    = param_dict['plot_dict']
     ham_color    = 'red'
-    alpha        = 0.7
-    alpha_mass   = 0.3
+    alpha        = 0.6
+    alpha_mass   = 0.2
     zorder_mass  = 10
     zorder_shade = zorder_mass - 1
     zorder_ml    = zorder_mass + 1
