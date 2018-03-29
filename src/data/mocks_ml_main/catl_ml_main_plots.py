@@ -1094,10 +1094,14 @@ def cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict,
         # Major Tick marks
         ax_yaxis_ticks_loc = ticker.MultipleLocator(1.)
         ax1.yaxis.set_major_locator(ax_yaxis_ticks_loc)
-        # Plotting
+        ## Plotting
+        # Factor - x-axis
+        if param_dict['score_method'] == 'model_score':
+            x_arr = 100.*feat_score_cumu_pd['score_cumu'].values
+        else:
+            x_arr = feat_score_cumu_pd['score_cumu'].values    
         y_arr = num.arange(feat_score_cumu_pd.shape[0])
-        x_arr = feat_score_cumu_pd['score_cumu'].values
-        ax1.plot(   100*x_arr,
+        ax1.plot(   x_arr,
                     y_arr,
                     color='blue',
                     marker='o',
@@ -1109,10 +1113,16 @@ def cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict,
         yaxis_new_ticks = feat_score_cumu_pd.index.values
         ax1.yaxis.set_ticklabels(yaxis_new_ticks)
         ## X-axis ticks
-        ax_yaxis_major_ticks_loc = ticker.MultipleLocator(10)
-        ax_yaxis_minor_ticks_loc = ticker.MultipleLocator(5)
-        ax1.xaxis.set_major_locator(ax_yaxis_major_ticks_loc)
-        ax1.xaxis.set_major_locator(ax_yaxis_minor_ticks_loc)
+        if param_dict['score_method'] == 'model_score':
+            x_major = 10.
+            x_minor = 5.
+        else:
+            x_major = 0.1
+            x_minor = 0.05
+        ax_xaxis_major_ticks_loc = ticker.MultipleLocator(x_major)
+        ax_xaxis_minor_ticks_loc = ticker.MultipleLocator(x_minor)
+        ax1.xaxis.set_major_locator(ax_xaxis_major_ticks_loc)
+        ax1.xaxis.set_major_locator(ax_xaxis_minor_ticks_loc)
         # grid
         if grid_opt:
             ax1.grid(which='major', color='grey', linestyle='--')
