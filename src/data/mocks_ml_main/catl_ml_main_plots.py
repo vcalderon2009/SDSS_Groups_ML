@@ -1285,7 +1285,7 @@ def feature_ranking_ml_algs(model_fits_dict, param_dict, proj_dict,
                                 ax=ax1,
                                 legend=True,
                                 width=0.5)
-    b.tick_params(labelsize=30)
+    b.tick_params(labelsize=25)
     ## Legend
     leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
         prop={'size':16})
