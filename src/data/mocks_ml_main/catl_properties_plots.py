@@ -37,7 +37,7 @@ plt.rc('text', usetex=True)
 from astropy.visualization import astropy_mpl_style
 plt.style.use(astropy_mpl_style)
 import seaborn as sns
-#sns.set()
+sns.set(font_scale=1.5)
 from progressbar import (Bar, ETA, FileTransferSpeed, Percentage, ProgressBar,
                         ReverseBar, RotatingMarker)
 from tqdm import tqdm
