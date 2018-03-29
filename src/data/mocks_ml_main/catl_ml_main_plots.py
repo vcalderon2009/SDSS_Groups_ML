@@ -977,6 +977,9 @@ def cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict,
     plot_dict      = param_dict['plot_dict'     ]
     ## List of algorithms being used
     skem_key_arr = num.sort(list(model_fits_dict.keys()))
+    ## Removing `neural_network` from list
+    if 'neural_network' in skem_key_arr:
+        skem_key_arr = num.array([i for i in skem_key_arr if i != 'neural_network'])
     ## Looping over all algorithms
     for skem_key in tqdm(skem_key_arr):
         ## Model being analyzed
@@ -1111,6 +1114,9 @@ def feature_ranking_ml_algs(model_fits_dict, param_dict, proj_dict,
     plot_dict      = param_dict['plot_dict'     ]
     ## List of algorithms being used
     skem_key_arr = num.sort(list(model_fits_dict.keys()))
+    ## Removing `neural_network` from list
+    if 'neural_network' in skem_key_arr:
+        skem_key_arr = num.array([i for i in skem_key_arr if i != 'neural_network'])
     # Number of ML algorithms
     n_ml_algs = len(skem_key_arr)
     # Features used
