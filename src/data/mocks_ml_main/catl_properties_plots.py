@@ -533,6 +533,8 @@ def catl_file_read_clean(param_dict, proj_dict, random_state=0,
     ## Dropping NaN's
     if dropna_opt:
         catl_pd.dropna(how='any', inplace=True)
+    ##  Temporarily fixing `GG_mdyn_rproj`
+    catl_pd.loc[:,'GG_mdyn_rproj'] /= 0.94
     ##
     ## Dropping certain columns
     catl_drop_arr = ['groupid', 'halo_rvir', 'galtype', 'halo_ngal']
@@ -563,7 +565,7 @@ def ml_file_data_cols(catl_pd, param_dict):
                             'GG_mr_brightest':"Lum. of Brightest Galaxy (G)",
                             'g_galtype':"Group galaxy type",
                             'GG_r_med':"Median radius (G)",
-                            'GG_mr_ratio': "Luminosity ratio (G,1-2)",
+                            'GG_mr_ratio': "Luminosity ratio (G)",
                             'GG_logssfr': "log(sSFR) (G)",
                             'GG_mdyn_rmed':"Dynamical mass at median radius (G)",
                             'GG_dist_cluster':"Distance to closest cluster (G)",
