@@ -537,18 +537,6 @@ def catl_file_read_clean(param_dict, proj_dict, random_state=0,
     ## Dropping certain columns
     catl_drop_arr = ['groupid', 'halo_rvir', 'galtype', 'halo_ngal']
     catl_pd       = catl_pd.drop(catl_drop_arr, axis=1)
-    ## Temporarily fixing 'rmed'
-    ## Unit constant
-    unit_const = ((3*num.pi/2.) * ((u.km/u.s)**2) * (u.Mpc) / ac.G).to(u.Msun)
-    unit_const_val = unit_const.value
-    # Median Radius
-    for mdyn_kk in ['GG_mdyn_rmed', 'GG_mdyn_rproj']:
-        mdyn_val               = catl_pd[mdyn_kk].values * unit_const_val
-        mdyn_val_idx           = num.where(mdyn_val != 0)[0]
-        mdyn_val_idx_val       = num.log10(mdyn_val[mdyn_val_idx])
-        mdyn_val[mdyn_val_idx] = mdyn_val_idx_val
-        # Saving to `catl_pd`
-        catl_pd.loc[:,mdyn_kk] = mdyn_val
 
     return catl_pd
 
