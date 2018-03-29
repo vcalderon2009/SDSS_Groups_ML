@@ -536,6 +536,18 @@ def catl_file_read_clean(param_dict, proj_dict, random_state=0,
     ##  Temporarily fixing `GG_mdyn_rproj`
     catl_pd.loc[:,'GG_mdyn_rproj'] /= 0.96
     ##
+    ## Using only certain columns
+    feat_cols = [   'M_r',
+                    'GG_mr_brightest',
+                    'g_r',
+                    'GG_rproj',
+                    'GG_sigma_v',
+                    'GG_M_r',
+                    'GG_ngals',
+                    'GG_M_group',
+                    'GG_mdyn_rproj']
+    catl_pd = catl_pd.loc[:,catl_pd]
+    ##
     ## Dropping certain columns
     catl_drop_arr = ['groupid', 'halo_rvir', 'galtype', 'halo_ngal']
     catl_pd       = catl_pd.drop(catl_drop_arr, axis=1)
