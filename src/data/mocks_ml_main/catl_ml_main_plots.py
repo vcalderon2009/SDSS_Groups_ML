@@ -367,7 +367,9 @@ def add_to_dict(param_dict):
     ##
     ## Plotting constants
     plot_dict = {   'size_label':18,
-                    'size_title':20}
+                    'size_title':20,
+                    'color_ham' :'red',
+                    'color_dyn' :'blue'}
     ##
     ## Saving to `param_dict`
     param_dict['sample_s'          ] = sample_s
@@ -716,6 +718,10 @@ def model_score_chart(model_fits_dict, param_dict, proj_dict,
         ml_algs_pd.loc[kk, 'General'] = ml_score_gen_kk
         ml_algs_pd.loc[kk, 'K-Fold' ] = ml_score_kf_kk
     ##
+    ## HAM and Dynamical
+    score_ham = model_fits_dict[ml_kk]['score_ham']
+    score_dyn = model_fits_dict[ml_kk]['score_dyn']
+    ##
     ## Rename indices
     ml_algs_indices = [xx.replace('_',' ').title() for xx in ml_algs_names]
     ml_algs_pd.rename(index=dict(zip(range(len(ml_algs_names)),ml_algs_indices)),
@@ -731,13 +737,29 @@ def model_score_chart(model_fits_dict, param_dict, proj_dict,
                     stacked=False,
                     ax=ax1,
                     legend=True)
+    # HAM and Dynamical masses - Lines
+    ax1.axvline(    x=score_ham,
+                    color=plot_dict['color_ham'],
+                    label='HAM Mass')
+    ax1.axvline(    x=score_dyn,
+                    color=plot_dict['color_dyn'],
+                    label='Dynamical mass')
     ## Ticks
-    ax_data_major_loc  = ticker.MultipleLocator(0.05)
+    ax_data_minor_loc  = ticker.MultipleLocator(0.05)
+    ax_data_major_loc  = ticker.MultipleLocator(0.1)
+    ax1.xaxis.set_minor_locator(ax_data_minor_loc)
     ax1.xaxis.set_major_locator(ax_data_major_loc)
     ##
     ## Axis label
-    xlabel = 'Score'
+    if param_dict['score_method'] =='perc':
+        xlabel = r'$1\sigma$ error in $\Delta \log M_{halo} [\mathrm{dex}]$'
+    else:
+        xlabel = 'Score'
     ax1.set_xlabel(xlabel)
+    ## Legend
+    leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
+        prop={'size':14})
+    leg.get_frame().set_facecolor('none')
     ##
     ## Saving figure
     if fig_fmt=='pdf':
