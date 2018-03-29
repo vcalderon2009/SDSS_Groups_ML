@@ -874,8 +874,10 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
                                                 perc_val=0.9)
         ## Saving to array
         kf_scores[kk]        = kf_kk_score
-        ## Feature importances
-        kdf_features_imp[kk] = model_kf.feature_importances_.astype(float)
+        ##
+        if skem_key != 'neural_network':
+            ## Feature importances
+            kdf_features_imp[kk] = model_kf.feature_importances_.astype(float)
         ## Saving Model to array
         kf_models_arr   [kk] = model_kf
     ##
