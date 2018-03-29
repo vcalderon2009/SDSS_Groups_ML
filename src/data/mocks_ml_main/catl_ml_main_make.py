@@ -239,6 +239,20 @@ def get_parser():
                         type=str,
                         choices=['perc', 'threshold', 'model_score'],
                         default='threshold')
+    ## Threshold value used for when `score_method == 'threshold'`
+    parser.add_argument('-threshold',
+                        dest='threshold',
+                        help="""Threshold value used for when 
+                        `score_method == 'threshold'`""",
+                        type=int,
+                        default=0.1)
+    ## Percentage value used for when `score_method == 'perc'`
+    parser.add_argument('-perc_val',
+                        dest='perc_val',
+                        help="""Percentage value used for when 
+                        `score_method == 'perc'`""",
+                        type=float,
+                        default=0.68)
     ## Option for removing file
     parser.add_argument('-remove',
                         dest='remove_files',
@@ -312,6 +326,8 @@ def get_analysis_params(param_dict):
                                 ('dropna_opt'   ,'-dropna_opt'   ,'True'     ),
                                 ('pre_opt'      ,'-pre_opt'      ,'normalize'),
                                 ('score_method' ,'-score_method' ,'threshold'),
+                                ('threshold'    ,'-threshold'    ,0.1        ),
+                                ('perc_val'     ,'-perc_val'     ,0.68       ),
                                 ('seed'         ,'-seed'         ,1          ),
                                 ('cpu_frac'     ,'-cpu'          ,0.75       ),
                                 ('remove_files' ,'-remove'       ,'False'    ),
@@ -408,6 +424,12 @@ def get_analysis_params(param_dict):
         ##
         ## Number of K-Folds to use when estimating the score of the model
         params_pd.loc[params_pd['Name']=='hidden_layers','Value'] = param_dict['hidden_layers']
+        ##
+        ## Threshold value used for when `score_method == 'threshold'`
+        params_pd.loc[params_pd['Name']=='perc','Value'] = param_dict['perc']
+        ##
+        ## Threshold value used for when `score_method == 'threshold'`
+        params_pd.loc[params_pd['Name']=='threshold','Value'] = param_dict['threshold']
     ##
     ## Only for `plots`
     ##

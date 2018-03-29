@@ -270,6 +270,20 @@ def get_parser():
                         type=str,
                         choices=['perc', 'threshold', 'model_score'],
                         default='threshold')
+    ## Threshold value used for when `score_method == 'threshold'`
+    parser.add_argument('-threshold',
+                        dest='threshold',
+                        help="""Threshold value used for when 
+                        `score_method == 'threshold'`""",
+                        type=int,
+                        default=0.1)
+    ## Percentage value used for when `score_method == 'perc'`
+    parser.add_argument('-perc_val',
+                        dest='perc_val',
+                        help="""Percentage value used for when 
+                        `score_method == 'perc'`""",
+                        type=float,
+                        default=0.68)
     ## Preprocessing Option
     parser.add_argument('-remove',
                         dest='remove_files',
@@ -826,12 +840,19 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
     kf_splits  = param_dict['kf_splits' ]
     cpu_number = param_dict['cpu_number']
     ## Training and Testing sets
-    X_train   = train_dict['X_train']
-    Y_train   = train_dict['Y_train']
-    X_test    = test_dict ['X_test' ]
-    Y_test    = test_dict ['Y_test' ]
-    feat_cols = param_dict['features_cols']
-    n_feat    = len(feat_cols)
+    X_train    = train_dict['X_train']
+    Y_train    = train_dict['Y_train']
+    X_test     = test_dict ['X_test' ]
+    Y_test     = test_dict ['Y_test' ]
+    X_train_ns = train_dict['X_train_ns']
+    Y_train_ns = train_dict['Y_train_ns']
+    X_test_ns  = test_dict ['X_test_ns' ]
+    Y_test_ns  = test_dict ['Y_test_ns' ]
+    feat_cols  = num.array(param_dict['features_cols'])
+    n_feat     = len(feat_cols)
+    # Scoring defaults
+    threshold = param_dict['threshold']
+    perc_val  = param_dict['perc_val' ]
     ## ------- General Model ------- ##
     ##
     ## -- General Model
@@ -846,8 +867,8 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
                                         Y_test,
                                         model_gen,
                                         score_method=param_dict['score_method'],
-                                        threshold=0.1,
-                                        perc_val=0.9)
+                                        threshold=threshold,
+                                        perc_val=perc_val)
     # K-fold
     # Choosing which method to use
     kf_models_arr      = [[] for kk in range(kf_splits)]
@@ -870,8 +891,8 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
                                                 Y_test_kk,
                                                 model_kf,
                                                 score_method=param_dict['score_method'],
-                                                threshold=0.1,
-                                                perc_val=0.9)
+                                                threshold=threshold,
+                                                perc_val=perc_val)
         ## Saving to array
         kf_scores[kk]        = kf_kk_score
         ##
@@ -880,6 +901,47 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
             kdf_features_imp[kk] = model_kf.feature_importances_.astype(float)
         ## Saving Model to array
         kf_models_arr   [kk] = model_kf
+    ##
+    ## Score for HAM and Dynamical mass
+    ## Masses
+    # HAM
+    ham_idx        = num.where(feat_cols == 'GG_M_group')[0]
+    pred_ham       = X_train_ns.T[ham_idx].flatten()
+    true_halo_ham  = Y_train_ns.flatten()
+    ## Dynamical
+    dyn_idx        = num.where(feat_cols == 'GG_mdyn_rproj')[0]
+    pred_dyn       = X_train_ns.T[dyn_idx].flatten()
+    true_halo_dyn  = Y_train_ns.flatten()
+    # Avoid zeros
+    pred_dyn_idx      = num.where(pred_dyn != 0.)[0]
+    pred_dyn_mod      = pred_dyn[pred_dyn_idx]
+    true_halo_dyn_mod = true_halo_dyn[pred_dyn_idx]
+    # `Score`
+    if param_dict['score_method'] == 'perc':
+        # HAM
+        pred_ham_error = num.abs(pred_ham - true_halo_ham)
+        score_ham      = scipy.stats.scoreatpercentile( pred_ham_error,
+                                                        100*perc_val)
+        # Dynamical
+        pred_dyn_error = num.abs(pred_dyn_mod - true_halo_dyn_mod)
+        score_dyn      = scipy.stats.scoreatpercentile( pred_dyn_error,
+                                                        100*perc_val)
+    # Threshold
+    if param_dict['score_method'] == 'threshold':
+        # HAM
+        pred_ham_error = num.abs(pred_ham - true_halo_ham)
+        thresh_ham     = len(pred_ham_error[pred_ham_error <= threshold])
+        score_ham      = thresh_ham / len(pred_ham)
+        # Dynamical
+        pred_dyn_error = num.abs(pred_dyn_mod - true_halo_dyn_mod)
+        thresh_dyn     = len(pred_dyn_error[pred_dyn_error <= threshold])
+        score_dyn      = thresh_dyn / len(pred_dyn_mod)
+    # Model Score
+    if param_dict['score_method'] == 'model_score':
+        # HAM
+        score_ham = skmetrics.r2_score(true_halo_ham, pred_ham)
+        # Dynamical
+        score_dyn = skmetrics.r2_score(true_halo_dyn_mod, pred_dyn_mod)
     ##
     ##
     ## ------- True and Predicted values ------- ##
@@ -899,6 +961,10 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
         ## Saving to Arrays
         model_kf_prediction_arr[kk] = kf_prediction_kk
         model_kf_frac_diff_arr [kk] = kf_frac_diff_kk
+    #
+    # Fractional difference for HAM and dynamical
+    frac_diff_ham = 100*(pred_ham - true_halo_ham)/true_halo_ham
+    frac_diff_dyn = 100*(pred_dyn_mod - true_halo_dyn_mod)/true_halo_dyn_mod
     ##
     ## ------- Feature Importance ------- ##
     ##
@@ -936,8 +1002,8 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
                                                     Y_test,
                                                     model_gen_kk,
                                                     score_method=param_dict['score_method'],
-                                                    threshold=0.1,
-                                                    perc_val=0.9)
+                                                    threshold=threshold,
+                                                    perc_val=perc_val)
             ##
             ## ---- K-fold ---- ##
             model_kf_kk = sklearn.base.clone(param_dict['skem_dict'][skem_key])
@@ -950,8 +1016,8 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
                                                     Y_test,
                                                     model_kf_kk,
                                                     score_method=param_dict['score_method'],
-                                                    threshold=0.1,
-                                                    perc_val=0.9)
+                                                    threshold=threshold,
+                                                    perc_val=perc_val)
             ##
             ## ---- Saving to array ---- ##
             feat_score_gen_arr[kk] = model_gen_kk_score
@@ -973,6 +1039,14 @@ def model_score_general(train_dict, test_dict, skem_key, param_dict):
     model_dict['model_gen_truth_arr'     ] = model_gen_truth_arr
     model_dict['model_kf_prediction_arr' ] = model_kf_prediction_arr
     model_dict['model_kf_frac_diff_arr'  ] = model_kf_frac_diff_arr
+    model_dict['score_dyn'               ] = score_dyn
+    model_dict['score_ham'               ] = score_ham
+    model_dict['pred_ham'                ] = pred_ham
+    model_dict['true_halo_ham'           ] = true_halo_ham
+    model_dict['pred_dyn_mod'            ] = pred_dyn_mod
+    model_dict['true_halo_dyn_mod'       ] = true_halo_dyn_mod
+    model_dict['frac_diff_ham'           ] = pred_dyn_mod
+    model_dict['frac_diff_dyn'           ] = pred_dyn_mod
     ##
     ## Only for algorithms that are not `neural_network`
     if skem_key != 'neural_network':

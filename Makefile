@@ -32,12 +32,14 @@ VERBOSE      = "False"
 KF_SPLITS    = 3
 SHUFFLE_OPT  = "True"
 TEST_SIZE    = 0.25
-SAMPLE_FRAC  = 0.01
+SAMPLE_FRAC  = 0.05
 DROP_NA      = "True"
 N_PREDICT    = 1
 PRE_OPT      = 'standard'
-SCORE_METHOD = 'threshold'
+SCORE_METHOD = 'perc'
 HIDDEN_LAYERS= 1000
+THRESHOLD    = 0.1
+PERC_VAL     = 0.68
 
 ifeq (,$(shell which conda))
 HAS_CONDA=False
@@ -93,7 +95,7 @@ catl_props:
 
 ## Trains ML algorithms on the `merged` dataset
 ml_train:
-	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main_make.py -a 'training' -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -shuffle_opt $(SHUFFLE_OPT) -kf_splits $(KF_SPLITS) -n_predict $(N_PREDICT) -test_size $(TEST_SIZE) -sample_frac $(SAMPLE_FRAC) -dropna_opt $(DROP_NA) -v $(VERBOSE) -pre_opt $(PRE_OPT) -score_method $(SCORE_METHOD) -hidden_layers $(HIDDEN_LAYERS)
+	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main_make.py -a 'training' -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -shuffle_opt $(SHUFFLE_OPT) -kf_splits $(KF_SPLITS) -n_predict $(N_PREDICT) -test_size $(TEST_SIZE) -sample_frac $(SAMPLE_FRAC) -dropna_opt $(DROP_NA) -v $(VERBOSE) -pre_opt $(PRE_OPT) -score_method $(SCORE_METHOD) -hidden_layers $(HIDDEN_LAYERS) -threshold $(THRESHOLD) -perc_val $(PERC_VAL)
 
 ## Plots the ML figures of the `trained` dataset
 ml_plots:
