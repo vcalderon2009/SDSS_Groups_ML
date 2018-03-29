@@ -1286,6 +1286,10 @@ def feature_ranking_ml_algs(model_fits_dict, param_dict, proj_dict,
                                 legend=True,
                                 width=0.5)
     b.tick_params(labelsize=30)
+    ## Legend
+    leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
+        prop={'size':16})
+    # leg.get_frame().set_facecolor('none')
     ## Ticks
     ax_data_major_loc  = ticker.MultipleLocator(10)
     ax_data_minor_loc  = ticker.MultipleLocator(5.)
