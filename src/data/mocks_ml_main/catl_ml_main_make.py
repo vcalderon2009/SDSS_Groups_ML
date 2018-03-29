@@ -244,7 +244,7 @@ def get_parser():
                         dest='threshold',
                         help="""Threshold value used for when 
                         `score_method == 'threshold'`""",
-                        type=int,
+                        type=float,
                         default=0.1)
     ## Percentage value used for when `score_method == 'perc'`
     parser.add_argument('-perc_val',
