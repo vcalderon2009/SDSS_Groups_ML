@@ -812,8 +812,9 @@ def covariance_plot(catl_pd, param_dict, proj_dict,
     cmap = sns.diverging_palette(220, 10, as_cmap=True)
 
     # Draw the heatmap with the mask and correct aspect ratio
-    sns.heatmap(corr, mask=mask, cmap=cmap, vmax=1.0, vmin=-1., center=0,
-                square=True, linewidths=.5, cbar_kws={"shrink": .5},
+    g = sns.heatmap(corr, mask=mask, cmap=cmap, vmax=1.0, vmin=-1., center=0,
+                square=True, linewidths=.5,
+                cbar_kws={"shrink": .5, 'label':r'$\Leftarrow$ Correlation $\Rightarrow$'},
                 ax=ax1)
     ##
     ## Saving figure
