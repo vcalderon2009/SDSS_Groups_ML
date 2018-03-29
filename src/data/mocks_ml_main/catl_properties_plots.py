@@ -723,7 +723,11 @@ def group_mass_comparison(catl_pd, param_dict, proj_dict,
         y_low  = mass_dict[type_kk]['y_low' ]
         y_high = mass_dict[type_kk]['y_high']
         # Title
-        title_kk = type_kk.title()
+        # title_kk = type_kk.title()
+        if type_kk == 'ham':
+            title_kk = 'HAM'
+        elif type_kk == 'dyn':
+            title_kk = 'Dynamical'
         # Plotting
         ax1.plot(   x_stat,
                     y_stat,
