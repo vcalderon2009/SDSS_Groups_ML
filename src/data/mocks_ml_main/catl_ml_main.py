@@ -194,7 +194,7 @@ def get_parser():
                         choices=range(2,1000),
                         metavar='[1-1000]',
                         default=2)
-    ## CPU Counts
+    ## Fraction of the sample to use
     parser.add_argument('-sample_frac',
                         dest='sample_frac',
                         help='fraction of the total dataset to use',
@@ -220,6 +220,12 @@ def get_parser():
                         than 2""",
                         type=int,
                         default=3)
+    ## Number of hidden layers to use
+    parser.add_argument('-hidden_layers',
+                        dest='hidden_layers',
+                        help='Number of hidden layers to use for neural network',
+                        type=int,
+                        default=1000)
     ## Total number of properties to predict. Default = 1
     parser.add_argument('-n_predict',
                         dest='n_predict',
@@ -727,7 +733,7 @@ def sklearns_models(param_dict, cpu_number):
     # Neural network
     skem_dict['neural_network'   ] = skneuro.MLPRegressor(
                                         random_state=param_dict['seed'],
-                                        hidden_layer_sizes=(10000),
+                                        hidden_layer_sizes=(param_dict['hidden_layers']),
                                         solver='adam')
 
     return skem_dict
