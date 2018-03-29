@@ -327,8 +327,8 @@ def add_to_dict(param_dict):
     cpu_number = int(cpu_count() * param_dict['cpu_frac'])
     ##
     ## Plotting constants
-    plot_dict = {   'size_label':18,
-                    'size_title':20}
+    plot_dict = {   'size_label':23,
+                    'size_title':25}
     ##
     ## Saving to `param_dict`
     param_dict['sample_s'    ] = sample_s

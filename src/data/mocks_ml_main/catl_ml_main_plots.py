@@ -366,8 +366,8 @@ def add_to_dict(param_dict):
     catl_str_fig  = catl_str_fig.format(*catl_str_fig_arr)
     ##
     ## Plotting constants
-    plot_dict = {   'size_label':18,
-                    'size_title':20,
+    plot_dict = {   'size_label':23,
+                    'size_title':25,
                     'color_ham' :'red',
                     'color_dyn' :'blue'}
     ##
