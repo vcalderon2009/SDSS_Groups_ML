@@ -477,7 +477,7 @@ def ml_file_data_cols(param_dict, param_dict_ml):
                             'GG_mr_brightest':"Lum. of Brightest Galaxy (G)",
                             'g_galtype':"Group galaxy type",
                             'GG_r_med':"Median radius (G)",
-                            'GG_mr_ratio': "Luminosity ratio (G,1-2)",
+                            'GG_mr_ratio': "Luminosity ratio (G)",
                             'GG_logssfr': "log(sSFR) (G)",
                             'GG_mdyn_rmed':"Dynamical mass at median radius (G)",
                             'GG_dist_cluster':"Distance to closest cluster (G)",
@@ -821,12 +821,16 @@ def frac_diff_model(model_fits_dict, test_dict, param_dict, proj_dict,
     -------
     I'm using the `General` predictions for all algorithms
     """
-    Prog_msg = param_dict['Prog_msg']
+    Prog_msg     = param_dict['Prog_msg']
     # Constants
-    cm        = plt.cm.get_cmap('viridis')
-    plot_dict = param_dict['plot_dict']
-    ham_color = 'red'
-    alpha     = 0.3
+    cm           = plt.cm.get_cmap('viridis')
+    plot_dict    = param_dict['plot_dict']
+    ham_color    = 'red'
+    alpha        = 0.3
+    alpha_mass   = 0.1
+    zorder_mass  = 10
+    zorder_shade = zorder_mass - 1
+    zorder_ml    = zorder_mass + 1
     ##
     ## Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
@@ -861,30 +865,38 @@ def frac_diff_model(model_fits_dict, test_dict, param_dict, proj_dict,
         frac_diff_dict[model_kk]['y_stat'] = y_stat_arr
         frac_diff_dict[model_kk]['y_err' ] = y_std_arr
     ## Abundance matched mass
-    features_cols = num.array(param_dict_ml['features_cols'])
-    Mh_ham_key    = 'GG_M_group'
-    Mh_ham_idx    = num.where(features_cols == Mh_ham_key)[0]
-    mgroup_ham    = test_dict['X_test_ns'].T[Mh_ham_idx].flatten()
-    mh_true_arr   = test_dict['Y_test_ns'].flatten()
-    ## Dynamical masss
-    Mh_dyn_key      = 'GG_mdyn_rproj'
-    Mh_dyn_idx      = num.where(features_cols == Mh_dyn_key)[0]
-    mgroup_dyn      = test_dict['X_test_ns'].T[Mh_dyn_idx].flatten()
-    mh_true_dyn_arr = test_dict['Y_test_ns'].flatten()
-    # Omitting zeros
-    # Fractional difference M_Ham and True mass
-    frac_diff_mham_mh = 100.*(mgroup_ham - mh_true_arr)/mh_true_arr
-    # Binning data
-    (   x_stat_ham_arr,
-        y_stat_ham_arr,
-        y_std_ham_arr ,
-        y_std_ham_err ) = cu.Mean_Std_calculations_One_array(   mh_true_arr,
-                                                                frac_diff_mham_mh,
+    # HAM
+    mgroup_ham    = model_fits_dict[model_kk]['pred_ham'     ]
+    mh_true_ham   = model_fits_dict[model_kk]['true_halo_ham']
+    frac_diff_ham = model_fits_dict[model_kk]['frac_diff_ham']
+    # Dynamical
+    mgroup_dyn    = model_fits_dict[model_kk]['pred_dyn_mod'     ]
+    mh_true_dyn   = model_fits_dict[model_kk]['true_halo_dyn_mod']
+    frac_diff_dyn = model_fits_dict[model_kk]['frac_diff_dyn'    ]
+    ##
+    ## Binning data
+    # HAM
+    (   x_stat_ham   ,
+        y_stat_ham   ,
+        y_std_ham    ,
+        y_std_err_ham) = cu.Mean_Std_calculations_One_array(    mh_true_ham,
+                                                                frac_diff_ham,
                                                                 base=bin_width,
                                                                 arr_len=arr_len,
                                                                 bin_statval=bin_statval)
-    y1_ham = y_stat_ham_arr - y_std_ham_arr
-    y2_ham = y_stat_ham_arr + y_std_ham_arr
+    y1_ham = y_stat_ham - y_std_ham
+    y2_ham = y_stat_ham + y_std_ham
+    # Dynamical
+    (   x_stat_dyn   ,
+        y_stat_dyn   ,
+        y_std_dyn    ,
+        y_std_err_dyn) = cu.Mean_Std_calculations_One_array(    mh_true_dyn,
+                                                                frac_diff_dyn,
+                                                                base=bin_width,
+                                                                arr_len=arr_len,
+                                                                bin_statval=bin_statval)
+    y1_dyn = y_stat_dyn - y_std_dyn
+    y2_dyn = y_stat_dyn + y_std_dyn
     ##
     ## Figure details
     # ML algorithms - names
@@ -921,17 +933,38 @@ def frac_diff_model(model_fits_dict, test_dict, param_dict, proj_dict,
                     y_stat,
                     color=cm_arr[kk],
                     linestyle='-',
-                    marker='o')
+                    marker='o',
+                    zorder=zorder_ml)
         ax1.fill_between(x_stat, y1, y2, color=cm_arr[kk], alpha=alpha,
-                        label=ml_alg_kk_name)
+                        label=ml_alg_kk_name, zorder=zorder_ml)
     ## HAM Masses
-    ax1.plot(   x_stat_ham_arr,
-                y_stat_ham_arr,
-                color=ham_color,
+    ax1.plot(   x_stat_ham,
+                y_stat_ham,
+                color=plot_dict['color_ham'],
                 linestyle='-',
-                marker='o')
-    ax1.fill_between(   x_stat_ham_arr, y1_ham, y2_ham, color=ham_color,
-                        alpha=alpha, label='HAM')
+                marker='o',
+                zorder=zorder_mass)
+    ax1.fill_between(   x_stat_ham,
+                        y1_ham,
+                        y2_ham, 
+                        color=plot_dict['color_ham'],
+                        alpha=alpha_mass,
+                        label='HAM',
+                        zorder=zorder_shade)
+    ## Dynamical Masses
+    ax1.plot(   x_stat_dyn,
+                y_stat_dyn,
+                color=plot_dict['color_dyn'],
+                linestyle='-',
+                marker='o',
+                zorder=zorder_mass)
+    ax1.fill_between(   x_stat_dyn,
+                        y1_dyn,
+                        y2_dyn, 
+                        color=plot_dict['color_dyn'],
+                        alpha=alpha_mass,
+                        label='Dynamical',
+                        zorder=zorder_shade)
     ## Legend
     leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
         prop={'size':14})
@@ -1038,7 +1071,12 @@ def cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict,
         fig = plt.figure(figsize=figsize)
         ax1 = fig.add_subplot(111, facecolor='white')
         # Axes labels
-        xlabel = r'Score $[\%]$'
+        if param_dict['score_method'] == 'model_score':
+            xlabel = r'Score $[\%]$'
+        elif param_dict['score_method'] == 'perc':
+            xlabel = r'$1\sigma$ error in $\Delta \log M_{halo} [\mathrm{dex}]$'
+        else:
+            xlabel = r'Score $[\%]$'
         ylabel = r'$\leftarrow \textrm{Adding importance}$'
         ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
         ax1.set_ylabel(ylabel, fontsize=plot_dict['size_label'])
@@ -1046,7 +1084,10 @@ def cumulative_score_feature_alg(model_fits_dict, param_dict, proj_dict,
         ax1.set_title(fig_title, fontsize=plot_dict['size_title'])
         ## Limits
         # X-axis
-        ax1.set_xlim(0, 100.)
+        if param_dict['score_method'] == 'model_score':
+            ax1.set_xlim(0, 100.)
+        else:
+            pass
         # Y-axis
         y_offset = 0.5
         ax1.set_ylim(0-y_offset, n_feat-y_offset)
