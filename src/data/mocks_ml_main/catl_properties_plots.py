@@ -802,6 +802,17 @@ def covariance_plot(catl_pd, param_dict, proj_dict,
     ## Renaming properties
     catl_pd_copy = catl_pd.copy()
     catl_pd_copy.rename(columns=param_dict['feat_cols_dict'], inplace=True)
+    ## Selecting certain columns only
+    feat_cols = [   'M_r',
+                    'GG_mr_brightest',
+                    'g_r',
+                    'GG_rproj',
+                    'GG_sigma_v',
+                    'GG_M_r',
+                    'GG_ngals',
+                    'GG_M_group',
+                    'GG_mdyn_rproj']
+    catl_pd_copy = catl_pd_copy.loc[:,catl_pd_copy]
     ## Figure details
     plt.clf()
     plt.close()
