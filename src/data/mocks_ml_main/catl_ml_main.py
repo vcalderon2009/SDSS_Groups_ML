@@ -751,7 +751,10 @@ def sklearns_models(param_dict, cpu_number):
     # Neural network
     skem_dict['neural_network'   ] = skneuro.MLPRegressor(
                                         random_state=param_dict['seed'],
-                                        hidden_layer_sizes=(param_dict['hidden_layers']),
+                                        hidden_layer_sizes=(
+                                            param_dict['hidden_layers'],
+                                            param_dict['hidden_layers'],
+                                            param_dict['hidden_layers']),
                                         solver='adam')
 
     return skem_dict
