@@ -37,7 +37,7 @@ DROP_NA      = "True"
 N_PREDICT    = 1
 PRE_OPT      = 'standard'
 SCORE_METHOD = 'perc'
-HIDDEN_LAYERS= 1000
+HIDDEN_LAYERS= 100
 THRESHOLD    = 0.1
 PERC_VAL     = 0.68
 
