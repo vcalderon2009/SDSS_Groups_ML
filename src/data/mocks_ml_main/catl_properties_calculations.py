@@ -149,6 +149,13 @@ def get_parser():
                         type=int,
                         choices=[1,2,3],
                         default=3)
+    ## Random Seed for CLF
+    parser.add_argument('-clf_seed',
+                        dest='clf_seed',
+                        help='Random seed to be used for CLF',
+                        type=int,
+                        metavar='[0-4294967295]',
+                        default=0)
     ## Luminosity sample to analyze
     parser.add_argument('-sample',
                         dest='sample',
@@ -385,6 +392,7 @@ def directory_skeleton(param_dict, proj_dict):
                                     'mocks',
                                     'halos_{0}'.format(param_dict['halotype']),
                                     'hod_model_{0}'.format(param_dict['hod_n']),
+                                    'clf_seed_{0}'.format(param_dict['clf_seed']),
                                     'clf_method_{0}'.format(param_dict['clf_method']),
                                     param_dict['catl_type'],
                                     param_dict['sample_Mr'],
@@ -605,6 +613,7 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict, ext='hdf5'):
                                                 halotype=param_dict['halotype'],
                                                 clf_method=param_dict['clf_method'],
                                                 hod_n=param_dict['hod_n'],
+                                                clf_seed=param_dict['clf_seed'],
                                                 perf_opt=param_dict['perf_opt'],
                                                 print_filedir=False,
                                                 return_memb_group=True)
@@ -1550,6 +1559,7 @@ def main(args):
                                         halotype=param_dict['halotype'],
                                         clf_method=param_dict['clf_method'],
                                         hod_n=param_dict['hod_n'],
+                                        clf_seed=param_dict['clf_seed'],
                                         return_len=True,
                                         print_filedir=False )
     ##

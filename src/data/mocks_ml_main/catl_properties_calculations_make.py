@@ -127,6 +127,13 @@ def get_parser():
                         type=int,
                         choices=[1,2,3],
                         default=3)
+    ## Random Seed for CLF
+    parser.add_argument('-clf_seed',
+                        dest='clf_seed',
+                        help='Random seed to be used for CLF',
+                        type=int,
+                        metavar='[0-4294967295]',
+                        default=0)
     ## Luminosity sample to analyze
     parser.add_argument('-sample',
                         dest='sample',
@@ -255,6 +262,7 @@ def get_analysis_params(param_dict):
                             ('dist_scales' ,'-dist_scales' ,'2. 5. 10.'),
                             ('perf_opt'    ,'-perf'        ,False      ),
                             ('seed'        ,'-seed'        ,1          ),
+                            ('clf_seed'    ,'-clf_seed'    ,1235       ),
                             ('cpu_frac'    ,'-cpu'         ,0.75       ),
                             ('remove_files','-remove'      ,'False'    ),
                             ('verbose'     ,'-v'           ,'False'    )])
@@ -303,6 +311,9 @@ def get_analysis_params(param_dict):
     ##
     ## Option for setting the 'random seed'
     params_pd.loc[params_pd['Name']=='seed','Value'] = param_dict['seed']
+    ##
+    ## Random seed used during CLF
+    params_pd.loc[params_pd['Name']=='clf_seed','Value'] = param_dict['clf_seed']
     ##
     ## Choosing if to delete files
     if param_dict['remove_files']:

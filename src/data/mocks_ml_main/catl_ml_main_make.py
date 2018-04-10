@@ -134,6 +134,13 @@ def get_parser():
                         type=int,
                         choices=[1,2,3],
                         default=3)
+    ## Random Seed for CLF
+    parser.add_argument('-clf_seed',
+                        dest='clf_seed',
+                        help='Random seed to be used for CLF',
+                        type=int,
+                        metavar='[0-4294967295]',
+                        default=0)
     ## Luminosity sample to analyze
     parser.add_argument('-sample',
                         dest='sample',
@@ -329,6 +336,7 @@ def get_analysis_params(param_dict):
                                 ('threshold'    ,'-threshold'    ,0.1        ),
                                 ('perc_val'     ,'-perc_val'     ,0.68       ),
                                 ('seed'         ,'-seed'         ,1          ),
+                                ('clf_seed'     ,'-clf_seed'     ,1235       ),
                                 ('cpu_frac'     ,'-cpu'          ,0.75       ),
                                 ('remove_files' ,'-remove'       ,'False'    ),
                                 ('verbose'      ,'-v'            ,'False'    )])
@@ -345,6 +353,7 @@ def get_analysis_params(param_dict):
                                 ('n_predict'   ,'-n_predict'   ,1          ),
                                 ('pre_opt'     ,'-pre_opt'     ,'normalize'),
                                 ('score_method','-score_method','threshold'),
+                                ('clf_seed'     ,'-clf_seed'     ,1235       ),
                                 ('cpu_frac'    ,'-cpu'         ,0.75       ),
                                 ('remove_files','-remove'      ,'False'    ),
                                 ('verbose'     ,'-v'           ,'False'    )])
@@ -365,6 +374,9 @@ def get_analysis_params(param_dict):
     params_pd.loc[params_pd['Name']=='halotype','Value'] = param_dict['halotype']
     ##
     ## CLF Method for assigning galaxy properties
+    params_pd.loc[params_pd['Name']=='clf_seed','Value'] = param_dict['clf_seed']
+    ##
+    ## Random Seed used during CLF
     params_pd.loc[params_pd['Name']=='clf_method','Value'] = param_dict['clf_method']
     ##
     ## Choosing luminosity sample
@@ -433,7 +445,6 @@ def get_analysis_params(param_dict):
     ##
     ## Only for `plots`
     ##
-
 
     return params_pd
 
