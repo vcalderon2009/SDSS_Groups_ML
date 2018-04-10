@@ -8,7 +8,7 @@ __author__     =['Victor Calderon']
 __copyright__  =["Copyright 2017 Victor Calderon, sdss_catls_obs"]
 __email__      =['victor.calderon@vanderbilt.edu']
 __maintainer__ =['Victor Calderon']
-__all__        =["catl_sdss_dir","extract_catls","output_sdss_dir",\
+__all__        =["catl_sdss_dir","extract_catls",\
                  "sdss_catl_clean","sdss_catl_clean_nmin","catl_keys",\
                  "catl_keys_prop","catl_sdss_merge"]
 """
@@ -28,7 +28,7 @@ from . import pandas_hdf5    as phd
 from   collections import Counter
 
 def catl_sdss_dir(catl_kind='data', catl_type='mr', sample_s='19',
-    catl_info='members', halotype='fof', clf_method=3, hod_n=0,
+    catl_info='members', halotype='fof', clf_method=3, hod_n=0, clf_seed=1235,
     perf_opt=False, print_filedir=True, Program_Msg=fd.Program_Msg(__file__)):
     """
     Extracts the path to the catalogues
@@ -81,6 +81,9 @@ def catl_sdss_dir(catl_kind='data', catl_type='mr', sample_s='19',
         HOD model to use.
         Only relevant when "catl_kind == `mocks`".
 
+    clf_seed: int, optional (default = 1235)
+        Seed used for the CLF random seed
+
     perf_opt: boolean, optional (default = False)
         option for choosing 'perfect' catalogues
         Options:
@@ -132,6 +135,7 @@ def catl_sdss_dir(catl_kind='data', catl_type='mr', sample_s='19',
                                 catl_kind,
                                 'halos_{0}'.format(halotype),
                                 'hod_model_{0}'.format(hod_n),
+                                'clf_seed_{0}'.format(clf_seed),
                                 'clf_method_{0}'.format(clf_method),
                                 catl_type,
                                 'Mr'+sample_s,
@@ -148,7 +152,7 @@ def catl_sdss_dir(catl_kind='data', catl_type='mr', sample_s='19',
 
 def extract_catls(catl_kind='data', catl_type='mr', sample_s='19',
     datatype='.hdf5', catl_info='members', 
-    halotype='fof', clf_method=3, hod_n=0, perf_opt=False, 
+    halotype='fof', clf_method=3, hod_n=0, clf_seed=1235, perf_opt=False, 
     return_len=False, print_filedir=True,
     Program_Msg=fd.Program_Msg(__file__)):
     """
@@ -205,6 +209,9 @@ def extract_catls(catl_kind='data', catl_type='mr', sample_s='19',
         HOD model to use.
         Only relevant when "catl_kind == `mocks`".
 
+    clf_seed: int, optional (default = 1235)
+        Seed used for the CLF random seed
+
     perf_opt: boolean, optional (default = False)
         option for choosing 'perfect' catalogues
         Options:
@@ -234,6 +241,7 @@ def extract_catls(catl_kind='data', catl_type='mr', sample_s='19',
                             halotype=halotype,
                             clf_method=clf_method,
                             hod_n=hod_n,
+                            clf_seed=clf_seed,
                             perf_opt=perf_opt,
                             print_filedir=print_filedir)
     ## Converting to numpy arrays
@@ -246,45 +254,6 @@ def extract_catls(catl_kind='data', catl_type='mr', sample_s='19',
         return catl_arr, len(catl_arr)
     else:
         return catl_arr
-
-def output_sdss_dir(catl_kind='data', catl_type='mr', sample_s='19',
-    Program_Msg=fd.Program_Msg(__file__)):
-    """
-    Output for sdss directorry, either for `data` or `mocks`
-
-    Parameters
-    ----------
-    catl_kind: string, optional (default = 'data')
-        type of catalogue to use
-        Options:
-            - 'data': catalogues comes from SDSS 'real' catalog
-            - 'mocks': catalogue(s) come from SDSS 'mock' catalogues
-    
-    catl_type: string, optional (default = 'mr')
-        type of catalogue to use. It shows which abundance matching method 
-        was used for the CLF when assigning halo masses.
-        Options:
-            - 'mr'   : Uses r-band abs. luminosities
-            - 'mstar': Uses stellar masses
-
-    sample_s: string, optional (default = '19')
-        volume-limited sample to use.
-        Options:
-            - '19': Uses the -19 volume-limited 'Consuelo' sample
-            - '20': Uses the -20 volume-limited 'Esmeralda' sample
-            - '21': Uses the -21 volume-limited 'Carmen' sample
-
-    Returns
-    ----------
-    outdir: string
-        path to the output directory
-    """
-    outdir   = gp.get_plot_path()+'SDSS/'+catl_kind+'/'+catl_type+'/'
-    outdir  += 'Mr'+sample_s
-    fd.Path_Folder(outdir)
-    print('{0} `outdir`: {1}'.format(Program_Msg, outdir))
-
-    return outdir
 
 def sdss_catl_clean(catl_pd, catl_kind, catl_info='members', reindex=True):
     """
@@ -561,7 +530,7 @@ def catl_keys_prop(catl_kind, catl_info='members', return_type='list',
     return catl_dict
 
 def catl_sdss_merge(catl_pd_ii, catl_kind='data', catl_type='mr', 
-    sample_s='19', halotype='fof', clf_method=3, hod_n=0,
+    sample_s='19', halotype='fof', clf_method=3, hod_n=0, clf_seed=1235,
     perf_opt=False, return_memb_group=False, print_filedir=False,
     Program_Msg=fd.Program_Msg(__file__)):
     """
@@ -614,6 +583,9 @@ def catl_sdss_merge(catl_pd_ii, catl_kind='data', catl_type='mr',
         HOD model to use.
         Only relevant when "catl_kind == `mocks`".
 
+    clf_seed: int, optional (default = 1235)
+        Seed used for the CLF random seed
+
     perf_opt: boolean, optional (default = False)
         option for choosing 'perfect' catalogues
         Options:
@@ -651,6 +623,7 @@ def catl_sdss_merge(catl_pd_ii, catl_kind='data', catl_type='mr',
                                 halotype=halotype,
                                 clf_method=clf_method,
                                 hod_n=hod_n,
+                                clf_seed=clf_seed,
                                 perf_opt=perf_opt,
                                 catl_info=catl_info_arr[0],
                                 return_len=True,
@@ -667,6 +640,7 @@ def catl_sdss_merge(catl_pd_ii, catl_kind='data', catl_type='mr',
                                 halotype=halotype,
                                 clf_method=clf_method,
                                 hod_n=hod_n,
+                                clf_seed=clf_seed,
                                 perf_opt=perf_opt,
                                 catl_info=catl_info_arr[1],
                                 print_filedir=print_filedir)
