@@ -31,3 +31,4 @@ dependencies:
     - tqdm
     - tables
     - xgboost
+    - cosmo-utils
