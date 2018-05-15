@@ -19,11 +19,18 @@ galaxy and galaxy group in the catalogue
 import os
 import sys
 import git
-from path_variables import git_root_dir
-sys.path.insert(0, os.path.realpath(git_root_dir(__file__)))
 
 # Importing Modules
-import src.data.utilities_python as cu
+from cosmo_utils       import mock_catalogues as cm
+from cosmo_utils       import utils           as cu
+from cosmo_utils.utils import file_utils      as cfutils
+from cosmo_utils.utils import file_readers    as cfreaders
+from cosmo_utils.utils import work_paths      as cwpaths
+from cosmo_utils.utils import stats_funcs     as cstats
+from cosmo_utils.utils import geometry        as cgeom
+from cosmo_utils.mock_catalogues import catls_utils as cmcu
+from cosmo_utils.mock_catalogues import mags_calculations as cmag
+
 import numpy as num
 import math
 import os
@@ -248,7 +255,7 @@ def get_parser():
                         dest='Prog_msg',
                         help='Program message to use throught the script',
                         type=str,
-                        default=cu.Program_Msg(__file__))
+                        default=cfutils.Program_Msg(__file__))
     ## Parsing Objects
     args = parser.parse_args()
 
@@ -404,15 +411,15 @@ def directory_skeleton(param_dict, proj_dict):
     merged_gal_perf_all_dir = os.path.join(catl_outdir, 'merged_vac_perf_all')
     ##
     ## Creating Directories
-    cu.Path_Folder(ext_dir)
-    cu.Path_Folder(processed_dir)
-    cu.Path_Folder(int_dir)
-    cu.Path_Folder(raw_dir)
-    cu.Path_Folder(catl_outdir)
-    cu.Path_Folder(merged_gal_dir)
-    cu.Path_Folder(merged_gal_perf_dir)
-    cu.Path_Folder(merged_gal_all_dir)
-    cu.Path_Folder(merged_gal_perf_all_dir)
+    cfutils.Path_Folder(ext_dir)
+    cfutils.Path_Folder(processed_dir)
+    cfutils.Path_Folder(int_dir)
+    cfutils.Path_Folder(raw_dir)
+    cfutils.Path_Folder(catl_outdir)
+    cfutils.Path_Folder(merged_gal_dir)
+    cfutils.Path_Folder(merged_gal_perf_dir)
+    cfutils.Path_Folder(merged_gal_all_dir)
+    cfutils.Path_Folder(merged_gal_perf_all_dir)
     ## Removing files if necessary
     if param_dict['remove_files']:
         for catl_ii in [merged_gal_dir, merged_gal_perf_dir, merged_gal_all_dir, merged_gal_perf_all_dir]:
@@ -606,7 +613,8 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict, ext='hdf5'):
         ## into a single DataFrame
         (   merged_gal_pd,
             memb_ii_pd   ,
-            group_ii_pd  ) = cu.catl_sdss_merge(ii,
+            group_ii_pd  ) = cmcu.catl_sdss_merge(
+                                                ii,
                                                 catl_kind='mocks',
                                                 catl_type=param_dict['catl_type'],
                                                 sample_s=param_dict['sample_s'],
@@ -905,7 +913,7 @@ def group_brightness_gal_ratio(memb_ii_pd, group_ii_pd, group_mod_pd,
         ## Group indices
         group_idx = group_gals_dict[group_kk]
         ## Brightness ratio
-        group_lum_arr = num.sort(cu.absolute_magnitude_to_luminosity(
+        group_lum_arr = num.sort(cmag.absolute_magnitude_to_luminosity(
                     memb_ii_pd.loc[group_idx,'M_r'].values, 'r'))[::-1]
         ## Ratio of Brightnesses
         group_lum_ratio_arr[group_kk] = 10**(group_lum_arr[0]-group_lum_arr[1])
@@ -973,13 +981,13 @@ def group_shape(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
         group_kk_pd  = groups_coords[group_kk]
         ## Cartian Coordinates
         (   sph_dict  ,
-            coord_dict) = cu.Coord_Transformation(  memb_gals_kk[0],
-                                                    memb_gals_kk[1],
-                                                    memb_gals_kk[2],
-                                                    group_kk_pd [0] ,
-                                                    group_kk_pd [1] ,
-                                                    group_kk_pd [2] ,
-                                                    trans_opt = 4  )
+            coord_dict) = cgeom.Coord_Transformation(   memb_gals_kk[0],
+                                                        memb_gals_kk[1],
+                                                        memb_gals_kk[2],
+                                                        group_kk_pd [0] ,
+                                                        group_kk_pd [1] ,
+                                                        group_kk_pd [2] ,
+                                                        trans_opt = 4  )
         ## Joining cartesian coordinates
         x_kk = coord_dict['X'] - num.mean(coord_dict['X'])
         y_kk = coord_dict['Y'] - num.mean(coord_dict['Y'])
@@ -1421,12 +1429,12 @@ def merging_df_save(merged_vac_filename, memb_group_pd, param_dict, proj_dict):
         Dictionary with current and new paths to project directories
     """
     ## Saving catalogue
-    cu.pandas_df_to_hdf5_file(memb_group_pd, merged_vac_filename,
+    cfreaders.pandas_df_to_hdf5_file(memb_group_pd, merged_vac_filename,
         key='/gals_groups')
     ## Print message
     if param_dict['verbose']:
         print('{0} Saving `{1}`\n'.format(Prog_msg, merged_vac_filename))
-    cu.File_Exists(merged_vac_filename)
+    cfutils.File_Exists(merged_vac_filename)
 
 ## Merging all Datasets into a single Dataset
 def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
@@ -1445,7 +1453,7 @@ def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
         file extension used when saving catalogues to files
     """
     ## List of catalogues
-    files_arr = cu.Index(proj_dict['merged_gal_dir'], '.{0}'.format(ext))
+    files_arr = cfutils.Index(proj_dict['merged_gal_dir'], '.{0}'.format(ext))
     file_key  = '/gals_groups'
     group_key = 'groupid'
     file_str_arr = [param_dict['sample_Mr'],    param_dict['hod_n'],
@@ -1461,7 +1469,7 @@ def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
     ## Looping over catalogues
     tq_msg = 'Catl Merging: '
     for catl_ii in tqdm(range(files_arr.size), desc=tq_msg):
-        catl_pd_ii = cu.read_hdf5_file_to_pandas_DF(files_arr[catl_ii])
+        catl_pd_ii = cfreaders.read_hdf5_file_to_pandas_DF(files_arr[catl_ii])
         if catl_ii == 0:
             catl_pd_main = catl_pd_ii.copy()
         else:
@@ -1474,8 +1482,8 @@ def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
     filepath = os.path.join(proj_dict['merged_gal_all_dir'],
                             filename)
     ## Saving to file
-    cu.pandas_df_to_hdf5_file(catl_pd_main, filepath, key=file_key)
-    cu.File_Exists(filepath)
+    cfreaders.pandas_df_to_hdf5_file(catl_pd_main, filepath, key=file_key)
+    cfutils.File_Exists(filepath)
 
 ## --------- Multiprocessing ------------##
 
@@ -1536,8 +1544,8 @@ def main(args):
     Prog_msg = param_dict['Prog_msg']
     ##
     ## Creating Folder Structure
-    # proj_dict  = directory_skeleton(param_dict, cu.cookiecutter_paths(__file__))
-    proj_dict  = directory_skeleton(param_dict, cu.cookiecutter_paths('./'))
+    # proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths(__file__))
+    proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths('./'))
     ## Choosing cosmological model
     cosmo_model = cosmo_create(cosmo_choice=param_dict['cosmo_choice'])
     # Assigning the cosmological model to `param_dict`
@@ -1553,7 +1561,7 @@ def main(args):
     ## Looping over all galaxy catalogues
     # Paths to catalogues being analyzed
     (   catl_arr,
-        n_catls ) = cu.extract_catls(   catl_kind='mocks',
+        n_catls ) = cmcu.extract_catls(   catl_kind='mocks',
                                         catl_type=param_dict['catl_type'],
                                         sample_s=param_dict['sample_s'],
                                         halotype=param_dict['halotype'],

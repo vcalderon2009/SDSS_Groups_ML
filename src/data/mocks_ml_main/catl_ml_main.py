@@ -18,11 +18,13 @@ based on a training and validation set of galaxies.
 import os
 import sys
 import git
-from path_variables import git_root_dir
-sys.path.insert(0, os.path.realpath(git_root_dir(__file__)))
 
 # Importing Modules
-import src.data.utilities_python as cu
+from cosmo_utils.utils import file_utils      as cfutils
+from cosmo_utils.utils import file_readers    as cfreaders
+from cosmo_utils.utils import work_paths      as cwpaths
+from cosmo_utils.utils import stats_funcs     as cstats
+
 import numpy as num
 import math
 import os
@@ -321,7 +323,7 @@ def get_parser():
                         dest='Prog_msg',
                         help='Program message to use throught the script',
                         type=str,
-                        default=cu.Program_Msg(__file__))
+                        default=cfutils.Program_Msg(__file__))
     ## Parsing Objects
     args = parser.parse_args()
 
@@ -513,7 +515,7 @@ def directory_skeleton(param_dict, proj_dict):
                 param_dict['Prog_msg'], catl_ii)
             raise ValueError(msg)
     ## Creating directories
-    cu.Path_Folder(test_train_dir)
+    cfutils.Path_Folder(test_train_dir)
     ##
     ## Adding to `proj_dict`
     proj_dict['ext_dir'                ] = ext_dir
@@ -657,7 +659,7 @@ def training_testing_data(param_dict, proj_dict, test_size=0.25,
         msg = msg.format(param_dict['Prog_msg'], len(catl_arr))
         raise ValueError(msg)
     ## Reading in catalogue
-    catl_pd_tot  = cu.read_hdf5_file_to_pandas_DF(catl_arr[0])
+    catl_pd_tot  = cfreaders.read_hdf5_file_to_pandas_DF(catl_arr[0])
     ## Selecting only a fraction of the dataset
     catl_pd     = catl_pd_tot.sample(frac=sample_frac, random_state=random_state)
     catl_pd_tot = None
@@ -1187,8 +1189,8 @@ def main(args):
     Prog_msg = param_dict['Prog_msg']
     ##
     ## Creating Folder Structure
-    # proj_dict  = directory_skeleton(param_dict, cu.cookiecutter_paths(__file__))
-    proj_dict  = directory_skeleton(param_dict, cu.cookiecutter_paths('./'))
+    # proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths(__file__))
+    proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths('./'))
     ##
     ## Printing out project variables
     print('\n'+50*'='+'\n')

@@ -18,11 +18,10 @@ Script that runs the `SDSS Mocks Create` script
 import os
 import sys
 import git
-from path_variables import git_root_dir
-sys.path.insert(0, os.path.realpath(git_root_dir(__file__)))
 
 # Importing Modules
-import src.data.utilities_python as cu
+from cosmo_utils.utils import file_utils as cfutils
+
 import numpy as num
 import os
 import sys
@@ -207,7 +206,7 @@ def get_parser():
                         dest='Prog_msg',
                         help='Program message to use throught the script',
                         type=str,
-                        default=cu.Program_Msg(__file__))
+                        default=cfutils.Program_Msg(__file__))
     ## Option for removing file
     parser.add_argument('-remove',
                         dest='remove_files',

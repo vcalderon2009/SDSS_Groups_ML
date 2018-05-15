@@ -17,11 +17,12 @@ Produces plots of the merged Dataset to check correlations, etc.
 import os
 import sys
 import git
-from path_variables import git_root_dir
-sys.path.insert(0, os.path.realpath(git_root_dir(__file__)))
 
 # Importing Modules
-import src.data.utilities_python as cu
+from cosmo_utils.utils import file_utils      as cfutils
+from cosmo_utils.utils import work_paths      as cwpaths
+from cosmo_utils.utils import stats_funcs     as cstats
+
 import numpy as num
 import math
 import os
@@ -259,7 +260,7 @@ def get_parser():
                         dest='Prog_msg',
                         help='Program message to use throught the script',
                         type=str,
-                        default=cu.Program_Msg(__file__))
+                        default=cfutils.Program_Msg(__file__))
     ## Parsing Objects
     args = parser.parse_args()
 
@@ -448,7 +449,7 @@ def directory_skeleton(param_dict, proj_dict):
             raise ValueError(msg)
     ##
     ## Creating directories
-    cu.Path_Folder(figure_dir)
+    cfutils.Path_Folder(figure_dir)
     ##
     ## Adding to `proj_dict`
     proj_dict['ext_dir'       ] = ext_dir
@@ -860,11 +861,11 @@ def frac_diff_model(model_fits_dict, test_dict, param_dict, proj_dict,
         (   x_stat_arr,
             y_stat_arr,
             y_std_arr ,
-            y_std_err ) = cu.Mean_Std_calculations_One_array(   model_kk_x,
-                                                                model_kk_y,
-                                                                base=bin_width,
-                                                                arr_len=arr_len,
-                                                                bin_statval=bin_statval)
+            y_std_err ) = cstats.Stats_one_arr( model_kk_x,
+                                                model_kk_y,
+                                                base=bin_width,
+                                                arr_len=arr_len,
+                                                bin_statval=bin_statval)
         ## Saving to dictionary
         frac_diff_dict[model_kk]      = {}
         frac_diff_dict[model_kk]['x_val' ] = model_kk_x
@@ -887,22 +888,22 @@ def frac_diff_model(model_fits_dict, test_dict, param_dict, proj_dict,
     (   x_stat_ham   ,
         y_stat_ham   ,
         y_std_ham    ,
-        y_std_err_ham) = cu.Mean_Std_calculations_One_array(    mh_true_ham,
-                                                                frac_diff_ham,
-                                                                base=bin_width,
-                                                                arr_len=arr_len,
-                                                                bin_statval=bin_statval)
+        y_std_err_ham) = cstats.Stats_one_arr(  mh_true_ham,
+                                                frac_diff_ham,
+                                                base=bin_width,
+                                                arr_len=arr_len,
+                                                bin_statval=bin_statval)
     y1_ham = y_stat_ham - y_std_ham
     y2_ham = y_stat_ham + y_std_ham
     # Dynamical
     (   x_stat_dyn   ,
         y_stat_dyn   ,
         y_std_dyn    ,
-        y_std_err_dyn) = cu.Mean_Std_calculations_One_array(    mh_true_dyn,
-                                                                frac_diff_dyn,
-                                                                base=bin_width,
-                                                                arr_len=arr_len,
-                                                                bin_statval=bin_statval)
+        y_std_err_dyn) = cstats.Stats_one_arr(  mh_true_dyn,
+                                                frac_diff_dyn,
+                                                base=bin_width,
+                                                arr_len=arr_len,
+                                                bin_statval=bin_statval)
     y1_dyn = y_stat_dyn - y_std_dyn
     y2_dyn = y_stat_dyn + y_std_dyn
     ##
@@ -1340,8 +1341,8 @@ def main(args):
     Prog_msg = param_dict['Prog_msg']
     ##
     ## Creating Folder Structure
-    # proj_dict  = directory_skeleton(param_dict, cu.cookiecutter_paths(__file__))
-    proj_dict  = directory_skeleton(param_dict, cu.cookiecutter_paths('./'))
+    # proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths(__file__))
+    proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths('./'))
     ##
     ## Printing out project variables
     keys_avoid_arr = ['Prog_msg', 'feat_cols_dict']
