@@ -694,8 +694,8 @@ def training_testing_data(param_dict, proj_dict, test_size=0.25,
         feat_arr = feat_arr.reshape(len(feat_arr),)
     ##
     ## Rescaling training and testing dataset
-    feat_arr_scaled = data_preprocessing(feat_arr, param_dict, 
-                            pre_opt=param_dict['pre_opt'])
+    feat_arr_scaled = data_preprocessing(   feat_arr, 
+                                            pre_opt=param_dict['pre_opt'])
     ## Training and Testing Dataset
     #  Scaled
     (   X_train, X_test,
@@ -770,7 +770,7 @@ def sklearns_models(param_dict, cpu_number):
     return skem_dict
 
 ## Data Preprocessing
-def data_preprocessing(feat_arr, param_dict, pre_opt='min_max'):
+def data_preprocessing(feat_arr, pre_opt='min_max'):
     """
     Preprocess the data used, in order to clean and make the data more 
     suitable for the machine learning algorithms
@@ -779,9 +779,6 @@ def data_preprocessing(feat_arr, param_dict, pre_opt='min_max'):
     -------------
     feat_arr: numpy.ndarray
         array of feature values. Used for training the ML algorithm
-
-    param_dict: python dictionary
-        dictionary with input parameters and values
 
     pre_opt: string, optional (default = 'min_max')
         Option for which preprocessing of the data to use
