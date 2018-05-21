@@ -351,6 +351,7 @@ def concadenate_pd_df(direc, file_type='hdf5', foutput=None, outonly=True):
 	outonly: boolean, optional (default=True)
 		option for returning pandas DataFrame.
 		If `True', it returns the pandas DataFrame
+		If False, it only saved the concatenated `pandas.DataFrame`
 
 	Returns
 	-------
