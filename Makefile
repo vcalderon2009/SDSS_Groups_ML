@@ -132,6 +132,10 @@ ml_plots:
 test_files:
 	@pytest
 
+download_dataset:
+	# Downloading dataset
+	@python $(SRC_DIR)/download_dataset.py -hod_model_n $(HOD_N) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -clf_seed $(CLF_SEED)
+
 ## Delete existing `mock` catalogues
 delete_mock_catls:
 	find $(MOCKS_CATL_DIR) -type f -name '*.hdf5' -delete
