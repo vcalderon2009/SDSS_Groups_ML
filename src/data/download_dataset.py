@@ -12,30 +12,22 @@ __email__      =['victor.calderon@vanderbilt.edu']
 __maintainer__ =['Victor Calderon']
 """
 Downloads the necessary galaxy catalogues from the web to perform the 
-1- and 2-halo conformity analyses.
+ML analysis for this project.
 """
-# Path to Custom Utilities folder
+# Importing Modules
 import os
 import sys
-import git
+import numpy as num
 
-# Importing Modules
 from cosmo_utils.utils import file_utils as cfutils
 from cosmo_utils.utils import work_paths as cwpaths
 from cosmo_utils.utils import web_utils  as cweb
-
-import numpy as num
-import os
-import sys
-from progressbar import (Bar, ETA, FileTransferSpeed, Percentage, ProgressBar,
-                        ReverseBar, RotatingMarker)
 
 # Extra-modules
 from argparse import ArgumentParser
 from argparse import HelpFormatter
 from operator import attrgetter
 import subprocess
-import requests
 
 ### ----| Common Functions |--- ###
 
