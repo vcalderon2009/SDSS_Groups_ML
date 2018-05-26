@@ -33,3 +33,4 @@ dependencies:
     - tables
     - xgboost
     - cosmo-utils
+    - yellowbrick
