@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Victor Calderon
-# Created      : 03/12/2018
-# Last Modified: 03/21/2018
+# Created      : 2018-05-27
+# Last Modified: 2018-05-27
 # Vanderbilt University
 from __future__ import print_function, division, absolute_import
 __author__     =['Victor Calderon']
@@ -12,13 +12,8 @@ __email__      =['victor.calderon@vanderbilt.edu']
 __maintainer__ =['Victor Calderon']
 """
 Computes the necessary group and galaxy features for each 
-galaxy and galaxy group in the catalogue
+galaxy and galaxy group in the catalogue.
 """
-
-# Path to Custom Utilities folder
-import os
-import sys
-import git
 
 # Importing Modules
 from cosmo_utils       import mock_catalogues as cm
@@ -118,7 +113,7 @@ def get_parser():
     ## Define parser object
     description_msg = """
                     Computes the necessary group and galaxy features for each 
-                    galaxy and galaxy group in the catalogue
+                    galaxy and galaxy group in the catalogue.
                     """
     parser = ArgumentParser(description=description_msg,
                             formatter_class=SortingHelpFormatter,)
@@ -156,6 +151,15 @@ def get_parser():
                         type=int,
                         choices=[1,2,3],
                         default=3)
+    ## Difference between galaxy and mass velocity profiles (v_g-v_c)/(v_m-v_c)
+    parser.add_argument('-dv',
+                        dest='dv',
+                        help="""
+                        Difference between galaxy and mass velocity profiles 
+                        (v_g-v_c)/(v_m-v_c)
+                        """,
+                        type=_check_pos_val,
+                        default=1.0)
     ## Random Seed for CLF
     parser.add_argument('-clf_seed',
                         dest='clf_seed',
@@ -398,6 +402,7 @@ def directory_skeleton(param_dict, proj_dict):
                                     'SDSS',
                                     'mocks',
                                     'halos_{0}'.format(param_dict['halotype']),
+                                    'dv_{0}'.format(param_dict['dv']),
                                     'hod_model_{0}'.format(param_dict['hod_n']),
                                     'clf_seed_{0}'.format(param_dict['clf_seed']),
                                     'clf_method_{0}'.format(param_dict['clf_method']),
@@ -620,6 +625,7 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict, ext='hdf5'):
                                                 sample_s=param_dict['sample_s'],
                                                 halotype=param_dict['halotype'],
                                                 clf_method=param_dict['clf_method'],
+                                                dv=param_dict['dv'],
                                                 hod_n=param_dict['hod_n'],
                                                 clf_seed=param_dict['clf_seed'],
                                                 perf_opt=param_dict['perf_opt'],
@@ -1456,12 +1462,13 @@ def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
     files_arr = cfutils.Index(proj_dict['merged_gal_dir'], '.{0}'.format(ext))
     file_key  = '/gals_groups'
     group_key = 'groupid'
-    file_str_arr = [param_dict['sample_Mr'],    param_dict['hod_n'],
+    file_str_arr = [    param_dict['sample_Mr'],    param_dict['hod_n'],
+                        param_dict['dv']        ,
                         param_dict['clf_method'],   param_dict['cosmo_choice'],
                         param_dict['nmin']      ,   param_dict['halotype'],
                         param_dict['perf_opt']  ,   ext]
-    file_str  = '{0}_hodn_{1}_clf_{2}_cosmo_{3}_nmin_{4}_halotype_{5}_perf_{6}'
-    file_str += 'merged_vac_all.{7}'
+    file_str  = '{0}_hodn_{1}_dv_{2}_clf_{3}_cosmo_{4}_nmin_{5}_halotype_{6}_perf_{7}'
+    file_str += 'merged_vac_all.{8}'
     filename  = file_str.format(*file_str_arr)
     ## Concatenating DataFrames
     group_id_tot = 0
@@ -1565,6 +1572,7 @@ def main(args):
                                         catl_type=param_dict['catl_type'],
                                         sample_s=param_dict['sample_s'],
                                         halotype=param_dict['halotype'],
+                                        dv=param_dict['dv'],
                                         clf_method=param_dict['clf_method'],
                                         hod_n=param_dict['hod_n'],
                                         clf_seed=param_dict['clf_seed'],
