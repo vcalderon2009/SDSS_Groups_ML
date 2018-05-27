@@ -150,7 +150,7 @@ def get_parser():
                         """,
                         type=int,
                         choices=[1,2,3],
-                        default=3)
+                        default=1)
     ## Difference between galaxy and mass velocity profiles (v_g-v_c)/(v_m-v_c)
     parser.add_argument('-dv',
                         dest='dv',
@@ -166,7 +166,7 @@ def get_parser():
                         help='Random seed to be used for CLF',
                         type=int,
                         metavar='[0-4294967295]',
-                        default=0)
+                        default=1235)
     ## Luminosity sample to analyze
     parser.add_argument('-sample',
                         dest='sample',
@@ -575,7 +575,8 @@ def gals_cartesian(memb_ii_pd, group_ii_pd, param_dict):
 
     return memb_ii_pd, group_ii_pd
 
-def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict, ext='hdf5'):
+def catalogue_analysis(ii, catl_ii_name, box_n, param_dict, proj_dict, 
+    ext='hdf5'):
     """
     Function to analyze the catalogue and compute all of the group/galaxy 
     properties, and saves the resulting merged catalogue
@@ -588,6 +589,10 @@ def catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict, ext='hdf5'):
 
     catl_ii_name: string
         name of the catalogue file being analyzed
+
+    box_n : int
+        Box number of the catalogue. This number tells the user from which 
+        simulation box the mock catalogue comes.
 
     param_dict: python dictionary
         dictionary with `project` variables
@@ -1528,8 +1533,10 @@ def multiprocessing_catls(catl_arr, param_dict, proj_dict, memb_tuples_ii):
             print('{0} Analyzing `{1}`\n'.format(Prog_msg, catl_ii))
         ## Extracting `name` of the catalogue
         catl_ii_name = os.path.splitext(os.path.split(catl_ii)[1])[0]
+        ## Box Number
+        box_n = int(catl_ii_name.split('_')[1])
         ## Analaysis for the Halobias file
-        catalogue_analysis(ii, catl_ii_name, param_dict, proj_dict)
+        catalogue_analysis(ii, catl_ii_name, box_n, param_dict, proj_dict)
 
 ## --------- Main Function ------------##
 
