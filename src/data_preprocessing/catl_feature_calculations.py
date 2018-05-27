@@ -876,7 +876,7 @@ def group_brightest_gal(memb_ii_pd, group_ii_pd, group_mod_pd,
         ## Galaxy luminosities in galaxy group
         gals_g_lum_arr = memb_ii_pd.loc[group_idx,'M_r']
         ## Index of the brightest galaxy
-        gal_brightest_idx = num.argmin(gals_g_lum_arr)
+        gal_brightest_idx = (gals_g_lum_arr).idxmin()
         ## Brightest galaxy
         group_mr_max_arr    [group_kk] = gals_g_lum_arr.loc[gal_brightest_idx]
         group_mr_max_idx_arr[group_kk] = gal_brightest_idx
@@ -991,18 +991,17 @@ def group_shape(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
         memb_gals_kk = gals_coords[group_idx].T
         group_kk_pd  = groups_coords[group_kk]
         ## Cartian Coordinates
-        (   sph_dict  ,
-            coord_dict) = cgeom.Coord_Transformation(   memb_gals_kk[0],
-                                                        memb_gals_kk[1],
-                                                        memb_gals_kk[2],
-                                                        group_kk_pd [0] ,
-                                                        group_kk_pd [1] ,
-                                                        group_kk_pd [2] ,
-                                                        trans_opt = 4  )
+        coord_dict = cgeom.Coord_Transformation(    memb_gals_kk[0],
+                                                    memb_gals_kk[1],
+                                                    memb_gals_kk[2],
+                                                    group_kk_pd [0],
+                                                    group_kk_pd [1],
+                                                    group_kk_pd [2],
+                                                    trans_opt = 4  )
         ## Joining cartesian coordinates
-        x_kk = coord_dict['X'] - num.mean(coord_dict['X'])
-        y_kk = coord_dict['Y'] - num.mean(coord_dict['Y'])
-        z_kk = coord_dict['Z'] - num.mean(coord_dict['Z'])
+        x_kk = coord_dict['x'] - num.mean(coord_dict['x'])
+        y_kk = coord_dict['y'] - num.mean(coord_dict['y'])
+        z_kk = coord_dict['z'] - num.mean(coord_dict['z'])
         #
         gals_cart_arr = num.vstack((x_kk, y_kk, z_kk))
         ## Covariance matrix and eigenvectors
