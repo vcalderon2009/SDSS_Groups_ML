@@ -437,7 +437,7 @@ def get_exec_string(df_arr, param_dict):
             catl_ii_str += ' {0} {1}'.format(    df_ii['Flag' ][ii],
                                                 df_ii['Value'][ii])
         ## Appending a comma at the end
-        catl_ii_str += ';'
+        catl_ii_str += '; '
         ## Appending to main string command `main_str_cmd`
         main_str_cmd += catl_ii_str
 
@@ -468,8 +468,7 @@ def project_const(param_dict):
     ##
     ## File or files to run
     run_file_dict    = {}
-    run_file_dict[0] = {'file': 'catl_feature_calculations.py', 'str':''}
-    run_file_dict[1] = {'file': 'catl_feature_calculations.py', 'str':''}
+    run_file_dict[0] = {'file': 'catl_feature_calculations.py'}
     ##
     ## Saving to main dictionary
     param_dict['env_name'       ] = env_name
@@ -544,7 +543,7 @@ def file_construction_and_execution(df_arr, param_dict):
         out_f.write(b"""screen -S ${WINDOW_NAME} -p ${SUB_WINDOW} -X stuff $'\\n'\n""")
         out_f.write(b"""screen -S ${WINDOW_NAME} -p ${SUB_WINDOW} -X stuff $"conda activate ${ENV_NAME};"\n""")
         out_f.write(b"""screen -S ${WINDOW_NAME} -p ${SUB_WINDOW} -X stuff $"${SCRIPT_CMD}"\n""")
-        # out_f.write(b"""screen -S ${WINDOW_NAME} -p ${SUB_WINDOW} -X stuff $'\\n'\n""")
+        out_f.write(b"""screen -S ${WINDOW_NAME} -p ${SUB_WINDOW} -X stuff $'\\n'\n""")
         out_f.write(b"""\n""")
     ##
     ## Check if File exists
