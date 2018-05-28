@@ -131,6 +131,15 @@ def get_parser():
                         type=int,
                         choices=[1,2,3],
                         default=3)
+    ## Difference between galaxy and mass velocity profiles (v_g-v_c)/(v_m-v_c)
+    parser.add_argument('-dv',
+                        dest='dv',
+                        help="""
+                        Difference between galaxy and mass velocity profiles 
+                        (v_g-v_c)/(v_m-v_c)
+                        """,
+                        type=_check_pos_val,
+                        default=1.0)
     ## SDSS Sample
     parser.add_argument('-sample',
                         dest='sample',
@@ -255,19 +264,18 @@ def directory_skeleton(param_dict, proj_dict):
     for catl_kind in ['data', 'mocks']:
         # Data
         if catl_kind == 'data':
-            catl_dir = os.path.join(    proj_dict['data_dir'],
-                                        'external',
+            catl_dir = os.path.join(    proj_dict['ext_dir'],
                                         'SDSS',
                                         catl_kind,
                                         param_dict['catl_type'],
                                         param_dict['sample_Mr'])
         # Mocks
         if catl_kind == 'mocks':
-            catl_dir = os.path.join(    proj_dict['data_dir'],
-                                        'external',
+            catl_dir = os.path.join(    proj_dict['ext_dir'],
                                         'SDSS',
                                         catl_kind,
                                         'halos_{0}'.format(param_dict['halotype']),
+                                        'dv_{0}'.format(param_dict['dv']),
                                         'hod_model_{0}'.format(param_dict['hod_n']),
                                         'clf_seed_{0}'.format(param_dict['clf_seed']),
                                         'clf_method_{0}'.format(param_dict['clf_method']),
