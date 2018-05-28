@@ -3,7 +3,7 @@
 
 # Victor Calderon
 # Created      : 2018-05-27
-# Last Modified: 2018-05-27
+# Last Modified: 2018-05-28
 # Vanderbilt University
 from __future__ import print_function, division, absolute_import
 __author__     =['Victor Calderon']
@@ -151,6 +151,13 @@ def get_parser():
                         type=int,
                         choices=[1,2,3],
                         default=1)
+    ## Random Seed for CLF
+    parser.add_argument('-clf_seed',
+                        dest='clf_seed',
+                        help='Random seed to be used for CLF',
+                        type=int,
+                        metavar='[0-4294967295]',
+                        default=1235)
     ## Difference between galaxy and mass velocity profiles (v_g-v_c)/(v_m-v_c)
     parser.add_argument('-dv',
                         dest='dv',
@@ -160,13 +167,6 @@ def get_parser():
                         """,
                         type=_check_pos_val,
                         default=1.0)
-    ## Random Seed for CLF
-    parser.add_argument('-clf_seed',
-                        dest='clf_seed',
-                        help='Random seed to be used for CLF',
-                        type=int,
-                        metavar='[0-4294967295]',
-                        default=1235)
     ## Luminosity sample to analyze
     parser.add_argument('-sample',
                         dest='sample',
@@ -196,7 +196,7 @@ def get_parser():
                         choices=range(2,1000),
                         metavar='[1-1000]',
                         default=2)
-    ## Minimum of galaxies in a group
+    ## Factor by which to evaluate the distance to closest cluster.
     parser.add_argument('-mass_factor',
                         dest='mass_factor',
                         help="""
