@@ -274,7 +274,7 @@ def add_to_dict(param_dict):
 
     return param_dict
 
-def df_value_modifier(df, name, value, param_dict):
+def df_value_modifier(df, name, param_dict):
     """
     Modifies the values for in a given DataFrame based on user input.
 
