@@ -105,8 +105,8 @@ def get_parser():
                         dest='hod_n',
                         help="Number of distinct HOD model to use. Default = 0",
                         type=int,
-                        choices=range(0,1),
-                        metavar='[0]',
+                        choices=range(0,9),
+                        metavar='[0,8]',
                         default=0)
     ## Type of dark matter halo to use in the simulation
     parser.add_argument('-halotype',
