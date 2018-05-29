@@ -17,6 +17,7 @@ ENVIRONMENT_NAME = sdss_groups_ml
 DATA_DIR           = $(PROJECT_DIR)/data
 SRC_DIR            = $(PROJECT_DIR)/src
 SRC_DATA_DIR       = $(SRC_DIR)/data
+SRC_PREPROC_DIR    = $(SRC_DIR)/data_preprocessing
 MOCKS_CATL_DIR     = $(DATA_DIR)/external/SDSS/mocks
 
 # INPUT VARIABLES
@@ -131,8 +132,8 @@ endif
 #################################################################################
 
 ## Preprocesses the datasets and transforms them into user-friendly versions
-data_preprocess:
-	@python $(SRC_DIR)/data_preprocessing/data_preprocessing_main.py \
+data_preprocess: download_dataset
+	@python $(SRC_PREPROC_DIR)/data_preprocessing_main.py \
 	-hod_model_n $(HOD_N) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) \
 	-dv $(DV) -clf_seed $(CLF_SEED) -sample $(SAMPLE) -abopt $(CATL_TYPE) \
 	-cosmo $(COSMO) -nmin $(NMIN) -mass_factor $(MASS_FACTOR) \
@@ -180,10 +181,12 @@ ml_plots:
 test_files:
 	@pytest
 
+## Downloads Dataset
 download_dataset:
-	# Downloading dataset
-	@python $(SRC_DATA_DIR)/download_dataset.py -hod_model_n $(HOD_N) \
-	-halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -clf_seed $(CLF_SEED)
+	@python $(SRC_PREPROC_DIR)/download_dataset.py \
+	-hod_model_n $(HOD_N) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) \
+	-dv $(DV) -sample $(SAMPLE) -abopt $(CATL_TYPE) -clf_seed $(CLF_SEED) \
+	-perf $(PERF_OPT) -v $(VERBOSE)
 
 ## Delete existing `mock` catalogues
 delete_mock_catls:
