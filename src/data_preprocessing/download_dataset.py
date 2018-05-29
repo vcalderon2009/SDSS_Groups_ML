@@ -331,6 +331,7 @@ def download_directory(param_dict, proj_dict):
             catl_kind_url = os.path.join(param_dict['url_catl'],
                                         catl_kind,
                                         'halos_{0}'.format(param_dict['halotype']),
+                                        'dv_{0}'.format(param_dict['dv']),
                                         'hod_model_{0}'.format(param_dict['hod_n']),
                                         'clf_seed_{0}'.format(param_dict['clf_seed']),
                                         'clf_method_{0}'.format(param_dict['clf_method']),
@@ -339,7 +340,7 @@ def download_directory(param_dict, proj_dict):
                                         'member_galaxy_catalogues/')
             # Number of directories to cut/skip
             # See `wget` documentation for more details.
-            cut_dirs = 12
+            cut_dirs = 13
         ## Checking if URL exists
         cweb.url_checker(catl_kind_url)
         ## String to be executed
