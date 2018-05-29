@@ -23,6 +23,7 @@ from cosmo_utils.utils import work_paths      as cwpaths
 from cosmo_utils.utils import stats_funcs     as cstats
 from cosmo_utils.utils import geometry        as cgeom
 from cosmo_utils.mock_catalogues import catls_utils as cmcu
+from cosmo_utils.ml    import ml_utils        as cmlu
 
 import numpy as num
 import math
@@ -49,6 +50,9 @@ import astropy.constants as ac
 import astropy.units     as u
 from glob import glob
 
+# ML modules
+import sklearn
+from   sklearn import utils as skutils
 
 ## Functions
 class SortingHelpFormatter(HelpFormatter):
@@ -277,11 +281,20 @@ def get_parser():
                         type=float,
                         default=0.01)
     ## Testing size for ML
-    parser.add_argument('-train_frac',
-                        dest='train_frac',
-                        help='Percentage size of the catalogue used for training',
+    parser.add_argument('-test_size',
+                        dest='test_size',
+                        help='Percentage size of the catalogue used for testing',
                         type=_check_pos_val,
                         default=0.25)
+    ## Option for using all features or just a few
+    parser.add_argument('-n_feat_use',
+                        dest='n_feat_use',
+                        help="""
+                        Option for which features to use for the ML training 
+                        dataset.
+                        """,
+                        choices=['all', 'sub'],
+                        default='sub')
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -347,6 +360,7 @@ def param_vals_test(param_dict):
         This function raises a `ValueError` error if one or more of the 
         required criteria are not met
     """
+    file_msg = param_dict['Prog_msg']
     ##
     ## Testing if `wget` exists in the system
     if is_tool('wget'):
@@ -355,7 +369,7 @@ def param_vals_test(param_dict):
         msg = '{0} You need to have `wget` installed in your system to run '
         msg += 'this script. You can download the entire dataset at {1}.\n\t\t'
         msg += 'Exiting....'
-        msg = msg.format(param_dict['Prog_msg'], param_dict['url_catl'])
+        msg = msg.format(file_msg, param_dict['url_catl'])
         raise ValueError(msg)
     ##
     ## Checking that Esmeralda is not ran when doing 'SO' halos
@@ -363,7 +377,7 @@ def param_vals_test(param_dict):
         msg = '{0} The `halotype`==`so` and `sample`==`20` are no compatible '
         msg += 'input parameters.\n\t\t'
         msg += 'Exiting...'
-        msg = msg.format(param_dict['Prog_msg'])
+        msg = msg.format(file_msg)
         raise ValueError(msg)
     ##
     ## Checking that `hod_model_n` is set to zero for FoF-Halos
@@ -371,7 +385,7 @@ def param_vals_test(param_dict):
         msg = '{0} The `halotype`==`{1}` and `hod_n`==`{2}` are no compatible '
         msg += 'input parameters.\n\t\t'
         msg += 'Exiting...'
-        msg = msg.format(   param_dict['Prog_msg'],
+        msg = msg.format(   file_msg,
                             param_dict['halotype'],
                             param_dict['hod_n'])
         raise ValueError(msg)
@@ -384,13 +398,13 @@ def param_vals_test(param_dict):
         if not ((param_dict['sample_frac'] > 0) and 
                 (param_dict['sample_frac'] <= 1.)):
             msg = '{0} `sample_frac` ({1}) must be between (0,1]'.format(
-                param_dict['Prog_msg'], param_dict['sample_frac'])
+                file_msg, param_dict['sample_frac'])
             raise ValueError(msg)
         # `test_size`
-        if not ((param_dict['train_frac'] > 0) and
-                (param_dict['train_frac'] < 1)):
-            msg = '{0} `train_frac` ({1}) must be between (0,1)'.format(
-                param_dict['Prog_msg'], param_dict['train_frac'])
+        if not ((param_dict['test_size'] > 0) and
+                (param_dict['test_size'] < 1)):
+            msg = '{0} `test_size` ({1}) must be between (0,1)'.format(
+                file_msg, param_dict['test_size'])
             raise ValueError(msg)
     #
     # boxes_n
@@ -399,7 +413,7 @@ def param_vals_test(param_dict):
         box_n_diff = num.diff(box_n_arr)
         if not (all(box_n_diff > 0)):
             msg = '{0} The value of `box_idx` ({1}) is not valid!'.format(
-                param_dict['Prog_msg'], param_dict['box_idx'])
+                file_msg, param_dict['box_idx'])
             raise ValueError(msg)
 
 def add_to_dict(param_dict):
@@ -532,7 +546,8 @@ def directory_skeleton(param_dict, proj_dict):
     return proj_dict
 
 def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
-    dropna_opt=True, sample_frac=0.1, train_size=0.25, ext='hdf5'):
+    dropna_opt=True, sample_frac=0.1, test_size=0.25, pre_opt='standard',
+    test_train_opt='boxes_n', ext='hdf5'):
     """
     Selects the features used for the ML analysis
 
@@ -559,14 +574,41 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
     sample_frac : `float`
         Fraction of the total dataset ot use.
 
-    train_size : `float`
-        Percentage size of the catalogue used for `training`.
+    test_size : float, optional
+        Percentage of the catalogue that represents the `test` size of 
+        the testing dataset. This variable must be between (0,1).
+        This variable is set to `0.25` by default.
+
+    pre_opt : {'min_max', 'standard', 'normalize', 'no'} `str`, optional
+        Type of preprocessing to do on `feat_arr`.
+
+        Options:
+            - 'min_max' : Turns `feat_arr` to values between (0,1)
+            - 'standard' : Uses the `~sklearn.preprocessing.StandardScaler` method
+            - 'normalize' : Uses the `~sklearn.preprocessing.Normalizer` method
+            - 'no' : No preprocessing on `feat_arr`
+
+    test_train_opt : {'sample_frac', 'boxes_n'} `str`
+        Option for which kind of separation to use for the training/testing 
+        splitting. This variable is set to 'boxes_n' by default.
+
+        Options:
+            - 'sample_frac' : Selects a fraction of the total sample
+            - 'boxes_n' : Uses a set of the simulation boxes for the `training` and `testing`
 
     ext: string, optional (default = 'hdf5')
         file extension of the `merged` catalogue
 
     Returns
     ---------
+    train_dict : `dict`
+        Dictionary containing the 'training' data from the catalogue
+
+    test_dict : `dict`
+        Dictionary containing the 'testing' data from the catalogue
+
+    param_dict : `dict`
+        Dictionary with `project` variables + list of `predicted` and `features`
     """
     file_msg = param_dict['Prog_msg']
     ##
@@ -576,7 +618,7 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
                                     param_dict['catl_input_str'],
                                     ext))
     ## Checking if file exists
-    if not (len(catl_arr) ==1):
+    if not (len(catl_arr) == 1):
         msg = '{0} The length of `catl_arr` ({1}) must be equal to 1!'
         msg += 'Exiting ...'
         msg  = msg.format(file_msg, len(catl_arr))
@@ -584,8 +626,123 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
     ##
     ## Reading in catalogue
     catl_pd_tot = cfreaders.read_hdf5_file_to_pandas_DF(catl_arr[0])
+    ##
+    ## Temporarily fixing `GG_mdyn_rproj`
+    catl_pd_tot.loc[:, 'GG_mdyn_rproj'] /= 0.96
+    ##
+    ## List of column names
+    catl_cols = catl_pd_tot.columns.values
+    ##
+    ## List of `features` and `predicted values`
+    if param_dict['n_predict'] == 1
+        predicted_cols = ['M_h']
+    elif param_dict['n_predict'] == 2:
+        predicted_cols = ['M_h', 'galtype']
+    ##
+    ## List of features to use
+    if (param_dict['n_feat_use'] == 'all'):
+        features_cols = [s for s in catl_cols if s not in predicted_cols]
+    elif (param_dict['n_feat_use'] == 'sub'):
+        features_cols = [   'M_r',
+                            'GG_mr_brightest',
+                            'g_r',
+                            'GG_rproj',
+                            'GG_sigma_v',
+                            'GG_M_r',
+                            'GG_ngals',
+                            'GG_M_group',
+                            'GG_mdyn_rproj']
+    ## Dropping NaN's
+    if dropna_opt:
+        catl_pd_tot.dropna(how='any', inplace=True)
 
+    ## Choosing which type to use for the training/testing datasets
+    if test_train_opt == 'sample_frac':
+        ## Fraction of the total dataset
+        catl_pd = catl_pd_tot.sample(   frac=sample_frac,
+                                        random_state=random_state)
+        ## Deleting `total` catalogue
+        catl_pd_tot = None
+        ##
+        ## Creating new DataFrames
+        pred_arr = catl_pd.loc[:, predicted_cols].values
+        feat_arr = catl_pd.loc[:, features_cols ].values
+        # Scaled Feature array
+        feat_arr_scaled = cmlu.data_preprocessing(  feat_arr,
+                                                    pre_opt=pre_opt)
+        ##
+        ## Rescaling and computing training and testing datasets
+        (   train_dict,
+            test_dict ) = cmlu.train_test_dataset(  pred_arr,
+                                                    feat_arr,
+                                                    pre_opt=pre_opt,
+                                                    shuffle_opt=shuffle_opt,
+                                                    random_state=random_state,
+                                                    test_size=test_size)
+        ##
+        ## Saving to dictionary
+        param_dict['predicted_cols' ] = predicted_cols
+        param_dict['features_cols'  ] = features_cols
+        param_dict['feat_arr_scaled'] = feat_arr_scaled
+        param_dict['feat_arr'       ] = feat_arr
+    ##
+    ## If selecting testing/training based on which boxes
+    if test_train_opt =='boxes_n':
+        ## Simualation boxes - Indices
+        (   box_train_start,
+            box_train_end  ,
+            box_test_idx   ) = (num.array(param_dict['box_idx'].split('_'))
+                                    .astype(int))
+        ##
+        ## Selecting subsample of the main catalogue
+        # Training
+        catl_train_pd = catl_pd_tot.loc[(catl_pd_tot['box_n']).between(
+                            box_train_start,
+                            box_train_end,
+                            inclusive=True)]
+        # Testing
+        catl_test_pd  = catl_pd_tot.loc[(catl_pd_tot['box_n'] == box_test_idx)]
+        ##
+        ## Shuffling if needed
+        if shuffle_opt:
+            # Train
+            catl_train_pd = skutils.shuffle(catl_train_pd,
+                                            random_state=random_state)
+            # Test
+            catl_test_pd  = skutils.shuffle(catl_test_pd,
+                                            random_state=random_state)
+        ##
+        ## `Features` and `predictions`
+        # Training
+        pred_train_arr        = catl_train_pd.loc[:, predicted_cols].values
+        feat_train_arr        = catl_train_pd.loc[:, features_cols ].values
+        feat_train_arr_scaled = cmlu.data_preprocessing(feat_train_arr,
+                                                        pre_opt=pre_opt)
+        # Testing
+        pred_test_arr        = catl_test_pd.loc[:, predicted_cols].values
+        feat_test_arr        = catl_test_pd.loc[:, features_cols ].values
+        feat_test_arr_scaled = cmlu.data_preprocessing( feat_test_arr,
+                                                        pre_opt=pre_opt)
+        ##
+        ## Assigning `training` and `testing` datasets to dictionary
+        # Training
+        train_dict = {  'X_train'   :feat_train_arr_scaled,
+                        'Y_train'   :pred_train_arr,
+                        'X_train_ns':feat_train_arr,
+                        'Y_train_ns':pred_train_arr}
+        # Testing
+        test_dict  = {  'X_test'   :feat_test_arr_scaled,
+                        'Y_test'   :pred_test_arr,
+                        'X_test_ns':feat_test_arr,
+                        'Y_test_ns':pred_test_arr}
+        ##
+        ## Saving to dictionary
+        param_dict['predicted_cols' ] = predicted_cols
+        param_dict['features_cols'  ] = features_cols
+        param_dict['feat_arr_scaled'] = feat_train_arr_scaled
+        param_dict['feat_arr'       ] = feat_train_arr
 
+    return train_dict, test_dict, param_dict
 
 
 def main():
@@ -611,6 +768,23 @@ def main():
         if key !='Prog_msg':
             print('{0} `{1}`: {2}'.format(Prog_msg, key, key_val))
     print('\n'+50*'='+'\n')
+    ##
+    ## Reading in `merged` catalogue and separating training and 
+    ## testing datasets
+    (   train_dict,
+        test_dict ,
+        param_dict) = feat_selection(   param_dict,
+                                        proj_dict,
+                                        random_state=param_dict['seed'],
+                                        shuffle_opt=param_dict['shuffle_opt'],
+                                        dropna_opt=param_dict['dropna_opt'],
+                                        sample_frac=param_dict['sample_frac'],
+                                        test_size=param_dict['test_size'],
+                                        pre_opt=param_dict['pre_opt'],
+                                        test_train_opt=param_dict['test_train_opt'])
+    ##
+    ## Saving dictionaries and more
+    
 
 
 # Main function
