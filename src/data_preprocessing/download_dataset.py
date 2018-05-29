@@ -177,7 +177,8 @@ def get_parser():
     parser.add_argument('-v','--verbose',
                         dest='verbose',
                         help='Option to print out project parameters',
-                        action="store_true")
+                        type=_str2bool,
+                        default=False)
 
     ## Parsing Objects
     args = parser.parse_args()
