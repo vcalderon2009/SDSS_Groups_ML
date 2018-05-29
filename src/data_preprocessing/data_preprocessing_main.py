@@ -206,6 +206,87 @@ def get_parser():
                         densities at different radii""",
                         type=_str2bool,
                         default=True)
+    ## Total number of properties to predict. Default = 1
+    parser.add_argument('-n_predict',
+                        dest='n_predict',
+                        help="""
+                        Number of properties to predict. Default = 1""",
+                        type=int,
+                        choices=range(1,4),
+                        default=1)
+    ## Option for Shuffling dataset when separing 
+    ## `training` and `testing` sets
+    parser.add_argument('-shuffle_opt',
+                        dest='shuffle_opt',
+                        help="""
+                        Option for whether or not to shuffle the data before 
+                        splitting.
+                        """,
+                        type=_str2bool,
+                        default=True)
+    ## Option for Shuffling dataset when separing `training` and `testing` sets
+    parser.add_argument('-dropna_opt',
+                        dest='dropna_opt',
+                        help="""
+                        Option for whether or not to drop NaNs from the dataset
+                        """,
+                        type=_str2bool,
+                        default=True)
+    ## Option for removing file
+    parser.add_argument('-pre_opt',
+                        dest='pre_opt',
+                        help="""
+                        Option for which preprocessing of the data to use.
+                        """,
+                        type=str,
+                        choices=['min_max','standard','normalize', 'no', 'all'],
+                        default='standard')
+    ## Option for which kind of separation of training/testing to use for the 
+    ## datasets.
+    parser.add_argument('-test_train_opt',
+                        dest='test_train_opt',
+                        help="""
+                        Option for which kind of separation of training/testing
+                        to use for the datasets.
+                        """,
+                        type=str,
+                        choices=['sample_frac', 'boxes_n'],
+                        default='boxes_n')
+    ## Initial and final indices of the simulation boxes to use for the 
+    ## testing and training datasets.
+    parser.add_argument('-box_idx',
+                        dest='box_idx',
+                        help="""
+                        Initial and final indices of the simulation boxes to 
+                        use for the `training` datasets.
+                        And the index of the boxes used for `testing`.
+                        Example: 0_4_5 >>> This will use from 0th to 4th box
+                        for training, and the 5th box for testing.""",
+                        nargs=str,
+                        default='0_4_5')
+    ## Fraction of the sample to be used.
+    ## Only if `test_train_opt == 'sample_frac'`
+    ## Fraction of the sample to use
+    parser.add_argument('-sample_frac',
+                        dest='sample_frac',
+                        help='fraction of the total dataset to use',
+                        type=float,
+                        default=0.01)
+    ## Testing size for ML
+    parser.add_argument('-test_size',
+                        dest='test_size',
+                        help='Percentage size of the catalogue used for testing',
+                        type=_check_pos_val,
+                        default=0.25)
+    ## Option for using all features or just a few
+    parser.add_argument('-n_feat_use',
+                        dest='n_feat_use',
+                        help="""
+                        Option for which features to use for the ML training 
+                        dataset.
+                        """,
+                        choices=['all', 'sub'],
+                        default='sub')
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -215,7 +296,7 @@ def get_parser():
     ## Option for removing file
     parser.add_argument('-remove',
                         dest='remove_files',
-                        help='Delete HMF ',
+                        help='Removed main files ',
                         type=_str2bool,
                         default=False)
     ## Verbose
@@ -391,8 +472,115 @@ def get_analysis_params(param_dict):
     catl_feat_df = df_value_modifier(catl_feat_df, 'seed', param_dict)
     ##
     ## --------------------------------------------------------------------- ##
+    ## Catalogue Feature Processing - Parameters
+    ## --------------------------------------------------------------------- ##
+    feat_proc_arr = num.array([
+                            ('hod_n'         , '-hod_model_n'   , 0         ),
+                            ('halotype'      , '-halotype'      , 'so'      ),
+                            ('clf_method'    , '-clf_method'    , 1         ),
+                            ('dv'            , '-dv'            , 1.0       ),
+                            ('clf_seed'      , '-clf_seed'      , 1235      ),
+                            ('sample'        , '-sample'        , '19'      ),
+                            ('catl_type'     , '-abopt'         , 'mr'      ),
+                            ('cosmo_choice'  , '-cosmo'         , 'LasDamas'),
+                            ('nmin'          , '-nmin'          , 2         ),
+                            ('n_predict'     , '-n_predict'     , 1         ),
+                            ('shuffle_opt'   , '-shuffle_opt'   , True      ),
+                            ('dropna_opt'    , '-dropna_opt'    , True      ),
+                            ('pre_opt'       , '-pre_opt'       , 'standard'),
+                            ('test_train_opt', '-test_train_opt', 'boxes_n' ),
+                            ('box_idx'       , '-box_idx'       , '0_4_5'   ),
+                            ('sample_frac'   , '-sample_frac'   , 0.01      ),
+                            ('test_size'     , '-test_size'     , 0.25      ),
+                            ('n_feat_use'    , '-n_feat_use'    , 'sub'),
+                            ('cpu_frac'      , '-cpu'           , 0.75      ),
+                            ('remove_files'  , '-remove'        , False     ),
+                            ('verbose'       , '-v'             , False     ),
+                            ('perf_opt'      , '-perf'          , False     ),
+                            ('seed'          , '-seed'          , 1         )])
+    ##
+    ## Converting to pandas DataFrame
+    colnames = ['Name','Flag','Value']
+    feat_proc_df = pd.DataFrame(feat_proc_arr, columns=colnames)
+    ##
+    ## Sorting out DataFrame by `name`
+    feat_proc_df = feat_proc_df.sort_values(by='Name')
+    feat_proc_df.reset_index(inplace=True, drop=True)
+    ##
+    ## HOD Model to use
+    feat_proc_df = df_value_modifier(feat_proc_df, 'hod_n', param_dict)
+    ##
+    ## Type of dark matter halo to use in the simulation
+    feat_proc_df = df_value_modifier(feat_proc_df, 'halotype', param_dict)
+    ##
+    ## CLF Method for assigning galaxy properties
+    feat_proc_df = df_value_modifier(feat_proc_df, 'clf_method', param_dict)
+    ##
+    ## Random seed used during the CLF assignment
+    feat_proc_df = df_value_modifier(feat_proc_df, 'clf_seed', param_dict)
+    ##
+    ## Difference between galaxy and mass velocity profiles
+    feat_proc_df = df_value_modifier(feat_proc_df, 'dv', param_dict)
+    ##
+    ## SDSS luminosity sample to analyze
+    feat_proc_df = df_value_modifier(feat_proc_df, 'sample', param_dict)
+    ##
+    ## Type of Abundance matching
+    feat_proc_df = df_value_modifier(feat_proc_df, 'catl_type', param_dict)
+    ##
+    ## Cosmology choice
+    feat_proc_df = df_value_modifier(feat_proc_df, 'cosmo_choice', param_dict)
+    ##
+    ## Minimum number of galaxies in a group
+    feat_proc_df = df_value_modifier(feat_proc_df, 'nmin', param_dict)
+    ##
+    ## Total number of properties to predict. Default = 1
+    feat_proc_df = df_value_modifier(feat_proc_df, 'n_predict', param_dict)
+    ##
+    ## Option for shuffling dataset when creating `testing` and `training`
+    ## datasets
+    feat_proc_df = df_value_modifier(feat_proc_df, 'shuffle_opt', param_dict)
+    ##
+    ## Option for Shuffling dataset when separing `training` and `testing` sets
+    feat_proc_df = df_value_modifier(feat_proc_df, 'dropna_opt', param_dict)
+    ##
+    ## Option for which preprocessing of the data to use.
+    feat_proc_df = df_value_modifier(feat_proc_df, 'pre_opt', param_dict)
+    ##
+    ## Option for which kind of separation of training/testing to use for the 
+    ## datasets.
+    feat_proc_df = df_value_modifier(feat_proc_df, 'test_train_opt', param_dict)
+    ##
+    ## Initial and final indices of the simulation boxes to use for the 
+    ## testing and training datasets.
+    feat_proc_df = df_value_modifier(feat_proc_df, 'box_idx', param_dict)
+    ##
+    ## Fraction of the sample to be used.
+    ## Only if `test_train_opt == 'sample_frac'`
+    feat_proc_df = df_value_modifier(feat_proc_df, 'sample_frac', param_dict)
+    ##
+    ## Testing size for ML
+    feat_proc_df = df_value_modifier(feat_proc_df, 'test_size', param_dict)
+    ##
+    ## Option for using all features or just a few
+    feat_proc_df = df_value_modifier(feat_proc_df, 'n_feat_use', param_dict)
+    ##
+    ## Percentage of CPU to use
+    catl_feat_df = df_value_modifier(catl_feat_df, 'cpu_frac', param_dict)
+    ##
+    ## Option for removing files or not
+    catl_feat_df = df_value_modifier(catl_feat_df, 'remove_files', param_dict)
+    ##
+    ## Option for displaying outputs or not
+    catl_feat_df = df_value_modifier(catl_feat_df, 'verbose', param_dict)
+    ##
+    ## Option for looking at `perfect` mock catalogues
+    catl_feat_df = df_value_modifier(catl_feat_df, 'perf_opt', param_dict)
+    ##
+    ## Random seed for the analysis
+    catl_feat_df = df_value_modifier(catl_feat_df, 'seed', param_dict)
 
-    return [catl_feat_df]
+    return [catl_feat_df, feat_proc_df]
 
 def get_exec_string(df_arr, param_dict):
     """
@@ -469,6 +657,7 @@ def project_const(param_dict):
     ## File or files to run
     run_file_dict    = {}
     run_file_dict[0] = {'file': 'catl_feature_calculations.py'}
+    run_file_dict[1] = {'file': 'feature_processing.py'}
     ##
     ## Saving to main dictionary
     param_dict['env_name'       ] = env_name

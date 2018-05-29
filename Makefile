@@ -15,28 +15,46 @@ ENVIRONMENT_FILE = environment.yml
 ENVIRONMENT_NAME = sdss_groups_ml
 
 DATA_DIR           = $(PROJECT_DIR)/data
-SRC_DIR            = $(PROJECT_DIR)/src/data
-MOCKS_CATL_DIR     = $(DATA_DIR)/processed/SDSS/mocks
+SRC_DIR            = $(PROJECT_DIR)/src
+SRC_DATA_DIR       = $(SRC_DIR)/data
+MOCKS_CATL_DIR     = $(DATA_DIR)/external/SDSS/mocks
 
 # INPUT VARIABLES
 # -- General
-CPU_FRAC     = 0.75
-REMOVE_FILES = "True"
-CLF_METHOD   = 3
-CLF_SEED     = 1235
-SAMPLE       = "19"
-HALOTYPE     = 'so'
-HOD_N        = 0
-NMIN         = 2
-VERBOSE      = "False"
+CPU_FRAC       = 0.75
+REMOVE_FILES   = "True"
+HOD_N          = 0
+HALOTYPE       = 'so'
+CLF_METHOD     = 3
+CLF_SEED       = 1235
+DV             = 1.0
+SAMPLE         = "19"
+CATL_TYPE      = "mr"
+COSMO          = "LasDamas"
+NMIN           = 2
+VERBOSE        = "False"
+# -- Data Preprocessing -- #
+MASS_FACTOR    = 10
+REMOVE_GROUP   = "True"
+N_PREDICT      = 1
+SHUFFLE_OPT    = "True"
+DROP_NA        = "True"
+PRE_OPT        = "standard"
+TEST_TRAIN_OPT = "boxes_n"
+BOX_IDX        = "0_4_5"
+SAMPLE_FRAC    = 0.01
+TEST_SIZE      = 0.25
+N_FEAT_USE     = "sub"
+PERF_OPT       = "False"
+SEED           = 1235
 # -- Training
 KF_SPLITS    = 3
-SHUFFLE_OPT  = "True"
-TEST_SIZE    = 0.25
-SAMPLE_FRAC  = 0.05
-DROP_NA      = "True"
-N_PREDICT    = 1
-PRE_OPT      = 'standard'
+# SHUFFLE_OPT  = "True"
+# TEST_SIZE    = 0.25
+# SAMPLE_FRAC  = 0.05
+# DROP_NA      = "True"
+# N_PREDICT    = 1
+# PRE_OPT      = 'standard'
 SCORE_METHOD = 'perc'
 HIDDEN_LAYERS= 100
 THRESHOLD    = 0.1
@@ -112,21 +130,51 @@ endif
 # PROJECT RULES                                                                 #
 #################################################################################
 
+## Preprocesses the datasets and transforms them into user-friendly versions
+data_preprocess:
+	@python $(SRC_DIR)/data_preprocessing/data_preprocessing_main.py \
+	-hod_model_n $(HOD_N) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) \
+	-dv $(DV) -clf_seed $(CLF_SEED) -sample $(SAMPLE) -abopt $(CATL_TYPE) \
+	-cosmo $(COSMO) -nmin $(NMIN) -mass_factor $(MASS_FACTOR) \
+	-remove_group $(REMOVE_GROUP) -n_predict $(N_PREDICT) \
+	 -shuffle_opt $(SHUFFLE_OPT) -dropna_opt $(dropna_opt) \
+	 -pre_opt $(PRE_OPT) -test_train_opt $(TEST_TRAIN_OPT) -box_idx $(BOX_IDX) \
+	 -sample_frac $(SAMPLE_FRAC) -test_size $(TEST_SIZE) \
+	 -n_feat_use $(N_FEAT_USE) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) \
+	 -v $(VERBOSE) -perf $(PERF_OPT) -seed $(SEED)
+
 ## Create set of `merged` catalogues, i.e. galaxy + group information
 catl_props:
-	@python $(SRC_DIR)/mocks_ml_main/catl_properties_calculations_make.py -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -v $(VERBOSE) -clf_seed $(CLF_SEED)
+	@python $(SRC_DATA_DIR)/mocks_ml_main/catl_properties_calculations_make.py \
+	-cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) \
+	-clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) \
+	-nmin $(NMIN) -v $(VERBOSE) -clf_seed $(CLF_SEED)
 
 ## Plots the figures of the set of `merged` catalogues
 catl_props_plots:
-	@python $(SRC_DIR)/mocks_ml_main/catl_properties_plots.py -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -v $(VERBOSE) -clf_seed $(CLF_SEED)
+	@python $(SRC_DATA_DIR)/mocks_ml_main/catl_properties_plots.py -cpu $(CPU_FRAC) \
+	-remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) \
+	-hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -v $(VERBOSE) \
+	-clf_seed $(CLF_SEED)
 
 ## Trains ML algorithms on the `merged` dataset
 ml_train:
-	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main_make.py -a 'training' -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -shuffle_opt $(SHUFFLE_OPT) -kf_splits $(KF_SPLITS) -n_predict $(N_PREDICT) -test_size $(TEST_SIZE) -sample_frac $(SAMPLE_FRAC) -dropna_opt $(DROP_NA) -v $(VERBOSE) -pre_opt $(PRE_OPT) -score_method $(SCORE_METHOD) -hidden_layers $(HIDDEN_LAYERS) -threshold $(THRESHOLD) -perc_val $(PERC_VAL) -clf_seed $(CLF_SEED)
+	@python $(SRC_DATA_DIR)/mocks_ml_main/catl_ml_main_make.py -a 'training' \
+	-cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) \
+	-clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) \
+	-nmin $(NMIN) -shuffle_opt $(SHUFFLE_OPT) -kf_splits $(KF_SPLITS) \
+	-n_predict $(N_PREDICT) -test_size $(TEST_SIZE) -sample_frac $(SAMPLE_FRAC) \
+	-dropna_opt $(DROP_NA) -v $(VERBOSE) -pre_opt $(PRE_OPT) \
+	-score_method $(SCORE_METHOD) -hidden_layers $(HIDDEN_LAYERS) \
+	-threshold $(THRESHOLD) -perc_val $(PERC_VAL) -clf_seed $(CLF_SEED)
 
 ## Plots the ML figures of the `trained` dataset
 ml_plots:
-	@python $(SRC_DIR)/mocks_ml_main/catl_ml_main_make.py -a 'plots' -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -v $(VERBOSE) -pre_opt $(PRE_OPT) -sample_frac $(SAMPLE_FRAC) -score_method $(SCORE_METHOD) -clf_seed $(CLF_SEED)
+	@python $(SRC_DATA_DIR)/mocks_ml_main/catl_ml_main_make.py -a 'plots' \
+	-cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) \
+	-clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) \
+	-nmin $(NMIN) -v $(VERBOSE) -pre_opt $(PRE_OPT) -sample_frac $(SAMPLE_FRAC)\
+	-score_method $(SCORE_METHOD) -clf_seed $(CLF_SEED)
 
 ## Run tests to see if all files (Halobias, catalogues) are in order
 test_files:
@@ -134,7 +182,8 @@ test_files:
 
 download_dataset:
 	# Downloading dataset
-	@python $(SRC_DIR)/download_dataset.py -hod_model_n $(HOD_N) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -clf_seed $(CLF_SEED)
+	@python $(SRC_DATA_DIR)/download_dataset.py -hod_model_n $(HOD_N) \
+	-halotype $(HALOTYPE) -clf_method $(CLF_METHOD) -clf_seed $(CLF_SEED)
 
 ## Delete existing `mock` catalogues
 delete_mock_catls:

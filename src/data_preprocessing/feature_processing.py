@@ -3,7 +3,7 @@
 
 # Victor Calderon
 # Created      : 2018-05-27
-# Last Modified: 2018-05-28
+# Last Modified: 2018-05-29
 # Vanderbilt University
 from __future__ import print_function, division, absolute_import
 __author__     =['Victor Calderon']
@@ -55,6 +55,9 @@ import sklearn
 from   sklearn import utils as skutils
 
 ## Functions
+
+#### ---------------------- General Functions -----------------------------###
+
 class SortingHelpFormatter(HelpFormatter):
     def add_arguments(self, actions):
         """
@@ -186,12 +189,14 @@ def get_parser():
                         type=str,
                         choices=['LasDamas', 'Planck'],
                         default='LasDamas')
-    ## Fraction of the sample to use
-    parser.add_argument('-sample_frac',
-                        dest='sample_frac',
-                        help='fraction of the total dataset to use',
-                        type=float,
-                        default=0.01)
+    ## Minimum of galaxies in a group
+    parser.add_argument('-nmin',
+                        dest='nmin',
+                        help='Minimum number of galaxies in a galaxy group',
+                        type=int,
+                        choices=range(2,1000),
+                        metavar='[1-1000]',
+                        default=2)
     ## Total number of properties to predict. Default = 1
     parser.add_argument('-n_predict',
                         dest='n_predict',
@@ -200,7 +205,7 @@ def get_parser():
                         type=int,
                         choices=range(1,4),
                         default=1)
-    ## Option for Shuffling dataset when separing 
+    ## Option for Shuffling dataset when separating 
     ## `training` and `testing` sets
     parser.add_argument('-shuffle_opt',
                         dest='shuffle_opt',
@@ -227,28 +232,6 @@ def get_parser():
                         type=str,
                         choices=['min_max','standard','normalize', 'no', 'all'],
                         default='standard')
-    ## Threshold value used for when `score_method == 'threshold'`
-    parser.add_argument('-threshold',
-                        dest='threshold',
-                        help="""Threshold value used for when 
-                        `score_method == 'threshold'`""",
-                        type=float,
-                        default=0.1)
-    ## Percentage value used for when `score_method == 'perc'`
-    parser.add_argument('-perc_val',
-                        dest='perc_val',
-                        help="""Percentage value used for when 
-                        `score_method == 'perc'`""",
-                        type=float,
-                        default=0.68)
-    ## Minimum of galaxies in a group
-    parser.add_argument('-nmin',
-                        dest='nmin',
-                        help='Minimum number of galaxies in a galaxy group',
-                        type=int,
-                        choices=range(2,1000),
-                        metavar='[1-1000]',
-                        default=2)
     ## Option for which kind of separation of training/testing to use for the 
     ## datasets.
     parser.add_argument('-test_train_opt',
@@ -274,7 +257,6 @@ def get_parser():
                         default='0_4_5')
     ## Fraction of the sample to be used.
     ## Only if `test_train_opt == 'sample_frac'`
-    ## Fraction of the sample to use
     parser.add_argument('-sample_frac',
                         dest='sample_frac',
                         help='fraction of the total dataset to use',
@@ -304,7 +286,7 @@ def get_parser():
     ## Option for removing file
     parser.add_argument('-remove',
                         dest='remove_files',
-                        help='Delete HMF ',
+                        help='Removed main files',
                         type=_str2bool,
                         default=False)
     ## Verbose
@@ -464,16 +446,20 @@ def add_to_dict(param_dict):
     catl_input_str  = catl_input_str.format(*catl_input_arr)
     ##
     ## Catalogue main string
-    catl_pre_arr = [    sample_Mr                 , param_dict['hod_n'],
-                        param_dict['halotype']    , param_dict['clf_method'],
-                        param_dict['dv']          , param_dict['catl_type'],
-                        param_dict['sample_frac'] , param_dict['n_predict'],
-                        param_dict['shuffle_opt'] , param_dict['pre_opt'],
-                        param_dict['perf_opt']    , param_dict['nmin']]
-    catl_pre_str = '{0}_hodn_{1}_halotype_{2}_clfmethod_{3}_dv_{4}_catltype_{5}'
-    catl_pre_str += '_samplefrac_{6}_npred_{7}_shuffle_{8}_preopt_{9}_'
-    catl_pre_str += 'perf_{10}_nmin_{11}'
-    catl_pre_str  = catl_pre_str.format(*catl_pre_arr)
+    catl_pre_arr = [    sample_Mr,
+                        param_dict['hod_n'],
+                        param_dict['halotype'],
+                        param_dict['clf_method'],
+                        param_dict['clf_seed'],
+                        param_dict['dv'],
+                        param_dict['catl_type'],
+                        param_dict['cosmo_choice'],
+                        param_dict['nmin'],
+                        param_dict['perf_opt']]
+    # String
+    catl_pre_str  = '{0}_hodn_{1}_halotype_{2}_clfmethod_{3}_clfseed_{4}_'
+    catl_pre_str += 'dv_{5}_catltype_{6}_cosmo_{7}_nmin_{8}_perf_{9}_'
+    catl_pre_str  = catl_pre_str.format(catl_pre_arr)
     ##
     ## Saving to `param_dict`
     param_dict['sample_s'      ] = sample_s
@@ -487,6 +473,82 @@ def add_to_dict(param_dict):
     param_dict['catl_pre_str'  ] = catl_pre_str
 
     return param_dict
+
+def test_feat_file(param_dict, proj_dict):
+    """
+    Determines whether or not to run the calculations.
+
+    Parameters
+    ----------
+    param_dict : `dict`
+        Dictionary with `project` variables
+
+    proj_dict : `dict`
+        Dictionary with info of the project that uses the
+        `Data Science` Cookiecutter template.
+
+    Returns
+    ----------
+    run_opt : `bool`
+        If True, the whole analysis is run.
+
+    param_dict : `dict`
+        Dictionary with `project` variables
+    """
+    file_msg = param_dict['Prog_msg']
+    ##
+    ## Filename, under which to save all of the information
+    # Main String
+    # `sample_frac`
+    if (param_dict['test_train_opt'] == 'sample_frac'):
+        filename_str_arr = [    param_dict['catl_pre_str'],
+                                param_dict['shuffle_opt'],
+                                param_dict['n_predict'],
+                                param_dict['pre_opt'],
+                                param_dict['n_feat_use'],
+                                param_dict['test_train_opt'],
+                                param_dict['test_size'],
+                                param_dict['sample_frac']]
+        ## Main string
+        filename_str  = '{0}_sh_{1}_npredict_{2}_preopt_{3}_nfeat_{4}_'
+        filename_str += 'testtrain_{5}_testsize_{6}_samplefrac_{7}'
+        filename_str  = filename_str.format(*filename_str_arr)
+    # `boxes_n
+    if (param_dict['test_train_opt'] == 'boxes_n'):
+        filename_str_arr = [    param_dict['catl_pre_str'],
+                                param_dict['shuffle_opt'],
+                                param_dict['n_predict'],
+                                param_dict['pre_opt'],
+                                param_dict['n_feat_use'],
+                                param_dict['test_train_opt'],
+                                param_dict['box_idx']]
+        ## Main string
+        filename_str  = '{0}_sh_{1}_npredict_{2}_preopt_{3}_nfeat_{4}_'
+        filename_str += 'testtrain_{5}_boxidx_{6}'
+        filename_str  = filename_str.format(*filename_str_arr)
+    ##
+    ## Path to output file
+    filepath = os.path.join(proj_dict['catl_feat_dir'],
+                            '{0}_feature_processing_out.p'.format(filename_str))
+    ## Saving 
+    ##
+    ## Checking if to run or not
+    if os.path.exists(filepath):
+        if param_dict['remove_files']:
+            os.remove(filepath)
+            run_opt = True
+        else:
+            run_opt = False
+    else:
+        run_opt = True
+    ##
+    ## Saving name to dictionary
+    param_dict['filepath'    ] = filepath
+    param_dict['filename_str'] = filename_str
+
+    return run_opt, param_dict
+
+#### ---------------------- Project Structure -----------------------------###
 
 def directory_skeleton(param_dict, proj_dict):
     """
@@ -544,6 +606,8 @@ def directory_skeleton(param_dict, proj_dict):
     proj_dict['catl_feat_dir'] = catl_feat_dir
 
     return proj_dict
+
+#### ---------------------- Feature Selection -----------------------------###
 
 def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
     dropna_opt=True, sample_frac=0.1, test_size=0.25, pre_opt='standard',
@@ -744,10 +808,49 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
 
     return train_dict, test_dict, param_dict
 
+def train_test_save(param_dict, train_dict, test_dict):
+    """
+    Saves the `training` and `testing` dictionaries to a file, so that 
+    it can be used for future analyses.
+
+    Parameters
+    ------------
+    param_dict : `dict`
+        Dictionary with `project` variables.
+
+    train_dict : `dict`
+        Dictionary containing the 'training' data from the catalogue
+
+    test_dict : `dict`
+        Dictionary containing the 'testing' data from the catalogue.
+    """
+    file_msg = param_dict['Prog_msg']
+    filepath = param_dict['filepath']
+    ##
+    ## Saving new file if necessary
+    ##
+    ## Data to be saved in the pickle file
+    if not (os.path.exists(filepath)):
+        ##
+        ## List of objects to save in pickle file.
+        obj_arr = [train_dict, test_dict]
+        ## Savng to pickle file
+        with open(filepath, 'wb') as file_p:
+            pickle.dump(obj_arr, file_p)
+        ##
+        ## Checking that file exists
+        cfutils.File_Exists(filepath)
+    ##
+    ## Output message
+    msg = '{0} Output file: {1}'.format(file_msg, filepath)
+    print(msg)
+
+#### ---------------------- Main Selection --------------------------------###
 
 def main():
     """
-
+    Selects the features to analyze and saves the outputs for creating the 
+    training and testing datasets.
     """
     ## Reading all elements and converting to python dictionary
     param_dict = vars(args)
@@ -757,6 +860,10 @@ def main():
     param_dict = add_to_dict(param_dict)
     ## Program message
     Prog_msg = param_dict['Prog_msg']
+    ##
+    ## Testing of whether or not to run the analysis
+    (   run_opt   ,
+        param_dict) = test_feat_file(param_dict, proj_dict)
     ##
     ## Creating Folder Structure
     # proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths(__file__))
@@ -771,21 +878,21 @@ def main():
     ##
     ## Reading in `merged` catalogue and separating training and 
     ## testing datasets
-    (   train_dict,
-        test_dict ,
-        param_dict) = feat_selection(   param_dict,
-                                        proj_dict,
-                                        random_state=param_dict['seed'],
-                                        shuffle_opt=param_dict['shuffle_opt'],
-                                        dropna_opt=param_dict['dropna_opt'],
-                                        sample_frac=param_dict['sample_frac'],
-                                        test_size=param_dict['test_size'],
-                                        pre_opt=param_dict['pre_opt'],
-                                        test_train_opt=param_dict['test_train_opt'])
+    if run_opt:
+        (   train_dict,
+            test_dict ,
+            param_dict) = feat_selection(   param_dict,
+                                            proj_dict,
+                                            random_state=param_dict['seed'],
+                                            shuffle_opt=param_dict['shuffle_opt'],
+                                            dropna_opt=param_dict['dropna_opt'],
+                                            sample_frac=param_dict['sample_frac'],
+                                            test_size=param_dict['test_size'],
+                                            pre_opt=param_dict['pre_opt'],
+                                            test_train_opt=param_dict['test_train_opt'])
     ##
     ## Saving dictionaries and more
-    
-
+    train_test_save(param_dict, train_dict, test_dict)
 
 # Main function
 if __name__=='__main__':
