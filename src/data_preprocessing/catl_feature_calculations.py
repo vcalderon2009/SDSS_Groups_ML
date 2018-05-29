@@ -335,12 +335,6 @@ def add_to_dict(param_dict):
     sample_s = str(param_dict['sample'])
     ### Sample - Mr
     sample_Mr = 'Mr{0}'.format(param_dict['sample'])
-    ### URL for downloading files
-    host_url = 'http://lss.phy.vanderbilt.edu/groups/data_vc/DR7'
-    ### Mr volume-limited catalogue URL
-    mr_url = os.path.join(  host_url,
-                            'mr-vollim-catalogues',
-                            'vollim_{0}_fib0.groups1'.format(sample_Mr))
     ## Sample volume
     # Units (Mpc/h)**3
     volume_sample = {   '18':37820 / 0.01396,
@@ -359,8 +353,6 @@ def add_to_dict(param_dict):
     ## Saving to `param_dict`
     param_dict['sample_s'    ] = sample_s
     param_dict['sample_Mr'   ] = sample_Mr
-    param_dict['host_url'    ] = host_url
-    param_dict['mr_url'      ] = mr_url
     param_dict['vol_mr'      ] = vol_mr
     param_dict['cens'        ] = cens
     param_dict['sats'        ] = sats
@@ -387,18 +379,10 @@ def directory_skeleton(param_dict, proj_dict):
         Dictionary with current and new paths to project directories
     """
     ## Main Directories
-    # External Directory
-    ext_dir       = os.path.join( proj_dict['data_dir'], 'external')
-    # Processes Directory
-    processed_dir = os.path.join( proj_dict['data_dir'], 'processed')
-    # Interim Directory
-    int_dir       = os.path.join( proj_dict['data_dir'], 'interim')
-    # Raw Directory
-    raw_dir       = os.path.join( proj_dict['data_dir'], 'raw')
     ##
     ## Output file for all catalogues
-    catl_outdir    = os.path.join(  proj_dict['data_dir'],
-                                    'processed',
+    catl_outdir    = os.path.join(  proj_dict['int_dir'],
+                                    'merged_feat_catl',
                                     'SDSS',
                                     'mocks',
                                     'halos_{0}'.format(param_dict['halotype']),
@@ -407,41 +391,32 @@ def directory_skeleton(param_dict, proj_dict):
                                     'clf_seed_{0}'.format(param_dict['clf_seed']),
                                     'clf_method_{0}'.format(param_dict['clf_method']),
                                     param_dict['catl_type'],
-                                    param_dict['sample_Mr'],
-                                    'merged_vac')
+                                    param_dict['sample_Mr'])
     ## Creating output folders for the catalogues
-    merged_gal_dir          = os.path.join(catl_outdir, 'merged_vac'         )
-    merged_gal_perf_dir     = os.path.join(catl_outdir, 'merged_vac_perf'    )
-    merged_gal_all_dir      = os.path.join(catl_outdir, 'merged_vac_all'     )
-    merged_gal_perf_all_dir = os.path.join(catl_outdir, 'merged_vac_perf_all')
+    merged_gal_dir          = os.path.join(catl_outdir, 'merged_vac'    )
+    # merged_gal_perf_dir     = os.path.join(catl_outdir, 'merged_vac_perf'    )
+    merged_gal_all_dir      = os.path.join(catl_outdir, 'merged_vac_combined')
+    # merged_gal_perf_all_dir = os.path.join(catl_outdir, 'merged_vac_perf_all')
     ##
     ## Creating Directories
-    cfutils.Path_Folder(ext_dir)
-    cfutils.Path_Folder(processed_dir)
-    cfutils.Path_Folder(int_dir)
-    cfutils.Path_Folder(raw_dir)
     cfutils.Path_Folder(catl_outdir)
     cfutils.Path_Folder(merged_gal_dir)
-    cfutils.Path_Folder(merged_gal_perf_dir)
+    # cfutils.Path_Folder(merged_gal_perf_dir)
     cfutils.Path_Folder(merged_gal_all_dir)
-    cfutils.Path_Folder(merged_gal_perf_all_dir)
+    # cfutils.Path_Folder(merged_gal_perf_all_dir)
     ## Removing files if necessary
     if param_dict['remove_files']:
-        for catl_ii in [merged_gal_dir, merged_gal_perf_dir, merged_gal_all_dir, merged_gal_perf_all_dir]:
+        for catl_ii in [merged_gal_dir, merged_gal_all_dir]:
             file_list = glob('{0}/*'.format(catl_ii))
             for f in file_list:
                 os.remove(f)
     ##
     ## Adding to `proj_dict`
-    proj_dict['ext_dir'                ] = ext_dir
-    proj_dict['processed_dir'          ] = processed_dir
-    proj_dict['int_dir'                ] = int_dir
-    proj_dict['raw_dir'                ] = raw_dir
     proj_dict['catl_outdir'            ] = catl_outdir
     proj_dict['merged_gal_dir'         ] = merged_gal_dir
-    proj_dict['merged_gal_perf_dir'    ] = merged_gal_perf_dir
+    # proj_dict['merged_gal_perf_dir'    ] = merged_gal_perf_dir
     proj_dict['merged_gal_all_dir'     ] = merged_gal_all_dir
-    proj_dict['merged_gal_perf_all_dir'] = merged_gal_perf_all_dir
+    # proj_dict['merged_gal_perf_all_dir'] = merged_gal_perf_all_dir
 
     return proj_dict
 
@@ -1472,9 +1447,10 @@ def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
                         param_dict['dv']        ,
                         param_dict['clf_method'],   param_dict['cosmo_choice'],
                         param_dict['nmin']      ,   param_dict['halotype'],
-                        param_dict['perf_opt']  ,   ext]
+                        param_dict['perf_opt']  ,   param_dict['mass_factor'],
+                        ext]
     file_str  = '{0}_hodn_{1}_dv_{2}_clf_{3}_cosmo_{4}_nmin_{5}_halotype_{6}_perf_{7}'
-    file_str += 'merged_vac_all.{8}'
+    file_str += 'mass_factor_{8}_merged_vac_all.{9}'
     filename  = file_str.format(*file_str_arr)
     ## Concatenating DataFrames
     group_id_tot = 0
