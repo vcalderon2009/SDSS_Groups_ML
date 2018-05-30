@@ -379,8 +379,16 @@ def download_directory(param_dict, proj_dict):
         print(cmd_dw_g)
         subprocess.call(cmd_dw_g, shell=True, cwd=proj_dict[catl_kind+'_out_g'])
         ## Deleting `robots.txt`
-        os.remove('{0}/robots.txt'.format(proj_dict[catl_kind+'_out_m']))
-        os.remove('{0}/robots.txt'.format(proj_dict[catl_kind+'_out_g']))
+        # Members
+        try:
+            os.remove('{0}/robots.txt'.format(proj_dict[catl_kind+'_out_m']))
+        except:
+            pass
+        # Groups
+        try:
+            os.remove('{0}/robots.txt'.format(proj_dict[catl_kind+'_out_g']))
+        except:
+            pass
         ##
         ##
         print('\n\n{0} Catalogues were saved at: {1} and {2}\n\n'.format(
