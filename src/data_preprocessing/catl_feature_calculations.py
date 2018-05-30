@@ -1459,14 +1459,21 @@ def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
     files_arr = cfutils.Index(proj_dict['merged_gal_dir'], '.{0}'.format(ext))
     file_key  = '/gals_groups'
     group_key = 'groupid'
-    file_str_arr = [    param_dict['sample_Mr'],    param_dict['hod_n'],
-                        param_dict['dv']        ,
-                        param_dict['clf_method'],   param_dict['cosmo_choice'],
-                        param_dict['nmin']      ,   param_dict['halotype'],
-                        param_dict['perf_opt']  ,   param_dict['mass_factor'],
+    file_str_arr = [    param_dict['sample_Mr'],
+                        param_dict['halotype'],
+                        param_dict['hod_n'],
+                        param_dict['dv'],
+                        param_dict['clf_method'],
+                        param_dict['clf_seed'],
+                        param_dict['catl_type'],
+                        param_dict['cosmo_choice'],
+                        param_dict['nmin'],
+                        param_dict['mass_factor'],
+                        param_dict['perf_opt'],
                         ext]
-    file_str  = '{0}_hodn_{1}_dv_{2}_clf_{3}_cosmo_{4}_nmin_{5}_halotype_{6}'
-    file_str += '_perf_{7}_mass_factor_{8}_merged_vac_all.{9}'
+    file_str  = '{0}_halo_{1}_hodn_{2}_dv_{3}_clfm_{4}_clfseed_{5}_'
+    file_str += 'ctype_{6}_cosmo_{7}_nmin_{8}_massf_{9}_perf_{10}_'
+    file_str += 'merged_vac_all.{11}'
     filename  = file_str.format(*file_str_arr)
     ## Concatenating DataFrames
     group_id_tot = 0
