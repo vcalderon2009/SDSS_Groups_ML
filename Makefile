@@ -27,7 +27,7 @@ CPU_FRAC       = 0.75
 REMOVE_FILES   = "True"
 HOD_N          = 0
 HALOTYPE       = 'so'
-CLF_METHOD     = 3
+CLF_METHOD     = 1
 CLF_SEED       = 1235
 DV             = 1.0
 SAMPLE         = "19"
@@ -140,7 +140,7 @@ data_preprocess: download_dataset
 	-dv $(DV) -clf_seed $(CLF_SEED) -sample $(SAMPLE) -abopt $(CATL_TYPE) \
 	-cosmo $(COSMO) -nmin $(NMIN) -mass_factor $(MASS_FACTOR) \
 	-remove_group $(REMOVE_GROUP) -n_predict $(N_PREDICT) \
-	 -shuffle_opt $(SHUFFLE_OPT) -dropna_opt $(dropna_opt) \
+	 -shuffle_opt $(SHUFFLE_OPT) -dropna_opt $(DROP_NA) \
 	 -pre_opt $(PRE_OPT) -test_train_opt $(TEST_TRAIN_OPT) -box_idx $(BOX_IDX) \
 	 -sample_frac $(SAMPLE_FRAC) -test_size $(TEST_SIZE) \
 	 -n_feat_use $(N_FEAT_USE) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) \
