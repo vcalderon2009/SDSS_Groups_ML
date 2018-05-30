@@ -708,7 +708,7 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
     catl_cols = catl_pd_tot.columns.values
     ##
     ## List of `features` and `predicted values`
-    if param_dict['n_predict'] == 1
+    if param_dict['n_predict'] == 1:
         predicted_cols = ['M_h']
     elif param_dict['n_predict'] == 2:
         predicted_cols = ['M_h', 'galtype']
