@@ -1512,12 +1512,14 @@ def multiprocessing_catls(catl_arr, param_dict, proj_dict, memb_tuples_ii):
     ## Reading in Catalogue IDs
     start_ii, end_ii = memb_tuples_ii
     ## Index value
-    idx_arr  = num.array(range(start_ii, end_ii))
+    idx_arr  = num.array(range(start_ii, end_ii), dtype=int)
     ## Catalogue array
     catl_arr_ii = catl_arr[start_ii : end_ii]
     ##
     ## Looping the desired catalogues
     for (ii, catl_ii) in zip(idx_arr, catl_arr_ii):
+        ## Converting index to main `int`
+        ii = int(ii)
         ## Choosing 1st catalogue
         if param_dict['verbose']:
             print('{0} Analyzing `{1}`\n'.format(Prog_msg, catl_ii))
