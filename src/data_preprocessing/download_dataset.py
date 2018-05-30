@@ -286,15 +286,25 @@ def directory_skeleton(param_dict, proj_dict):
         ## Extra folders
         # Member galaxy directory
         member_dir = os.path.join(catl_dir, 'member_galaxy_catalogues')
+        groups_dir = os.path.join(catl_dir, 'group_galaxy_catalogues')
         cfutils.Path_Folder(member_dir)
-        proj_dict['{0}_out_memb'.format(catl_kind)] = member_dir
+        cfutils.Path_Folder(groups_dir)
+        # Members and Groups directories
+        proj_dict['{0}_out_m'.format(catl_kind)] = member_dir
+        proj_dict['{0}_out_g'.format(catl_kind)] = member_dir
         ##
         ## Perfect galaxy directory
         if (catl_kind == 'mocks') and (param_dict['perf_opt']):
+            # Members
             perf_member_dir = os.path.join( catl_dir,
                                             'perfect_member_galaxy_catalogues')
             cfutils.Path_Folder(perf_member_dir)
             proj_dict['{0}_out_perf_memb'.format(catl_kind)] = perf_member_dir
+            ## Groups
+            perf_groups_dir = os.path.join( catl_dir,
+                                            'perfect_groups_galaxy_catalogues')
+            cfutils.Path_Folder(perf_groups_dir)
+            proj_dict['{0}_out_perf_groups'.format(catl_kind)] = perf_groups_dir
 
     return proj_dict
 
@@ -319,64 +329,97 @@ def download_directory(param_dict, proj_dict):
         ## Downloading directories from the web
         # Data
         if catl_kind == 'data':
-            catl_kind_url = os.path.join(param_dict['url_catl'],
-                                        catl_kind,
-                                        param_dict['catl_type'],
-                                        'Mr'+param_dict['sample_s'],
-                                        'member_galaxy_catalogues/')
+            ## Prefix for the main directory
+            catl_kind_prefix = os.path.join(param_dict['url_catl'],
+                                            catl_kind,
+                                            param_dict['catl_type'],
+                                            'Mr'+param_dict['sample_s'])
             # Number of directories to cut/skip
             # See `wget` documentation for more details.
             cut_dirs = 8
         # Mocks
         if catl_kind == 'mocks':
-            catl_kind_url = os.path.join(param_dict['url_catl'],
-                                        catl_kind,
-                                        'halos_{0}'.format(param_dict['halotype']),
-                                        'dv_{0}'.format(param_dict['dv']),
-                                        'hod_model_{0}'.format(param_dict['hod_n']),
-                                        'clf_seed_{0}'.format(param_dict['clf_seed']),
-                                        'clf_method_{0}'.format(param_dict['clf_method']),
-                                        param_dict['catl_type'],
-                                        param_dict['sample_Mr'],
-                                        'member_galaxy_catalogues/')
+            catl_kind_prefix = os.path.join(
+                param_dict['url_catl'],
+                catl_kind,
+                'halos_{0}'.format(param_dict['halotype']),
+                'dv_{0}'.format(param_dict['dv']),
+                'hod_model_{0}'.format(param_dict['hod_n']),
+                'clf_seed_{0}'.format(param_dict['clf_seed']),
+                'clf_method_{0}'.format(param_dict['clf_method']),
+                param_dict['catl_type'],
+                param_dict['sample_Mr'])
             # Number of directories to cut/skip
             # See `wget` documentation for more details.
             cut_dirs = 13
+        ##
+        ## Direcotories for `members` and `groups`
+        catl_kind_memb  = os.path.join(  catl_kind_prefix,
+                                        'member_galaxy_catalogues/')
+        catl_kind_group = os.path.join(  catl_kind_prefix,
+                                        'group_galaxy_catalogues/')
         ## Checking if URL exists
-        cweb.url_checker(catl_kind_url)
+        cweb.url_checker(catl_kind_memb)
+        cweb.url_checker(catl_kind_group)
         ## String to be executed
         if param_dict['verbose']:
-            cmd_dw = 'wget -m -nH -x -np -r -c --accept=*.hdf5 --cut-dirs={0} --reject="index.html*" {1}'
+            cmd_dw = 'wget -m -nH -x -np -r -c --accept=*.hdf5 --cut-dirs={0} '
+            cmd_dw += '--reject="index.html*" {1}'
         else:
-            cmd_dw = 'wget -m -nH -x -np -r -c -nv --accept=*.hdf5 --cut-dirs={0} --reject="index.html*" {1}'
-        cmd_dw = cmd_dw.format(cut_dirs, catl_kind_url)
+            cmd_dw = 'wget -m -nH -x -np -r -c -nv --accept=*.hdf5 '
+            cmd_dw += '--cut-dirs={0} --reject="index.html*" {1}'
+        cmd_dw_m = cmd_dw.format(cut_dirs, catl_kind_memb)
+        cmd_dw_g = cmd_dw.format(cut_dirs, catl_kind_group)
         ## Executing command
         print('{0} Downloading Dataset......'.format(param_dict['Prog_msg']))
-        print(cmd_dw)
-        subprocess.call(cmd_dw, shell=True, cwd=proj_dict[catl_kind+'_out_memb'])
+        # Members
+        print(cmd_dw_m)
+        subprocess.call(cmd_dw_m, shell=True, cwd=proj_dict[catl_kind+'_out_m'])
+        # Groups
+        print(cmd_dw_g)
+        subprocess.call(cmd_dw_g, shell=True, cwd=proj_dict[catl_kind+'_out_g'])
         ## Deleting `robots.txt`
-        os.remove('{0}/robots.txt'.format(proj_dict[catl_kind+'_out_memb']))
+        os.remove('{0}/robots.txt'.format(proj_dict[catl_kind+'_out_m']))
+        os.remove('{0}/robots.txt'.format(proj_dict[catl_kind+'_out_g']))
         ##
         ##
-        print('\n\n{0} Catalogues were saved at: {1}\n\n'.format(
-            param_dict['Prog_msg'], proj_dict[catl_kind+'_out_memb']))
+        print('\n\n{0} Catalogues were saved at: {1} and {2}\n\n'.format(
+            param_dict['Prog_msg'], proj_dict[catl_kind+'_out_m'],
+            proj_dict[catl_kind+'_out_g']))
         ##
         ## --- Perfect Catalogue -- Mocks
         if (catl_kind == 'mocks') and (param_dict['perf_opt']):
             ## Downloading directories from the web
-            catl_kind_url = os.path.join(param_dict['url_catl'],
+            catl_kind_prefix = os.path.join(param_dict['url_catl'],
                                         catl_kind,
                                         param_dict['catl_type'],
-                                        'Mr'+param_dict['sample_s'],
-                                        'perfect_member_galaxy_catalogues/')
-            cweb.url_checker(catl_kind_url)
+                                        'Mr'+param_dict['sample_s'])
+            ##
+            ## Direcotories for `members` and `groups`
+            catl_kind_memb  = os.path.join(  catl_kind_prefix,
+                                            'perfect_member_galaxy_catalogues/')
+            catl_kind_group = os.path.join(  catl_kind_prefix,
+                                            'perfect_group_galaxy_catalogues/')
+            ## Checking URLs
+            cweb.url_checker(catl_kind_memb)
+            cweb.url_checker(catl_kind_group)
             ## String to be executed
-            cmd_dw = 'wget -r -nH -x -np -A *Mr{0}*.hdf5 --cut-dirs={1} -R "index.html*" {2}'
-            cmd_dw = cmd_dw.format(param_dict['sample_s'], cut_dirs, catl_kind_url)
+            cmd_dw = 'wget -r -nH -x -np -A *Mr{0}*.hdf5 --cut-dirs={1} '
+            cmd_dw += '-R "index.html*" {2}'
+            # Members and Groups commands
+            cmd_dw_m = cmd_dw.format(param_dict['sample_s'],
+                cut_dirs, catl_kind_memb)
+            cmd_dw_g = cmd_dw.format(param_dict['sample_s'],
+                cut_dirs, catl_kind_group)
             ## Executing command
             print('{0} Downloading Dataset......'.format(param_dict['Prog_msg']))
-            print(cmd_dw)
-            subprocess.call(cmd_dw, shell=True, cwd=proj_dict['mocks_out_perf_memb'])
+            print(cmd_dw_m)
+            subprocess.call(cmd_dw_m, shell=True, 
+                cwd=proj_dict['mocks_out_perf_memb'])
+            print(cmd_dw_g)
+            subprocess.call(cmd_dw_g, shell=True, 
+                cwd=proj_dict['mocks_out_perf_groups'])
+
             ## Deleting `robots.txt`
             os.remove('{0}/robots.txt'.format(proj_dict['mocks_out_perf_memb']))
             ##
