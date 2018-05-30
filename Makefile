@@ -191,13 +191,13 @@ download_dataset:
 
 ## Delete existing `mock` catalogues
 delete_mock_catls:
-	find $(MOCKS_CATL_DIR) -type f -name '*.hdf5' -delete
+	find $(MOCKS_CATL_DIR) -type f -name '*.hdf5' -delete || echo ""
 
 ## Delete existing `data` catalogues
 delete_data_catls:
-	find $(DATA_CATL_DIR) -type f -name '*.hdf5' -delete
-	find $(DATA_CATL_DIR) -type f -name '*.tex' -delete
-	find $(DATA_CATL_DIR) -type f -name '*.csv' -delete
+	find $(DATA_CATL_DIR) -type f -name '*.hdf5' -delete || echo ""
+	find $(DATA_CATL_DIR) -type f -name '*.tex' -delete || echo ""
+	find $(DATA_CATL_DIR) -type f -name '*.csv' -delete || echo ""
 
 ## Delete all catalogues `mocks` and `data`
 delete_all_catls: delete_mock_catls delete_data_catls
