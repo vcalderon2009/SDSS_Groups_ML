@@ -19,6 +19,7 @@ SRC_DIR            = $(PROJECT_DIR)/src
 SRC_DATA_DIR       = $(SRC_DIR)/data
 SRC_PREPROC_DIR    = $(SRC_DIR)/data_preprocessing
 MOCKS_CATL_DIR     = $(DATA_DIR)/external/SDSS/mocks
+DATA_CATL_DIR      = $(DATA_DIR)/external/SDSS/data
 
 # INPUT VARIABLES
 # -- General
@@ -197,6 +198,10 @@ delete_data_catls:
 	find $(DATA_CATL_DIR) -type f -name '*.hdf5' -delete
 	find $(DATA_CATL_DIR) -type f -name '*.tex' -delete
 	find $(DATA_CATL_DIR) -type f -name '*.csv' -delete
+
+## Delete all catalogues `mocks` and `data`
+delete_all_catls: delete_mock_catls delete_data_catls
+	@echo ""
 
 ## Delete all files, except for `raw` files
 delete_all_but_raw:
