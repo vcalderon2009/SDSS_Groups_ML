@@ -38,6 +38,8 @@ import matplotlib.ticker as ticker
 plt.rc('text', usetex=True)
 import seaborn as sns
 #sns.set()
+from progressbar import (Bar, ETA, FileTransferSpeed, Percentage, ProgressBar,
+                        ReverseBar, RotatingMarker)
 from tqdm import tqdm
 
 # Extra-modules
