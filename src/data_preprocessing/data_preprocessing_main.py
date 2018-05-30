@@ -621,7 +621,7 @@ def get_exec_string(df_arr, param_dict):
     # Maing string
     main_str_cmd = ''
     ## Creating main string
-    for ii, df_ii in enumerate(df_arr):
+    for ii, df_ii in enumerate(df_arr[:1]):
         # Name of the file to get executed
         catl_makefile_ii = param_dict['run_file_dict'][ii]['file']
         ## Getting the filepath to `catl_makefile_ii`
@@ -764,7 +764,7 @@ def file_construction_and_execution(df_arr, param_dict):
     ##
     ## Running script
     print(".>>> Running Script....")
-    os.system("{0}".format(outfile_path))
+    # os.system("{0}".format(outfile_path))
 
 def main(args):
     """
