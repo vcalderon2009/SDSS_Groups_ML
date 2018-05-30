@@ -268,7 +268,7 @@ def get_parser():
                         And the index of the boxes used for `testing`.
                         Example: 0_4_5 >>> This will use from 0th to 4th box
                         for training, and the 5th box for testing.""",
-                        nargs=str,
+                        type=str,
                         default='0_4_5')
     ## Fraction of the sample to be used.
     ## Only if `test_train_opt == 'sample_frac'`
