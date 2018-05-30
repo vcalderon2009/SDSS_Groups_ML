@@ -1002,6 +1002,9 @@ def group_shape(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
         evals_sorted  = num.real(evals[num.argsort(evals)[::-1]])
         ## Ratio of eigenvalues
         evals_ratio   = evals_sorted[-1]/evals_sorted[0]
+        # Checking type
+        if num.isnan(evals_ratio):
+            evals_ratio = 0.
         ## Saving elongation
         group_shape_arr[group_kk] = evals_ratio
     ##
