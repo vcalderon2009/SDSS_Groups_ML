@@ -179,6 +179,16 @@ def get_parser():
                         choices=range(2, 1000),
                         metavar='[1-1000]',
                         default=2)
+    ## Factor by which to evaluate the distance to closest cluster.
+    parser.add_argument('-mass_factor',
+                        dest='mass_factor',
+                        help="""
+                        Factor by which to evaluate the distance to closest 
+                        cluster""",
+                        type=int,
+                        choices=range(2,100),
+                        metavar='[2-100]',
+                        default=10)
     ## Total number of properties to predict. Default = 1
     parser.add_argument('-n_predict',
                         dest='n_predict',
@@ -383,6 +393,12 @@ def param_vals_test(param_dict):
     if (param_dict['test_train_opt'] == 'boxes_n'):
         box_n_arr = num.array(param_dict['box_idx'].split('_')).astype(int)
         box_n_diff = num.diff(box_n_arr)
+        # Larger than zero
+        if not (all(box_n_arr >= 0)):
+            msg = '{0} All values in `box_idx` ({1}) must be larger than 0!'
+            msg = msg.format(file_msg, box_n_arr)
+            raise ValueError(msg)
+        # Difference between elements
         if not (all(box_n_diff > 0)):
             msg = '{0} The value of `box_idx` ({1}) is not valid!'.format(
                 file_msg, param_dict['box_idx'])
@@ -423,31 +439,23 @@ def add_to_dict(param_dict):
     ##
     ## Catalogue Prefix for input catalogue
     catl_input_arr = [  sample_Mr,
-                        param_dict['hod_n'],
-                        param_dict['clf_method'],
-                        param_dict['cosmo_choice'],
-                        param_dict['nmin'],
                         param_dict['halotype'],
-                        param_dict['perf_opt']]
-    catl_input_str  = '{0}_hodn_{1}_clf_{2}_cosmo_{3}_nmin_{4}_halotype_{5}_'
-    catl_input_str += 'perf_{6}'
-    catl_input_str  = catl_input_str.format(*catl_input_arr)
-    ##
-    ## Catalogue main string
-    catl_pre_arr = [    sample_Mr,
                         param_dict['hod_n'],
-                        param_dict['halotype'],
+                        param_dict['dv'],
                         param_dict['clf_method'],
                         param_dict['clf_seed'],
-                        param_dict['dv'],
                         param_dict['catl_type'],
                         param_dict['cosmo_choice'],
                         param_dict['nmin'],
+                        param_dict['mass_factor'],
                         param_dict['perf_opt']]
-    # String
-    catl_pre_str  = '{0}_hodn_{1}_halotype_{2}_clfmethod_{3}_clfseed_{4}_'
-    catl_pre_str += 'dv_{5}_catltype_{6}_cosmo_{7}_nmin_{8}_perf_{9}_'
-    catl_pre_str  = catl_pre_str.format(catl_pre_arr)
+    # Input string
+    catl_input_str = '{0}_halo_{1}_hodn_{2}_dv_{3}_clfm_{4}_clfseed_{5}_'
+    catl_input_str += 'ctype_{6}_cosmo_{7}_nmin_{8}_massf_{9}_perf_{10}'
+    catl_input_str = catl_input_str.format(*catl_input_arr)
+    ##
+    ## Catalogue main string
+    catl_pre_str = catl_input_str
     ##
     ## Saving to `param_dict`
     param_dict['sample_s'      ] = sample_s
@@ -668,7 +676,7 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
     ##
     ## Reading in list of catalogues
     catl_arr = glob(os.path.join(   proj_dict['catl_dir'],
-                                    '*{0}*.{1}').format(
+                                    '{0}*.{1}').format(
                                     param_dict['catl_input_str'],
                                     ext))
     ## Checking if file exists
@@ -721,6 +729,12 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
         ## Creating new DataFrames
         pred_arr = catl_pd.loc[:, predicted_cols].values
         feat_arr = catl_pd.loc[:, features_cols ].values
+        ##
+        ## Fixing shapes of `pred_arr` and `feat_arr` if necessary
+        if ((pred_arr.shape[1] == 1) or (pred_arr.ndim == 1)):
+            pred_arr = pred_arr.reshape(len(pred_arr),)
+        if ((feat_arr.shape[1] == 1) or (feat_arr.ndim == 1)):
+            feat_arr = feat_arr.reshape(len(feat_arr),)
         # Scaled Feature array
         feat_arr_scaled = cmlu.data_preprocessing(  feat_arr,
                                                     pre_opt=pre_opt)
@@ -748,14 +762,27 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
             box_test_idx   ) = (num.array(param_dict['box_idx'].split('_'))
                                     .astype(int))
         ##
+        ## List of boxes in the complete DataFrame
+        boxes_arr = num.unique(catl_pd_tot['box_n'].values)
+        # Checking for box's index
+        for box_idx in [box_train_start, box_train_end, box_test_idx]:
+            try:
+                assert(box_idx <= (len(boxes_arr) -1) )
+            except:
+                msg  = '{0} `box_idx` ({1}) is larger than the number of boxes '
+                msg += ' in the simulation ({2})!'
+                msg  = msg.format(file_msg, box_idx, len(boxes_arr) - 1)
+                raise ValueError(msg)
+        ##
         ## Selecting subsample of the main catalogue
         # Training
         catl_train_pd = catl_pd_tot.loc[(catl_pd_tot['box_n']).between(
-                            box_train_start,
-                            box_train_end,
+                            boxes_arr[box_train_start],
+                            boxes_arr[box_train_end],
                             inclusive=True)]
         # Testing
-        catl_test_pd  = catl_pd_tot.loc[(catl_pd_tot['box_n'] == box_test_idx)]
+        catl_test_pd  = catl_pd_tot.loc[(
+            catl_pd_tot['box_n'] == boxes_arr[box_test_idx])]
         ##
         ## Shuffling if needed
         if shuffle_opt:
@@ -770,11 +797,23 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
         # Training
         pred_train_arr        = catl_train_pd.loc[:, predicted_cols].values
         feat_train_arr        = catl_train_pd.loc[:, features_cols ].values
-        feat_train_arr_scaled = cmlu.data_preprocessing(feat_train_arr,
-                                                        pre_opt=pre_opt)
+        ## Fixing shapes of `pred_train_arr` and `feat_train_arr` if necessary
+        if ((pred_train_arr.shape[1] == 1) or (pred_train_arr.ndim == 1)):
+            pred_train_arr = pred_train_arr.reshape(len(pred_train_arr),)
+        if ((feat_train_arr.shape[1] == 1) or (feat_train_arr.ndim == 1)):
+            feat_train_arr = feat_train_arr.reshape(len(feat_train_arr),)
         # Testing
         pred_test_arr        = catl_test_pd.loc[:, predicted_cols].values
         feat_test_arr        = catl_test_pd.loc[:, features_cols ].values
+        ## Fixing shapes of `pred_test_arr` and `feat_test_arr` if necessary
+        if ((pred_test_arr.shape[1] == 1) or (pred_test_arr.ndim == 1)):
+            pred_test_arr = pred_test_arr.reshape(len(pred_test_arr),)
+        if ((feat_test_arr.shape[1] == 1) or (feat_test_arr.ndim == 1)):
+            feat_test_arr = feat_test_arr.reshape(len(feat_test_arr),)
+        ##
+        ## Scaled versions
+        feat_train_arr_scaled = cmlu.data_preprocessing(feat_train_arr,
+                                                        pre_opt=pre_opt)
         feat_test_arr_scaled = cmlu.data_preprocessing( feat_test_arr,
                                                         pre_opt=pre_opt)
         ##
