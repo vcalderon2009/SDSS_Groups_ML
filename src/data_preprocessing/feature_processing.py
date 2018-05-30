@@ -5,54 +5,36 @@
 # Created      : 2018-05-27
 # Last Modified: 2018-05-29
 # Vanderbilt University
-from __future__ import print_function, division, absolute_import
-__author__     =['Victor Calderon']
-__copyright__  =["Copyright 2018 Victor Calderon, "]
-__email__      =['victor.calderon@vanderbilt.edu']
-__maintainer__ =['Victor Calderon']
+from __future__ import absolute_import, division, print_function
+__author__     = ['Victor Calderon']
+__copyright__  = ["Copyright 2018 Victor Calderon, "]
+__email__      = ['victor.calderon@vanderbilt.edu']
+__maintainer__ = ['Victor Calderon']
 """
-Selects the features to analyze and saves the outputs for creating the 
+Selects the features to analyze and saves the outputs for creating the
 training and testing datasets.
 """
 # Importing Modules
-from cosmo_utils       import mock_catalogues as cm
-from cosmo_utils       import utils           as cu
 from cosmo_utils.utils import file_utils      as cfutils
 from cosmo_utils.utils import file_readers    as cfreaders
 from cosmo_utils.utils import work_paths      as cwpaths
-from cosmo_utils.utils import stats_funcs     as cstats
-from cosmo_utils.utils import geometry        as cgeom
-from cosmo_utils.mock_catalogues import catls_utils as cmcu
 from cosmo_utils.ml    import ml_utils        as cmlu
 
 import numpy as num
-import math
 import os
-import sys
-import pandas as pd
 import pickle
-import matplotlib
-matplotlib.use( 'Agg' )
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
-plt.rc('text', usetex=True)
-import seaborn as sns
-#sns.set()
-from progressbar import (Bar, ETA, FileTransferSpeed, Percentage, ProgressBar,
-                        ReverseBar, RotatingMarker)
-from tqdm import tqdm
 
 # Extra-modules
+from glob import glob
+import argparse
 from argparse import ArgumentParser
 from argparse import HelpFormatter
 from operator import attrgetter
 import astropy.constants as ac
 import astropy.units     as u
-from glob import glob
 
 # ML modules
-import sklearn
-from   sklearn import utils as skutils
+from sklearn import utils as skutils
 
 ## Functions
 
@@ -97,7 +79,7 @@ def _check_pos_val(val, val_min=0):
     """
     ival = float(val)
     if ival <= val_min:
-        msg  = '`{0}` is an invalid input!'.format(ival)
+        msg = '`{0}` is an invalid input!'.format(ival)
         msg += '`val` must be larger than `{0}`!!'.format(val_min)
         raise argparse.ArgumentTypeError(msg)
 
@@ -109,24 +91,24 @@ def get_parser():
 
     Returns
     -------
-    args: 
+    args:
         input arguments to the script
     """
     ## Define parser object
     description_msg = """
-    Selects the features to analyze and saves the outputs for creating the 
+    Selects the features to analyze and saves the outputs for creating the
     training and testing datasets.
                     """
     parser = ArgumentParser(description=description_msg,
                             formatter_class=SortingHelpFormatter,)
-    ## 
-    ## Number of HOD's to create. Dictates how many different types of 
+    ##
+    ## Number of HOD's to create. Dictates how many different types of
     ##      mock catalogues to create
     parser.add_argument('-hod_model_n',
                         dest='hod_n',
                         help="Number of distinct HOD model to use.",
                         type=int,
-                        choices=range(0,10),
+                        choices=range(0, 10),
                         metavar='[0-10]',
                         default=0)
     ## Type of dark matter halo to use in the simulation
@@ -134,23 +116,23 @@ def get_parser():
                         dest='halotype',
                         help='Type of the DM halo.',
                         type=str,
-                        choices=['so','fof'],
+                        choices=['so', 'fof'],
                         default='so')
     ## CLF/CSMF method of assigning galaxy properties
     parser.add_argument('-clf_method',
                         dest='clf_method',
                         help="""
-                        Method for assigning galaxy properties to mock 
+                        Method for assigning galaxy properties to mock
                         galaxies. Options:
                         (1) = Independent assignment of (g-r), sersic, logssfr
-                        (2) = (g-r) decides active/passive designation and 
+                        (2) = (g-r) decides active/passive designation and
                         draws values independently.
-                        (3) (g-r) decides active/passive designation, and 
-                        assigns other galaxy properties for that given 
+                        (3) (g-r) decides active/passive designation, and
+                        assigns other galaxy properties for that given
                         galaxy.
                         """,
                         type=int,
-                        choices=[1,2,3],
+                        choices=[1, 2, 3],
                         default=1)
     ## Random Seed for CLF
     parser.add_argument('-clf_seed',
@@ -163,7 +145,7 @@ def get_parser():
     parser.add_argument('-dv',
                         dest='dv',
                         help="""
-                        Difference between galaxy and mass velocity profiles 
+                        Difference between galaxy and mass velocity profiles
                         (v_g-v_c)/(v_m-v_c)
                         """,
                         type=_check_pos_val,
@@ -173,7 +155,7 @@ def get_parser():
                         dest='sample',
                         help='SDSS Luminosity sample to analyze',
                         type=str,
-                        choices=['all', '19','20','21'],
+                        choices=['all', '19', '20', '21'],
                         default='19')
     ## SDSS Type
     parser.add_argument('-abopt',
@@ -194,7 +176,7 @@ def get_parser():
                         dest='nmin',
                         help='Minimum number of galaxies in a galaxy group',
                         type=int,
-                        choices=range(2,1000),
+                        choices=range(2, 1000),
                         metavar='[1-1000]',
                         default=2)
     ## Total number of properties to predict. Default = 1
@@ -203,14 +185,14 @@ def get_parser():
                         help="""
                         Number of properties to predict. Default = 1""",
                         type=int,
-                        choices=range(1,4),
+                        choices=range(1, 4),
                         default=1)
-    ## Option for Shuffling dataset when separating 
+    ## Option for Shuffling dataset when separating
     ## `training` and `testing` sets
     parser.add_argument('-shuffle_opt',
                         dest='shuffle_opt',
                         help="""
-                        Option for whether or not to shuffle the data before 
+                        Option for whether or not to shuffle the data before
                         splitting.
                         """,
                         type=_str2bool,
@@ -230,9 +212,10 @@ def get_parser():
                         Option for which preprocessing of the data to use.
                         """,
                         type=str,
-                        choices=['min_max','standard','normalize', 'no', 'all'],
+                        choices=['min_max', 'standard', 'normalize',
+                                'no', 'all'],
                         default='standard')
-    ## Option for which kind of separation of training/testing to use for the 
+    ## Option for which kind of separation of training/testing to use for the
     ## datasets.
     parser.add_argument('-test_train_opt',
                         dest='test_train_opt',
@@ -243,12 +226,12 @@ def get_parser():
                         type=str,
                         choices=['sample_frac', 'boxes_n'],
                         default='boxes_n')
-    ## Initial and final indices of the simulation boxes to use for the 
+    ## Initial and final indices of the simulation boxes to use for the
     ## testing and training datasets.
     parser.add_argument('-box_idx',
                         dest='box_idx',
                         help="""
-                        Initial and final indices of the simulation boxes to 
+                        Initial and final indices of the simulation boxes to
                         use for the `training` datasets.
                         And the index of the boxes used for `testing`.
                         Example: 0_4_5 >>> This will use from 0th to 4th box
@@ -265,14 +248,15 @@ def get_parser():
     ## Testing size for ML
     parser.add_argument('-test_size',
                         dest='test_size',
-                        help='Percentage size of the catalogue used for testing',
+                        help="""
+                        Percentage size of the catalogue used for testing""",
                         type=_check_pos_val,
                         default=0.25)
     ## Option for using all features or just a few
     parser.add_argument('-n_feat_use',
                         dest='n_feat_use',
                         help="""
-                        Option for which features to use for the ML training 
+                        Option for which features to use for the ML training
                         dataset.
                         """,
                         choices=['all', 'sub'],
@@ -296,7 +280,7 @@ def get_parser():
                         type=_str2bool,
                         default=False)
     ## Verbose
-    parser.add_argument('-v','--verbose',
+    parser.add_argument('-v', '--verbose',
                         dest='verbose',
                         help='Option to print out project parameters',
                         type=_str2bool,
@@ -345,7 +329,7 @@ def param_vals_test(param_dict):
     Raises
     -----------
     ValueError: Error
-        This function raises a `ValueError` error if one or more of the 
+        This function raises a `ValueError` error if one or more of the
         required criteria are not met
     """
     file_msg = param_dict['Prog_msg']
@@ -383,7 +367,7 @@ def param_vals_test(param_dict):
     # `sample_frac`
     if (param_dict['test_train_opt'] == 'sample_frac'):
         # `sample_frac`
-        if not ((param_dict['sample_frac'] > 0) and 
+        if not ((param_dict['sample_frac'] > 0) and
                 (param_dict['sample_frac'] <= 1.)):
             msg = '{0} `sample_frac` ({1}) must be between (0,1]'.format(
                 file_msg, param_dict['sample_frac'])
@@ -424,10 +408,10 @@ def add_to_dict(param_dict):
     sample_Mr = 'Mr{0}'.format(param_dict['sample'])
     ## Sample volume
     # Units (Mpc/h)**3
-    volume_sample = {   '18':37820 / 0.01396,
-                        '19':6046016.60311  ,
-                        '20':2.40481e7      ,
-                        '21':8.79151e7      }
+    volume_sample = {   '18': 37820 / 0.01396,
+                        '19': 6046016.60311  ,
+                        '20': 2.40481e7      ,
+                        '21': 8.79151e7      }
     vol_mr        = volume_sample[sample_s]
     ##
     ## Choice of Centrals and Satellites
@@ -436,8 +420,6 @@ def add_to_dict(param_dict):
     ## Other constants
     # Speed of light - In km/s
     speed_c = ac.c.to(u.km/u.s).value
-    ## Number of CPU's to use
-    cpu_number = int(cpu_count() * param_dict['cpu_frac'])
     ##
     ## Catalogue Prefix for input catalogue
     catl_input_arr = [  sample_Mr,
@@ -474,7 +456,6 @@ def add_to_dict(param_dict):
     param_dict['cens'          ] = cens
     param_dict['sats'          ] = sats
     param_dict['speed_c'       ] = speed_c
-    param_dict['cpu_number'    ] = cpu_number
     param_dict['catl_input_str'] = catl_input_str
     param_dict['catl_pre_str'  ] = catl_pre_str
 
@@ -501,8 +482,6 @@ def test_feat_file(param_dict, proj_dict):
     param_dict : `dict`
         Dictionary with `project` variables
     """
-    file_msg = param_dict['Prog_msg']
-    ##
     ## Filename, under which to save all of the information
     # Main String
     # `sample_frac`
@@ -538,8 +517,9 @@ def test_feat_file(param_dict, proj_dict):
     ##
     ## Path to output file
     filepath = os.path.join(proj_dict['catl_feat_dir'],
-                            '{0}_feature_processing_out.p'.format(filename_str))
-    ## Saving 
+                            '{0}_feature_processing_out.p'.format(
+                                filename_str))
+    ## Saving
     ##
     ## Checking if to run or not
     if os.path.exists(filepath):
@@ -649,7 +629,7 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
         Fraction of the total dataset ot use.
 
     test_size : float, optional
-        Percentage of the catalogue that represents the `test` size of 
+        Percentage of the catalogue that represents the `test` size of
         the testing dataset. This variable must be between (0,1).
         This variable is set to `0.25` by default.
 
@@ -658,12 +638,12 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
 
         Options:
             - 'min_max' : Turns `feat_arr` to values between (0,1)
-            - 'standard' : Uses the `~sklearn.preprocessing.StandardScaler` method
+            - 'standard' : Uses `~sklearn.preprocessing.StandardScaler` method
             - 'normalize' : Uses the `~sklearn.preprocessing.Normalizer` method
             - 'no' : No preprocessing on `feat_arr`
 
     test_train_opt : {'sample_frac', 'boxes_n'} `str`
-        Option for which kind of separation to use for the training/testing 
+        Option for which kind of separation to use for the training/testing
         splitting. This variable is set to 'boxes_n' by default.
 
         Options:
@@ -682,7 +662,7 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
         Dictionary containing the 'testing' data from the catalogue
 
     param_dict : `dict`
-        Dictionary with `project` variables + list of `predicted` and `features`
+        Dictionary with `project` variables + list `predicted` and `features`
     """
     file_msg = param_dict['Prog_msg']
     ##
@@ -820,7 +800,7 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
 
 def train_test_save(param_dict, train_dict, test_dict):
     """
-    Saves the `training` and `testing` dictionaries to a file, so that 
+    Saves the `training` and `testing` dictionaries to a file, so that
     it can be used for future analyses.
 
     Parameters
@@ -859,7 +839,7 @@ def train_test_save(param_dict, train_dict, test_dict):
 
 def main():
     """
-    Selects the features to analyze and saves the outputs for creating the 
+    Selects the features to analyze and saves the outputs for creating the
     training and testing datasets.
     """
     ## Reading all elements and converting to python dictionary
@@ -871,22 +851,22 @@ def main():
     ## Program message
     Prog_msg = param_dict['Prog_msg']
     ##
-    ## Testing of whether or not to run the analysis
-    (   run_opt   ,
-        param_dict) = test_feat_file(param_dict, proj_dict)
-    ##
     ## Creating Folder Structure
-    # proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths(__file__))
-    proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths('./'))
+    # proj_dict = directory_skeleton(param_dict, cwpaths.cookiecutter_paths(__file__))
+    proj_dict = directory_skeleton(param_dict, cwpaths.cookiecutter_paths('./'))
     ##
     ## Printing out project variables
     print('\n'+50*'='+'\n')
     for key, key_val in sorted(param_dict.items()):
-        if key !='Prog_msg':
+        if key != 'Prog_msg':
             print('{0} `{1}`: {2}'.format(Prog_msg, key, key_val))
     print('\n'+50*'='+'\n')
     ##
-    ## Reading in `merged` catalogue and separating training and 
+    ## Testing of whether or not to run the analysis
+    (   run_opt   ,
+        param_dict) = test_feat_file(param_dict, proj_dict)
+    ##
+    ## Reading in `merged` catalogue and separating training and
     ## testing datasets
     if run_opt:
         (   train_dict,
@@ -905,7 +885,7 @@ def main():
     train_test_save(param_dict, train_dict, test_dict)
 
 # Main function
-if __name__=='__main__':
+if __name__ == '__main__':
     ## Input arguments
     args = get_parser()
     # Main Function
