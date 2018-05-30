@@ -206,6 +206,12 @@ def get_parser():
                         densities at different radii""",
                         type=_str2bool,
                         default=True)
+    ## Option for calculating densities or not
+    parser.add_argument('-dens_calc',
+                        dest='dens_calc',
+                        help='Option for calculating densities.',
+                        type=_str2bool,
+                        default=True)
     ## Total number of properties to predict. Default = 1
     parser.add_argument('-n_predict',
                         dest='n_predict',
@@ -409,6 +415,7 @@ def get_analysis_params(param_dict):
                             ('nmin'        , '-nmin'        , 2         ),
                             ('mass_factor' , '-mass_factor' , 10        ),
                             ('remove_group', '-remove_group', True      ),
+                            ('dens_calc'   , '-dens_calc'   , True      ),
                             ('cpu_frac'    , '-cpu'         , 0.75      ),
                             ('remove_files', '-remove'      , False     ),
                             ('verbose'     , '-v'           , False     ),
@@ -456,6 +463,9 @@ def get_analysis_params(param_dict):
     ## Removing group for when determining density or not
     catl_feat_df = df_value_modifier(catl_feat_df, 'remove_group', param_dict)
     ##
+    ## Option for calculating densities or not
+    catl_feat_df = df_value_modifier(catl_feat_df, 'dens_calc', param_dict)
+    ##
     ## Percentage of CPU to use
     catl_feat_df = df_value_modifier(catl_feat_df, 'cpu_frac', param_dict)
     ##
@@ -492,7 +502,8 @@ def get_analysis_params(param_dict):
                             ('box_idx'       , '-box_idx'       , '0_4_5'   ),
                             ('sample_frac'   , '-sample_frac'   , 0.01      ),
                             ('test_size'     , '-test_size'     , 0.25      ),
-                            ('n_feat_use'    , '-n_feat_use'    , 'sub'),
+                            ('n_feat_use'    , '-n_feat_use'    , 'sub'     ),
+                            ('dens_calc'     , '-dens_calc'     , True      ),
                             ('cpu_frac'      , '-cpu'           , 0.75      ),
                             ('remove_files'  , '-remove'        , False     ),
                             ('verbose'       , '-v'             , False     ),
@@ -565,20 +576,23 @@ def get_analysis_params(param_dict):
     ## Option for using all features or just a few
     feat_proc_df = df_value_modifier(feat_proc_df, 'n_feat_use', param_dict)
     ##
+    ## Option for calculating densities or not
+    feat_proc_df = df_value_modifier(feat_proc_df, 'dens_calc', param_dict)
+    ##
     ## Percentage of CPU to use
-    catl_feat_df = df_value_modifier(catl_feat_df, 'cpu_frac', param_dict)
+    feat_proc_df = df_value_modifier(feat_proc_df, 'cpu_frac', param_dict)
     ##
     ## Option for removing files or not
-    catl_feat_df = df_value_modifier(catl_feat_df, 'remove_files', param_dict)
+    feat_proc_df = df_value_modifier(feat_proc_df, 'remove_files', param_dict)
     ##
     ## Option for displaying outputs or not
-    catl_feat_df = df_value_modifier(catl_feat_df, 'verbose', param_dict)
+    feat_proc_df = df_value_modifier(feat_proc_df, 'verbose', param_dict)
     ##
     ## Option for looking at `perfect` mock catalogues
-    catl_feat_df = df_value_modifier(catl_feat_df, 'perf_opt', param_dict)
+    feat_proc_df = df_value_modifier(feat_proc_df, 'perf_opt', param_dict)
     ##
     ## Random seed for the analysis
-    catl_feat_df = df_value_modifier(catl_feat_df, 'seed', param_dict)
+    feat_proc_df = df_value_modifier(feat_proc_df, 'seed', param_dict)
 
     return [catl_feat_df, feat_proc_df]
 

@@ -35,6 +35,7 @@ import pickle
 from tqdm import tqdm
 
 # Extra-modules
+import argparse
 from argparse import ArgumentParser
 from argparse import HelpFormatter
 from operator import attrgetter
@@ -223,6 +224,12 @@ def get_parser():
                         type=float,
                         nargs='+',
                         default=[2.0, 5.0, 10.0])
+    ## Option for calculating densities or not
+    parser.add_argument('-dens_calc',
+                        dest='dens_calc',
+                        help='Option for calculating densities.',
+                        type=_str2bool,
+                        default=True)
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -232,7 +239,10 @@ def get_parser():
     ## Option for removing file
     parser.add_argument('-remove',
                         dest='remove_files',
-                        help='Delete HMF ',
+                        help="""
+                        Delete files from previous analyses with same 
+                        parameters
+                        """,
                         type=_str2bool,
                         default=False)
     ## Verbose
@@ -391,9 +401,10 @@ def directory_skeleton(param_dict, proj_dict):
                                     'clf_seed_{0}'.format(param_dict['clf_seed']),
                                     'clf_method_{0}'.format(param_dict['clf_method']),
                                     param_dict['catl_type'],
-                                    param_dict['sample_Mr'])
+                                    param_dict['sample_Mr'],
+                                    'dens_{0}'.format(param_dict['dens_calc']))
     ## Creating output folders for the catalogues
-    merged_gal_dir          = os.path.join(catl_outdir, 'merged_vac'    )
+    merged_gal_dir          = os.path.join(catl_outdir, 'merged_vac')
     # merged_gal_perf_dir     = os.path.join(catl_outdir, 'merged_vac_perf'    )
     merged_gal_all_dir      = os.path.join(catl_outdir, 'merged_vac_combined')
     # merged_gal_perf_all_dir = os.path.join(catl_outdir, 'merged_vac_perf_all')
@@ -643,9 +654,11 @@ def catalogue_analysis(ii, catl_ii_name, box_n, param_dict, proj_dict,
         group_mod_pd = group_sigma_rmed(memb_ii_pd, group_ii_pd, group_mod_pd, 
             group_gals_dict, param_dict, nmin=param_dict['nmin'])
         ## Density of galaxies around group/cluster
-        group_mod_pd = group_galaxy_density(memb_ii_pd, group_ii_pd, group_mod_pd,
-            group_gals_dict, dist_scales=param_dict['dist_scales'],
-            remove_group=param_dict['remove_group'])
+        if param_dict['dens_calc']:
+            group_mod_pd = group_galaxy_density(memb_ii_pd, group_ii_pd,
+                group_mod_pd, group_gals_dict, 
+                dist_scales=param_dict['dist_scales'],
+                remove_group=param_dict['remove_group'])
         ## Dynamical mass estimates
         group_mod_pd = group_dynamical_mass(group_ii_pd, group_mod_pd)
         ## Distance to nearest cluster
@@ -1449,8 +1462,8 @@ def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
                         param_dict['nmin']      ,   param_dict['halotype'],
                         param_dict['perf_opt']  ,   param_dict['mass_factor'],
                         ext]
-    file_str  = '{0}_hodn_{1}_dv_{2}_clf_{3}_cosmo_{4}_nmin_{5}_halotype_{6}_perf_{7}'
-    file_str += 'mass_factor_{8}_merged_vac_all.{9}'
+    file_str  = '{0}_hodn_{1}_dv_{2}_clf_{3}_cosmo_{4}_nmin_{5}_halotype_{6}'
+    file_str += '_perf_{7}_mass_factor_{8}_merged_vac_all.{9}'
     filename  = file_str.format(*file_str_arr)
     ## Concatenating DataFrames
     group_id_tot = 0

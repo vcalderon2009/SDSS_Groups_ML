@@ -38,6 +38,7 @@ VERBOSE        = "False"
 # -- Data Preprocessing -- #
 MASS_FACTOR    = 10
 REMOVE_GROUP   = "True"
+DENS_CALC      = "True"
 N_PREDICT      = 1
 SHUFFLE_OPT    = "True"
 DROP_NA        = "True"
@@ -143,7 +144,7 @@ data_preprocess: download_dataset
 	 -pre_opt $(PRE_OPT) -test_train_opt $(TEST_TRAIN_OPT) -box_idx $(BOX_IDX) \
 	 -sample_frac $(SAMPLE_FRAC) -test_size $(TEST_SIZE) \
 	 -n_feat_use $(N_FEAT_USE) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) \
-	 -v $(VERBOSE) -perf $(PERF_OPT) -seed $(SEED)
+	 -v $(VERBOSE) -perf $(PERF_OPT) -seed $(SEED) -dens_calc $(DENS_CALC)
 
 ## Create set of `merged` catalogues, i.e. galaxy + group information
 catl_props:

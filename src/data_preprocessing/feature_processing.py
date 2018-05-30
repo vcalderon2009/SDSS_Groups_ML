@@ -277,6 +277,12 @@ def get_parser():
                         """,
                         choices=['all', 'sub'],
                         default='sub')
+    ## Option for calculating densities or not
+    parser.add_argument('-dens_calc',
+                        dest='dens_calc',
+                        help='Option for calculating densities.',
+                        type=_str2bool,
+                        default=True)
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -508,10 +514,12 @@ def test_feat_file(param_dict, proj_dict):
                                 param_dict['n_feat_use'],
                                 param_dict['test_train_opt'],
                                 param_dict['test_size'],
-                                param_dict['sample_frac']]
+                                param_dict['sample_frac'],
+                                param_dict['dens_calc']]
         ## Main string
         filename_str  = '{0}_sh_{1}_npredict_{2}_preopt_{3}_nfeat_{4}_'
-        filename_str += 'testtrain_{5}_testsize_{6}_samplefrac_{7}'
+        filename_str += 'testtrain_{5}_testsize_{6}_samplefrac_{7}_'
+        filename_str += 'dens_{8}'
         filename_str  = filename_str.format(*filename_str_arr)
     # `boxes_n
     if (param_dict['test_train_opt'] == 'boxes_n'):
@@ -521,10 +529,11 @@ def test_feat_file(param_dict, proj_dict):
                                 param_dict['pre_opt'],
                                 param_dict['n_feat_use'],
                                 param_dict['test_train_opt'],
-                                param_dict['box_idx']]
+                                param_dict['box_idx'],
+                                param_dict['dens_calc']]
         ## Main string
         filename_str  = '{0}_sh_{1}_npredict_{2}_preopt_{3}_nfeat_{4}_'
-        filename_str += 'testtrain_{5}_boxidx_{6}'
+        filename_str += 'testtrain_{5}_boxidx_{6}_dens_{7}'
         filename_str  = filename_str.format(*filename_str_arr)
     ##
     ## Path to output file
@@ -578,7 +587,8 @@ def directory_skeleton(param_dict, proj_dict):
                                 'clf_seed_{0}'.format(param_dict['clf_seed']),
                                 'clf_method_{0}'.format(param_dict['clf_method']),
                                 param_dict['catl_type'],
-                                param_dict['sample_Mr'])
+                                param_dict['sample_Mr'],
+                                'dens_{0}'.format(param_dict['dens_calc']))
     ##
     ## Directory of the catalogues being analyzed - Compilation of all mocks
     catl_dir = os.path.join(    proj_dict['int_dir'],
