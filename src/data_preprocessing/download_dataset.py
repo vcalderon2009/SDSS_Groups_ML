@@ -291,7 +291,7 @@ def directory_skeleton(param_dict, proj_dict):
         cfutils.Path_Folder(groups_dir)
         # Members and Groups directories
         proj_dict['{0}_out_m'.format(catl_kind)] = member_dir
-        proj_dict['{0}_out_g'.format(catl_kind)] = member_dir
+        proj_dict['{0}_out_g'.format(catl_kind)] = groups_dir
         ##
         ## Perfect galaxy directory
         if (catl_kind == 'mocks') and (param_dict['perf_opt']):
