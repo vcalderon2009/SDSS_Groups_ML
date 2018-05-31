@@ -665,7 +665,7 @@ def project_const(param_dict):
     ##
     ## Choosing the script(s) that will be ran
     window_name     = 'SDSS_ML_data_preprocessing_hodn_{0}_dv_{1}'.format(
-        param_dict['hon_n'], param_dict['dv'])
+        param_dict['hod_n'], param_dict['dv'])
     sub_window_name = 'data_preprocessing'
     file_exe_name   = 'catl_data_preprocessing_run.sh'
     ##
