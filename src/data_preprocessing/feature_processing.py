@@ -424,9 +424,8 @@ def param_vals_test(param_dict):
     # `box_test`
     if (param_dict['test_train_opt'] == 'box_sample_frac'):
         # Value of `box_test`
-        if not (param_dict['box_test'] < 0):
-            msg = '{0} `box_test` ({1}) must be larger or equal '
-            msg += 'to `0`'
+        if not (param_dict['box_test'] >= 0):
+            msg = '{0} `box_test` ({1}) must be larger or equal to `0`.'
             msg = msg.format(file_msg, box_test)
             raise ValueError(msg)
         # Testing `test_size`
@@ -568,7 +567,7 @@ def test_feat_file(param_dict, proj_dict):
                                 param_dict['dens_calc']]
         ## Main string
         filename_str  = '{0}_sh_{1}_npredict_{2}_preopt_{3}_nfeat_{4}_'
-        filename_str += 'testtrain_{5}_boxntest_{6}_dens_{7}'
+        filename_str += 'testtrain_{5}_boxtest_{6}_dens_{7}'
         filename_str  = filename_str.format(*filename_str_arr)
     ##
     ## Path to output file
