@@ -15,10 +15,12 @@ Selects the features to analyze and saves the outputs for creating the
 training and testing datasets.
 """
 # Importing Modules
-from cosmo_utils.utils import file_utils      as cfutils
-from cosmo_utils.utils import file_readers    as cfreaders
-from cosmo_utils.utils import work_paths      as cwpaths
-from cosmo_utils.ml    import ml_utils        as cmlu
+from cosmo_utils.utils import file_utils   as cfutils
+from cosmo_utils.utils import file_readers as cfreaders
+from cosmo_utils.utils import work_paths   as cwpaths
+from cosmo_utils.utils import gen_utils    as cgu
+from cosmo_utils.ml    import ml_utils     as cmlu
+
 
 import numpy as num
 import os
@@ -729,12 +731,10 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
         ## Creating new DataFrames
         pred_arr = catl_pd.loc[:, predicted_cols].values
         feat_arr = catl_pd.loc[:, features_cols ].values
+        ## Modifying `pred_arr` and `feat_arr`
+        pred_arr = cgu.reshape_arr_1d(pred_arr)
+        feat_arr = cgu.reshape_arr_1d(feat_arr)
         ##
-        ## Fixing shapes of `pred_arr` and `feat_arr` if necessary
-        if ((pred_arr.shape[1] == 1) or (pred_arr.ndim == 1)):
-            pred_arr = pred_arr.reshape(len(pred_arr),)
-        if ((feat_arr.shape[1] == 1) or (feat_arr.ndim == 1)):
-            feat_arr = feat_arr.reshape(len(feat_arr),)
         # Scaled Feature array
         feat_arr_scaled = cmlu.data_preprocessing(  feat_arr,
                                                     pre_opt=pre_opt)
