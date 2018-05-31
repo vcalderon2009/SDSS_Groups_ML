@@ -764,7 +764,7 @@ def file_construction_and_execution(df_arr, param_dict):
     os.system("chmod +x {0}".format(outfile_path))
     ##
     ## Running script
-    print(".>>> Running Script....")
+    print(".>>> Running Script...")
     os.system("{0}".format(outfile_path))
 
 def main(args):
