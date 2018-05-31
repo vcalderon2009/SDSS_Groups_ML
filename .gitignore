@@ -79,3 +79,4 @@ reports/figures/
 src/data/mocks_ml_main/*_run.sh
 reports
 references/project_description
+*_run.sh
