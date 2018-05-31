@@ -236,7 +236,7 @@ def get_parser():
                         to use for the datasets.
                         """,
                         type=str,
-                        choices=['sample_frac', 'boxes_n'],
+                        choices=['sample_frac', 'boxes_n', 'box_sample_frac'],
                         default='boxes_n')
     ## Initial and final indices of the simulation boxes to use for the
     ## testing and training datasets.
@@ -250,6 +250,21 @@ def get_parser():
                         for training, and the 5th box for testing.""",
                         type=str,
                         default='0_4_5')
+    ## Index of the simulation box to use for the `training` and `testing
+    parser.add_argument('-box_test',
+                        dest='box_test',
+                        help="""
+                        Index of the simulation box to use for the 
+                        `training` and `testing` datasets.
+                        This index represents the simulation box, from which 
+                        both the `training` and `testing` datasets will be 
+                        produced. It used the `test_size` variable to 
+                        determine the fraction of the sample used for the 
+                        `testing` dataset. Default : `0`.
+                        Example : 0 >> It used the 0th simulation box 
+                        for training and testing.""",
+                        type=int,
+                        default=0)
     ## Fraction of the sample to be used.
     ## Only if `test_train_opt == 'sample_frac'`
     parser.add_argument('-sample_frac',
@@ -405,6 +420,23 @@ def param_vals_test(param_dict):
             msg = '{0} The value of `box_idx` ({1}) is not valid!'.format(
                 file_msg, param_dict['box_idx'])
             raise ValueError(msg)
+    #
+    # `box_test`
+    if (param_dict['test_train_opt'] == 'box_sample_frac'):
+        # Value of `box_test`
+        if not (param_dict['box_test'] < 0):
+            msg = '{0} `box_test` ({1}) must be larger or equal '
+            msg += 'to `0`'
+            msg = msg.format(file_msg, box_test)
+            raise ValueError(msg)
+        # Testing `test_size`
+        # `test_size`
+        if not ((param_dict['test_size'] > 0) and
+                (param_dict['test_size'] < 1)):
+            msg = '{0} `test_size` ({1}) must be between (0,1)'.format(
+                file_msg, param_dict['test_size'])
+            raise ValueError(msg)
+
 
 def add_to_dict(param_dict):
     """
@@ -523,6 +555,20 @@ def test_feat_file(param_dict, proj_dict):
         ## Main string
         filename_str  = '{0}_sh_{1}_npredict_{2}_preopt_{3}_nfeat_{4}_'
         filename_str += 'testtrain_{5}_boxidx_{6}_dens_{7}'
+        filename_str  = filename_str.format(*filename_str_arr)
+    # `box_sample_frac`
+    if (param_dict['test_train_opt'] == 'box_sample_frac'):
+        filename_str_arr = [    param_dict['catl_pre_str'],
+                                param_dict['shuffle_opt'],
+                                param_dict['n_predict'],
+                                param_dict['pre_opt'],
+                                param_dict['n_feat_use'],
+                                param_dict['test_train_opt'],
+                                param_dict['box_test'],
+                                param_dict['dens_calc']]
+        ## Main string
+        filename_str  = '{0}_sh_{1}_npredict_{2}_preopt_{3}_nfeat_{4}_'
+        filename_str += 'testtrain_{5}_boxntest_{6}_dens_{7}'
         filename_str  = filename_str.format(*filename_str_arr)
     ##
     ## Path to output file
@@ -652,7 +698,7 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
             - 'normalize' : Uses the `~sklearn.preprocessing.Normalizer` method
             - 'no' : No preprocessing on `feat_arr`
 
-    test_train_opt : {'sample_frac', 'boxes_n'} `str`
+    test_train_opt : {'sample_frac', 'boxes_n', 'box_sample_frac'} `str`
         Option for which kind of separation to use for the training/testing
         splitting. This variable is set to 'boxes_n' by default.
 
@@ -795,21 +841,15 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
         ##
         ## `Features` and `predictions`
         # Training
-        pred_train_arr        = catl_train_pd.loc[:, predicted_cols].values
-        feat_train_arr        = catl_train_pd.loc[:, features_cols ].values
-        ## Fixing shapes of `pred_train_arr` and `feat_train_arr` if necessary
-        if ((pred_train_arr.shape[1] == 1) or (pred_train_arr.ndim == 1)):
-            pred_train_arr = pred_train_arr.reshape(len(pred_train_arr),)
-        if ((feat_train_arr.shape[1] == 1) or (feat_train_arr.ndim == 1)):
-            feat_train_arr = feat_train_arr.reshape(len(feat_train_arr),)
+        pred_train_arr = catl_train_pd.loc[:, predicted_cols].values
+        feat_train_arr = catl_train_pd.loc[:, features_cols ].values
+        pred_train_arr = cgu.reshape_arr_1d(pred_train_arr)
+        feat_train_arr = cgu.reshape_arr_1d(feat_train_arr)
         # Testing
-        pred_test_arr        = catl_test_pd.loc[:, predicted_cols].values
-        feat_test_arr        = catl_test_pd.loc[:, features_cols ].values
-        ## Fixing shapes of `pred_test_arr` and `feat_test_arr` if necessary
-        if ((pred_test_arr.shape[1] == 1) or (pred_test_arr.ndim == 1)):
-            pred_test_arr = pred_test_arr.reshape(len(pred_test_arr),)
-        if ((feat_test_arr.shape[1] == 1) or (feat_test_arr.ndim == 1)):
-            feat_test_arr = feat_test_arr.reshape(len(feat_test_arr),)
+        pred_test_arr  = catl_test_pd.loc[:, predicted_cols].values
+        feat_test_arr  = catl_test_pd.loc[:, features_cols ].values
+        pred_test_arr  = cgu.reshape_arr_1d(pred_test_arr)
+        feat_test_arr  = cgu.reshape_arr_1d(feat_test_arr)
         ##
         ## Scaled versions
         feat_train_arr_scaled = cmlu.data_preprocessing(feat_train_arr,
@@ -819,21 +859,68 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
         ##
         ## Assigning `training` and `testing` datasets to dictionary
         # Training
-        train_dict = {  'X_train'   :feat_train_arr_scaled,
-                        'Y_train'   :pred_train_arr,
-                        'X_train_ns':feat_train_arr,
-                        'Y_train_ns':pred_train_arr}
+        train_dict = {  'X_train'   : feat_train_arr_scaled,
+                        'Y_train'   : pred_train_arr,
+                        'X_train_ns': feat_train_arr,
+                        'Y_train_ns': pred_train_arr}
         # Testing
-        test_dict  = {  'X_test'   :feat_test_arr_scaled,
-                        'Y_test'   :pred_test_arr,
-                        'X_test_ns':feat_test_arr,
-                        'Y_test_ns':pred_test_arr}
+        test_dict  = {  'X_test'   : feat_test_arr_scaled,
+                        'Y_test'   : pred_test_arr,
+                        'X_test_ns': feat_test_arr,
+                        'Y_test_ns': pred_test_arr}
         ##
         ## Saving to dictionary
         param_dict['predicted_cols' ] = predicted_cols
         param_dict['features_cols'  ] = features_cols
         param_dict['feat_arr_scaled'] = feat_train_arr_scaled
         param_dict['feat_arr'       ] = feat_train_arr
+    ##
+    ## If selecting testing/training based on a `single` box
+    if (test_train_opt == 'box_sample_frac'):
+        # `box_test`
+        box_test = param_dict['box_test']
+        # List of boxes in the complete DataFrame
+        boxes_arr = num.unique(catl_pd_tot['box_n'].values)
+        # Checking for box's index
+        try:
+            assert(param_dict['box_test'] <= (len(boxes_arr) - 1))
+        except:
+            msg = '{0} `box_test` ({1}) is larger than the number '
+            msg += 'of boxes in the simulation ({2})!'
+            msg = msg.format(file_msg, box_test, len(boxes_arr) - 1)
+            raise ValueError(msg)
+        #
+        # Selecting subsample for the main catalogue
+        catl_pd = catl_pd_tot.loc[catl_pd_tot['box_n'] == boxes_arr[box_test]]
+        #
+        # Deleting `total` catalogue
+        catl_pd_tot = None
+        ##
+        ## Creating `prediction` and `features` arrays
+        pred_arr = catl_pd.loc[:, predicted_cols].values
+        feat_arr = catl_pd.loc[:, features_cols ].values
+        ## Modifying `pred_arr` and `feat_arr`
+        pred_arr = cgu.reshape_arr_1d(pred_arr)
+        feat_arr = cgu.reshape_arr_1d(feat_arr)
+        ##
+        # Scaled Feature array
+        feat_arr_scaled = cmlu.data_preprocessing(  feat_arr,
+                                                    pre_opt=pre_opt)
+        ##
+        ## Rescaling and computing training and testing datasets
+        (   train_dict,
+            test_dict ) = cmlu.train_test_dataset(  pred_arr,
+                                                    feat_arr,
+                                                    pre_opt=pre_opt,
+                                                    shuffle_opt=shuffle_opt,
+                                                    random_state=random_state,
+                                                    test_size=test_size)
+        ##
+        ## Saving to dictionary
+        param_dict['predicted_cols' ] = predicted_cols
+        param_dict['features_cols'  ] = features_cols
+        param_dict['feat_arr_scaled'] = feat_arr_scaled
+        param_dict['feat_arr'       ] = feat_arr
 
     return train_dict, test_dict, param_dict
 

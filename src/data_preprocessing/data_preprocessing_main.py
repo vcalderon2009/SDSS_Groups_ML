@@ -256,7 +256,7 @@ def get_parser():
                         to use for the datasets.
                         """,
                         type=str,
-                        choices=['sample_frac', 'boxes_n'],
+                        choices=['sample_frac', 'boxes_n', 'box_sample_frac'],
                         default='boxes_n')
     ## Initial and final indices of the simulation boxes to use for the 
     ## testing and training datasets.
@@ -270,6 +270,21 @@ def get_parser():
                         for training, and the 5th box for testing.""",
                         type=str,
                         default='0_4_5')
+    ## Index of the simulation box to use for the `training` and `testing
+    parser.add_argument('-box_test',
+                        dest='box_test',
+                        help="""
+                        Index of the simulation box to use for the 
+                        `training` and `testing` datasets.
+                        This index represents the simulation box, from which 
+                        both the `training` and `testing` datasets will be 
+                        produced. It used the `test_size` variable to 
+                        determine the fraction of the sample used for the 
+                        `testing` dataset. Default : `0`.
+                        Example : 0 >> It used the 0th simulation box 
+                        for training and testing.""",
+                        type=int,
+                        default=0)
     ## Fraction of the sample to be used.
     ## Only if `test_train_opt == 'sample_frac'`
     ## Fraction of the sample to use
@@ -500,6 +515,7 @@ def get_analysis_params(param_dict):
                             ('pre_opt'       , '-pre_opt'       , 'standard'),
                             ('test_train_opt', '-test_train_opt', 'boxes_n' ),
                             ('box_idx'       , '-box_idx'       , '0_4_5'   ),
+                            ('box_test'      , '-box_test'      , 0         ),
                             ('sample_frac'   , '-sample_frac'   , 0.01      ),
                             ('test_size'     , '-test_size'     , 0.25      ),
                             ('n_feat_use'    , '-n_feat_use'    , 'sub'     ),
@@ -565,6 +581,9 @@ def get_analysis_params(param_dict):
     ## Initial and final indices of the simulation boxes to use for the 
     ## testing and training datasets.
     feat_proc_df = df_value_modifier(feat_proc_df, 'box_idx', param_dict)
+    ##
+    ## Index of the simulation box to use for the `training` and `testing
+    feat_proc_df = df_value_modifier(feat_proc_df, 'box_test', param_dict)
     ##
     ## Fraction of the sample to be used.
     ## Only if `test_train_opt == 'sample_frac'`

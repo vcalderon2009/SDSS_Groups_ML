@@ -45,6 +45,7 @@ DROP_NA        = "True"
 PRE_OPT        = "standard"
 TEST_TRAIN_OPT = "boxes_n"
 BOX_IDX        = "0_4_5"
+BOX_TEST       = 0
 SAMPLE_FRAC    = 0.01
 TEST_SIZE      = 0.25
 N_FEAT_USE     = "sub"
@@ -140,11 +141,11 @@ data_preprocess: download_dataset
 	-dv $(DV) -clf_seed $(CLF_SEED) -sample $(SAMPLE) -abopt $(CATL_TYPE) \
 	-cosmo $(COSMO) -nmin $(NMIN) -mass_factor $(MASS_FACTOR) \
 	-remove_group $(REMOVE_GROUP) -n_predict $(N_PREDICT) \
-	 -shuffle_opt $(SHUFFLE_OPT) -dropna_opt $(DROP_NA) \
-	 -pre_opt $(PRE_OPT) -test_train_opt $(TEST_TRAIN_OPT) -box_idx $(BOX_IDX) \
-	 -sample_frac $(SAMPLE_FRAC) -test_size $(TEST_SIZE) \
-	 -n_feat_use $(N_FEAT_USE) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) \
-	 -v $(VERBOSE) -perf $(PERF_OPT) -seed $(SEED) -dens_calc $(DENS_CALC)
+	-shuffle_opt $(SHUFFLE_OPT) -dropna_opt $(DROP_NA) \
+	-pre_opt $(PRE_OPT) -test_train_opt $(TEST_TRAIN_OPT) -box_idx $(BOX_IDX) \
+	-box_test $(BOX_TEST) -sample_frac $(SAMPLE_FRAC) -test_size $(TEST_SIZE) \
+	-n_feat_use $(N_FEAT_USE) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) \
+	-v $(VERBOSE) -perf $(PERF_OPT) -seed $(SEED) -dens_calc $(DENS_CALC)
 
 ## Create set of `merged` catalogues, i.e. galaxy + group information
 catl_props:
