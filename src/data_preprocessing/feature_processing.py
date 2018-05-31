@@ -224,8 +224,7 @@ def get_parser():
                         Option for which preprocessing of the data to use.
                         """,
                         type=str,
-                        choices=['min_max', 'standard', 'normalize',
-                                'no', 'all'],
+                        choices=['min_max', 'standard', 'normalize', 'no'],
                         default='standard')
     ## Option for which kind of separation of training/testing to use for the
     ## datasets.

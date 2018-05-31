@@ -6,10 +6,10 @@
 # Last Modified: 2018-05-28
 # Vanderbilt University
 from __future__ import print_function, division, absolute_import
-__author__     =['Victor Calderon']
-__copyright__  =["Copyright 2017 Victor Calderon, SDSS Mocks Create - Make"]
-__email__      =['victor.calderon@vanderbilt.edu']
-__maintainer__ =['Victor Calderon']
+__author__     = ['Victor Calderon']
+__copyright__  = ["Copyright 2017 Victor Calderon, SDSS Mocks Create - Make"]
+__email__      = ['victor.calderon@vanderbilt.edu']
+__maintainer__ = ['Victor Calderon']
 """
 Main script to run the data preprocessing pipeline.
 The pipeline includes:
@@ -20,19 +20,16 @@ The pipeline includes:
 
 # Path to Custom Utilities folder
 import os
-import sys
-import git
 
 # Importing Modules
 from cosmo_utils.utils import file_utils as cfutils
 from cosmo_utils.utils import work_paths as cwpaths
 
 import numpy as num
-import os
-import sys
 import pandas as pd
 
 # Extra-modules
+import argparse
 from argparse import ArgumentParser
 from argparse import HelpFormatter
 from operator import attrgetter
@@ -96,11 +93,11 @@ def get_parser():
 
     Returns
     -------
-    args: 
+    args:
         input arguments to the script
     """
     ## Define parser object
-    description_msg =   """
+    description_msg = """
     Main script to run the data preprocessing pipeline.
     The pipeline includes:
         - Calculates the features for each galaxy/group mock catalogues
@@ -109,15 +106,15 @@ def get_parser():
                         """
     parser = ArgumentParser(description=description_msg,
                             formatter_class=SortingHelpFormatter,)
-    ## 
+    ##
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
-    ## Number of HOD's to create. Dictates how many different types of 
+    ## Number of HOD's to create. Dictates how many different types of
     ##      mock catalogues to create
     parser.add_argument('-hod_model_n',
                         dest='hod_n',
                         help="Number of distinct HOD model to use.",
                         type=int,
-                        choices=range(0,10),
+                        choices=range(0, 10),
                         metavar='[0-10]',
                         default=0)
     ## Type of dark matter halo to use in the simulation
@@ -125,29 +122,29 @@ def get_parser():
                         dest='halotype',
                         help='Type of the DM halo.',
                         type=str,
-                        choices=['so','fof'],
+                        choices=['so', 'fof'],
                         default='so')
     ## CLF/CSMF method of assigning galaxy properties
     parser.add_argument('-clf_method',
                         dest='clf_method',
                         help="""
-                        Method for assigning galaxy properties to mock 
+                        Method for assigning galaxy properties to mock
                         galaxies. Options:
                         (1) = Independent assignment of (g-r), sersic, logssfr
-                        (2) = (g-r) decides active/passive designation and 
+                        (2) = (g-r) decides active/passive designation and
                         draws values independently.
-                        (3) (g-r) decides active/passive designation, and 
-                        assigns other galaxy properties for that given 
+                        (3) (g-r) decides active/passive designation, and
+                        assigns other galaxy properties for that given
                         galaxy.
                         """,
                         type=int,
-                        choices=[1,2,3],
+                        choices=[1, 2, 3],
                         default=1)
     ## Difference between galaxy and mass velocity profiles (v_g-v_c)/(v_m-v_c)
     parser.add_argument('-dv',
                         dest='dv',
                         help="""
-                        Difference between galaxy and mass velocity profiles 
+                        Difference between galaxy and mass velocity profiles
                         (v_g-v_c)/(v_m-v_c)
                         """,
                         type=_check_pos_val,
@@ -164,7 +161,7 @@ def get_parser():
                         dest='sample',
                         help='SDSS Luminosity sample to analyze',
                         type=str,
-                        choices=['all', '19','20','21'],
+                        choices=['all', '19', '20', '21'],
                         default='19')
     ## SDSS Type
     parser.add_argument('-abopt',
@@ -185,24 +182,24 @@ def get_parser():
                         dest='nmin',
                         help='Minimum number of galaxies in a galaxy group',
                         type=int,
-                        choices=range(2,1000),
+                        choices=range(2, 1000),
                         metavar='[1-1000]',
                         default=2)
     ## Minimum of galaxies in a group
     parser.add_argument('-mass_factor',
                         dest='mass_factor',
                         help="""
-                        Factor by which to evaluate the distance to closest 
+                        Factor by which to evaluate the distance to closest
                         cluster""",
                         type=int,
-                        choices=range(2,100),
+                        choices=range(2, 100),
                         metavar='[2-100]',
                         default=10)
     ## Removing group for when determining density
     parser.add_argument('-remove_group',
                         dest='remove_group',
                         help="""
-                        Option for removing the group when calculating 
+                        Option for removing the group when calculating
                         densities at different radii""",
                         type=_str2bool,
                         default=True)
@@ -218,14 +215,14 @@ def get_parser():
                         help="""
                         Number of properties to predict. Default = 1""",
                         type=int,
-                        choices=range(1,4),
+                        choices=range(1, 4),
                         default=1)
-    ## Option for Shuffling dataset when separing 
+    ## Option for Shuffling dataset when separing
     ## `training` and `testing` sets
     parser.add_argument('-shuffle_opt',
                         dest='shuffle_opt',
                         help="""
-                        Option for whether or not to shuffle the data before 
+                        Option for whether or not to shuffle the data before
                         splitting.
                         """,
                         type=_str2bool,
@@ -245,9 +242,9 @@ def get_parser():
                         Option for which preprocessing of the data to use.
                         """,
                         type=str,
-                        choices=['min_max','standard','normalize', 'no', 'all'],
+                        choices=['min_max', 'standard', 'normalize', 'no'],
                         default='standard')
-    ## Option for which kind of separation of training/testing to use for the 
+    ## Option for which kind of separation of training/testing to use for the
     ## datasets.
     parser.add_argument('-test_train_opt',
                         dest='test_train_opt',
@@ -258,12 +255,12 @@ def get_parser():
                         type=str,
                         choices=['sample_frac', 'boxes_n', 'box_sample_frac'],
                         default='boxes_n')
-    ## Initial and final indices of the simulation boxes to use for the 
+    ## Initial and final indices of the simulation boxes to use for the
     ## testing and training datasets.
     parser.add_argument('-box_idx',
                         dest='box_idx',
                         help="""
-                        Initial and final indices of the simulation boxes to 
+                        Initial and final indices of the simulation boxes to
                         use for the `training` datasets.
                         And the index of the boxes used for `testing`.
                         Example: 0_4_5 >>> This will use from 0th to 4th box
@@ -274,14 +271,14 @@ def get_parser():
     parser.add_argument('-box_test',
                         dest='box_test',
                         help="""
-                        Index of the simulation box to use for the 
+                        Index of the simulation box to use for the
                         `training` and `testing` datasets.
-                        This index represents the simulation box, from which 
-                        both the `training` and `testing` datasets will be 
-                        produced. It used the `test_size` variable to 
-                        determine the fraction of the sample used for the 
+                        This index represents the simulation box, from which
+                        both the `training` and `testing` datasets will be
+                        produced. It used the `test_size` variable to
+                        determine the fraction of the sample used for the
                         `testing` dataset. Default : `0`.
-                        Example : 0 >> It used the 0th simulation box 
+                        Example : 0 >> It used the 0th simulation box
                         for training and testing.""",
                         type=int,
                         default=0)
@@ -296,14 +293,14 @@ def get_parser():
     ## Testing size for ML
     parser.add_argument('-test_size',
                         dest='test_size',
-                        help='Percentage size of the catalogue used for testing',
+                        help='Percentage size of the catalogue used for test',
                         type=_check_pos_val,
                         default=0.25)
     ## Option for using all features or just a few
     parser.add_argument('-n_feat_use',
                         dest='n_feat_use',
                         help="""
-                        Option for which features to use for the ML training 
+                        Option for which features to use for the ML training
                         dataset.
                         """,
                         choices=['all', 'sub'],
@@ -321,7 +318,7 @@ def get_parser():
                         type=_str2bool,
                         default=False)
     ## Verbose
-    parser.add_argument('-v','--verbose',
+    parser.add_argument('-v', '--verbose',
                         dest='verbose',
                         help='Option to print out project parameters',
                         type=_str2bool,
@@ -398,7 +395,7 @@ def df_value_modifier(df, name, param_dict):
 
 def get_analysis_params(param_dict):
     """
-    Parameters for the data pre-processing step, before training and 
+    Parameters for the data pre-processing step, before training and
     testing ML algorithms.
 
     Parameters
@@ -438,7 +435,7 @@ def get_analysis_params(param_dict):
                             ('seed'        , '-seed'        , 1         )])
     ##
     ## Converting to pandas DataFrame
-    colnames = ['Name','Flag','Value']
+    colnames = ['Name', 'Flag', 'Value']
     catl_feat_df = pd.DataFrame(catl_feat_arr, columns=colnames)
     ##
     ## Sorting out DataFrame by `name`
@@ -527,7 +524,7 @@ def get_analysis_params(param_dict):
                             ('seed'          , '-seed'          , 1         )])
     ##
     ## Converting to pandas DataFrame
-    colnames = ['Name','Flag','Value']
+    colnames = ['Name', 'Flag', 'Value']
     feat_proc_df = pd.DataFrame(feat_proc_arr, columns=colnames)
     ##
     ## Sorting out DataFrame by `name`
@@ -623,9 +620,9 @@ def get_exec_string(df_arr, param_dict):
     Parameters
     -----------
     df_arr : array-like
-        List of DataFrames that will be used to create the `main` string that 
+        List of DataFrames that will be used to create the `main` string that
         will get executed.
-    
+
     param_dict: python dictionary
         dictionary with project variables
 
@@ -655,7 +652,7 @@ def get_exec_string(df_arr, param_dict):
         catl_ii_str = 'python {0} '.format(catl_makefile_ii_path)
         for ii in range(df_ii.shape[0]):
             # Appending to string
-            catl_ii_str += ' {0} {1}'.format(    df_ii['Flag' ][ii],
+            catl_ii_str += ' {0} {1}'.format(    df_ii['Flag'][ii],
                                                 df_ii['Value'][ii])
         ## Appending a comma at the end
         catl_ii_str += '; '
@@ -714,7 +711,7 @@ def file_construction_and_execution(df_arr, param_dict):
 
     param_dict: python dictionary
         dictionary with project variables
-    
+
     """
     ##
     ## Getting today's date
@@ -788,7 +785,7 @@ def file_construction_and_execution(df_arr, param_dict):
 
 def main(args):
     """
-    Computes the analysis and 
+    Computes the analysis and
     """
     ## Reading all elements and converting to python dictionary
     param_dict = vars(args)
@@ -803,7 +800,7 @@ def main(args):
     file_construction_and_execution(df_arr, param_dict)
 
 # Main function
-if __name__=='__main__':
+if __name__ == '__main__':
     ## Input arguments
     args = get_parser()
     # Main Function
