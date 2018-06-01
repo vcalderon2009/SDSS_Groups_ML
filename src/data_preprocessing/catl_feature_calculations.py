@@ -51,7 +51,7 @@ import astropy.units     as u
 import astropy.table     as astro_table
 from   astropy.coordinates import SkyCoord
 from scipy.spatial import cKDTree
-from glob import glob
+from glob import glob, iglob
 
 
 ## Functions
@@ -1439,6 +1439,49 @@ def merging_df_save(merged_vac_filename, memb_group_pd, param_dict, proj_dict):
         print('{0} Saving `{1}`\n'.format(Prog_msg, merged_vac_filename))
     cfutils.File_Exists(merged_vac_filename)
 
+## Testing if `merged` file is complete, i.e. if there are missing 
+## files from any catalogue
+def test_df_merged_dir(param_dict, proj_dict, n_catls, ext='hdf5'):
+    """
+    Checks for the completeness of all catalogues
+
+    Parameters
+    ------------
+    param_dict : `dict`
+        Dictionary with `project` variables
+
+    proj_dict : `dict`
+        Dictionary with current and new paths to project directories
+
+    n_catls : `int`
+        Number of `expected` catalogues in the folder
+
+    ext : `str`, optional (default = 'hdf5')
+        File extension used when saving catalogues to files
+
+    Returns
+    ------------
+    param_dict : `dict`
+        Original dictionary with added key `merged_vac_save` On whether 
+        or not to create a new merged Value-Added catalogue.
+    """
+    file_msg = param_dict['Prog_msg']
+    ## List of catalogues
+    files_arr = cfutils.Index(proj_dict['merged_gal_dir'], '.{0}'.format(ext))
+    # Checking agains the expected number of files
+    if param_dict['remove_files']:
+        merged_vac_save = True
+    else:
+        if not (files_arr.size == n_catls):
+            merged_vac_save = False
+        else:
+            merged_vac_save = True
+    #
+    # Saving to dictionary
+    param_dict['merged_vac_save'] = merged_vac_save
+
+    return param_dict
+
 ## Merging all Datasets into a single Dataset
 def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
     """
@@ -1483,14 +1526,9 @@ def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
     if os.path.exists(filepath):
         if param_dict['remove_files']:
             os.remove(filepath)
-            merge_opt = True
-        else:
-            merge_opt = False
-    else:
-        merge_opt = False
     #
     # Only running if necessary
-    if merge_opt:
+    if param_dict['merged_vac_save']:
         ## Concatenating DataFrames
         group_id_tot = 0
         gals_id_tot  = 0
@@ -1604,6 +1642,9 @@ def main(args):
                                         clf_seed=param_dict['clf_seed'],
                                         return_len=True,
                                         print_filedir=False )
+    #
+    # Checking if a new merged VAC is needed
+    param_dict = test_df_merged_dir(param_dict, proj_dict, n_catls)
     ##
     ## Changing `prog_bar` to `False`
     param_dict['prog_bar'] = False
