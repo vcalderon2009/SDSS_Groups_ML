@@ -235,11 +235,23 @@ def add_to_dict(param_dict):
     ### URL to download catalogues
     url_catl = 'http://lss.phy.vanderbilt.edu/groups/data_vc/DR7/sdss_catalogues/'
     cweb.url_checker(url_catl)
+    ##
+    ## Check to see if there is a `local` copy of the catalogues
+    try:
+        sdss_catl_path = os.environ['sdss_catl_path']
+        # Checking if directory exists
+        if os.path.exists(sdss_catl_path):
+            download_catl_opt = False
+        else:
+            download_catl_opt = True
+    except KeyError:
+        download_catl_opt = True
     ###
     ### To dictionary
-    param_dict['sample_s' ] = sample_s
-    param_dict['sample_Mr'] = sample_Mr
-    param_dict['url_catl' ] = url_catl
+    param_dict['sample_s'         ] = sample_s
+    param_dict['sample_Mr'        ] = sample_Mr
+    param_dict['url_catl'         ] = url_catl
+    param_dict['download_catl_opt'] = download_catl_opt
 
     return param_dict
 
@@ -451,19 +463,22 @@ def main(args):
     ## Program message
     Prog_msg = param_dict['Prog_msg']
     ##
-    ## Creating Folder Structure
-    # proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths(__file__))
-    proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths('./'))
-    ##
-    ## Printing out project variables
-    print('\n'+50*'='+'\n')
-    for key, key_val in sorted(param_dict.items()):
-        if key !='Prog_msg':
-            print('{0} `{1}`: {2}'.format(Prog_msg, key, key_val))
-    print('\n'+50*'='+'\n')
-    ##
-    ## Downloading necessary data
-    download_directory(param_dict, proj_dict)
+    ## Checking if there is a local version of the catalogues
+    if param_dict['download_catl_opt']:
+        ##
+        ## Creating Folder Structure
+        # proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths(__file__))
+        proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths('./'))
+        ##
+        ## Printing out project variables
+        print('\n'+50*'='+'\n')
+        for key, key_val in sorted(param_dict.items()):
+            if key !='Prog_msg':
+                print('{0} `{1}`: {2}'.format(Prog_msg, key, key_val))
+        print('\n'+50*'='+'\n')
+        ##
+        ## Downloading necessary data
+        download_directory(param_dict, proj_dict)
 
 # Main function
 if __name__=='__main__':
