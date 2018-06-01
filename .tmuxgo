@@ -2,9 +2,12 @@
 SESSION=`basename $PWD`
 ENVNAME='sdss_groups_ml'
 
+# Creating new session
 tmux -2 new-session -d -s $SESSION `cd $PWD`
 
+# Renaming window
 tmux rename-window -t $SESSION:0 main
+# Splitting panes and windows
 tmux split-window -v
 tmux select-pane -t 0
 tmux resize-pane -D 15
@@ -12,11 +15,16 @@ tmux select-pane -t 1
 tmux split-window -h
 tmux select-pane -t 2
 tmux resize-pane -L 10
+# Sending commands
 tmux send -t $SESSION:0.0 "cd $PWD; source activate $ENVNAME; clear; cd ./src" C-m
 tmux send -t $SESSION:0.1 "cd $PWD; source activate $ENVNAME; clear; htop" C-m
 tmux send -t $SESSION:0.2 "cd $PWD; source activate $ENVNAME; clear; cd ./data" C-m
 #
-# Selecting which window to start start at
+# Creating new windows
+tmux new-window -t $SESSION:1 -n 'misc'
+tmux send -t $SESSION:1.0 "cd $PWD; source activate $ENVNAME; clear;"
+#
+# Selecting which window to start at
 tmux select-window -t $SESSION:0
 tmux select-pane -t 0
 tmux -2 attach -t $SESSION
