@@ -70,9 +70,16 @@ else
 HAS_CONDA=True
 endif
 
-#################################################################################
-# COMMANDS                                                                      #
-#################################################################################
+##############################################################################
+# VARIABLES FOR COMMANDS                                                     #
+##############################################################################
+src_pip_install:=pip install -e .
+
+src_pip_uninstall:= pip uninstall --yes src
+
+##############################################################################
+# COMMANDS                                                                   #
+##############################################################################
 
 ## Deletes all build, test, coverage, and Python artifacts
 clean: clean-build clean-pyc clean-test
@@ -114,6 +121,7 @@ ifeq (True,$(HAS_CONDA))
 		# conda config --add channels conda-forge
 		conda env create -f $(ENVIRONMENT_FILE)
 endif
+	$(src_pip_install)
 
 ## Update python interpreter environment
 update_environment:
@@ -122,6 +130,8 @@ ifeq (True,$(HAS_CONDA))
 		conda env update -f $(ENVIRONMENT_FILE)
 		pip install --upgrade cosmo-utils
 endif
+	$(src_pip_uninstall)
+	$(src_pip_install)
 
 ## Delete python interpreter environment
 remove_environment:
@@ -129,6 +139,20 @@ ifeq (True,$(HAS_CONDA))
 		@echo ">>> Detected conda, removing conda environment"
 		conda env remove -n $(ENVIRONMENT_NAME)
 endif
+	$(src_pip_uninstall)
+
+## Import local source directory package
+src_env:
+	$(src_pip_install)
+
+## Updated local source directory package
+src_update:
+	$(src_pip_uninstall)
+	$(src_pip_install)
+
+## Remove local source directory package
+src_remove:
+	$(src_pip_uninstall)
 
 #################################################################################
 # PROJECT RULES                                                                 #

@@ -48,5 +48,4 @@ setup(
     author_email=AUTHOR_EMAIL,
     license=LICENSE,
     url=URL,
-    long_description=LONG_DESCRIPTION
-    )
+    long_description=LONG_DESCRIPTION)
