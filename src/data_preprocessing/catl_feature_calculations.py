@@ -1455,6 +1455,7 @@ def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
     ext: string, optional (default = 'hdf5')
         file extension used when saving catalogues to files
     """
+    file_msg = param_dict['Prog_msg']
     ## List of catalogues
     files_arr = cfutils.Index(proj_dict['merged_gal_dir'], '.{0}'.format(ext))
     file_key  = '/gals_groups'
@@ -1475,27 +1476,43 @@ def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
     file_str += 'ctype_{6}_cosmo_{7}_nmin_{8}_massf_{9}_perf_{10}_'
     file_str += 'merged_vac_all.{11}'
     filename  = file_str.format(*file_str_arr)
-    ## Concatenating DataFrames
-    group_id_tot = 0
-    gals_id_tot  = 0
-    ## Looping over catalogues
-    tq_msg = 'Catl Merging: '
-    for catl_ii in tqdm(range(files_arr.size), desc=tq_msg):
-        catl_pd_ii = cfreaders.read_hdf5_file_to_pandas_DF(files_arr[catl_ii])
-        if catl_ii == 0:
-            catl_pd_main = catl_pd_ii.copy()
-        else:
-            catl_pd_ii.loc[:,group_key] += group_id_tot
-            catl_pd_main = pd.concat([catl_pd_main, catl_pd_ii], 
-                ignore_index=True)
-        ## Increasing number of groups
-        group_id_tot += num.unique(catl_pd_ii[group_key]).size
     ## Saving to file
     filepath = os.path.join(proj_dict['merged_gal_all_dir'],
                             filename)
-    ## Saving to file
-    cfreaders.pandas_df_to_hdf5_file(catl_pd_main, filepath, key=file_key)
-    cfutils.File_Exists(filepath)
+    # Checking if file exists
+    if os.path.exists(filepath):
+        if param_dict['remove_files']:
+            os.remove(filepath)
+            merge_opt = True
+        else:
+            merge_opt = False
+    else:
+        merge_opt = False
+    #
+    # Only running if necessary
+    if merge_opt:
+        ## Concatenating DataFrames
+        group_id_tot = 0
+        gals_id_tot  = 0
+        ## Looping over catalogues
+        tq_msg = 'Catl Merging: '
+        for catl_ii in tqdm(range(files_arr.size), desc=tq_msg):
+            catl_pd_ii = cfreaders.read_hdf5_file_to_pandas_DF(files_arr[catl_ii])
+            if catl_ii == 0:
+                catl_pd_main = catl_pd_ii.copy()
+            else:
+                catl_pd_ii.loc[:,group_key] += group_id_tot
+                catl_pd_main = pd.concat([catl_pd_main, catl_pd_ii], 
+                    ignore_index=True)
+            ## Increasing number of groups
+            group_id_tot += num.unique(catl_pd_ii[group_key]).size
+        ## Saving to file
+        cfreaders.pandas_df_to_hdf5_file(catl_pd_main, filepath, key=file_key)
+        cfutils.File_Exists(filepath)
+    else:
+        msg = '{0} `Merged catalogue` found in : {1}'.format(file_msg,
+            filepath)
+        print(msg)
 
 ## --------- Multiprocessing ------------##
 
