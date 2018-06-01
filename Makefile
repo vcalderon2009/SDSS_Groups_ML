@@ -24,7 +24,7 @@ DATA_CATL_DIR      = $(DATA_DIR)/external/SDSS/data
 # INPUT VARIABLES
 # -- General
 CPU_FRAC       = 0.75
-REMOVE_FILES   = "True"
+REMOVE_FILES   = "False"
 HOD_N          = 0
 HALOTYPE       = 'so'
 CLF_METHOD     = 1
