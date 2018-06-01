@@ -1472,7 +1472,7 @@ def test_df_merged_dir(param_dict, proj_dict, n_catls, ext='hdf5'):
     if param_dict['remove_files']:
         merged_vac_save = True
     else:
-        if not (files_arr.size == n_catls):
+        if (files_arr.size == n_catls):
             merged_vac_save = False
         else:
             merged_vac_save = True
