@@ -5,7 +5,6 @@
 # Created      : DATE
 # Last Modified: DATE
 # Vanderbilt University
-from __future__ import print_function, division, absolute_import
 __author__     = ['Victor Calderon']
 __copyright__  = ["Copyright 2018 Victor Calderon, "]
 __email__      = ['victor.calderon@vanderbilt.edu']
