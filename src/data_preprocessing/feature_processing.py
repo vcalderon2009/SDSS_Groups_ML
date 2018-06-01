@@ -29,6 +29,7 @@ import pickle
 # Extra-modules
 from glob import glob
 import argparse
+from datetime import datetime
 from argparse import ArgumentParser
 from argparse import HelpFormatter
 from operator import attrgetter
@@ -966,6 +967,8 @@ def main():
     Selects the features to analyze and saves the outputs for creating the
     training and testing datasets.
     """
+    ## Starting time
+    start_time = datetime.now()
     ## Reading all elements and converting to python dictionary
     param_dict = vars(args)
     ## Checking for correct input
@@ -1004,9 +1007,23 @@ def main():
                                             test_size=param_dict['test_size'],
                                             pre_opt=param_dict['pre_opt'],
                                             test_train_opt=param_dict['test_train_opt'])
+        ##
+        ## Saving dictionaries and more to file
+        train_test_save(param_dict, train_dict, test_dict)
+    else:
+        ##
+        ## Output message
+        assert(os.path.exists(param_dict['filepath']))
+        msg = '{0} Output file: {1}'.format(Prog_msg, param_dict['filepath'])
+        print(msg)
     ##
-    ## Saving dictionaries and more
-    train_test_save(param_dict, train_dict, test_dict)
+    ## End time for running the catalogues
+    end_time   = datetime.now()
+    total_time = end_time - start_time
+    print('{0} Total Time taken (Create): {1}'.format(Prog_msg, total_time))
+    ##
+    ## Making the `param_dict` None
+    param_dict = None
 
 # Main function
 if __name__ == '__main__':
