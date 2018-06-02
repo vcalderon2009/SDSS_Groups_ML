@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Victor Calderon
-# Created      : DATE
-# Last Modified: DATE
+# Created      : 2018-06-02
+# Last Modified: 2018-06-02
 # Vanderbilt University
 __author__     = ['Victor Calderon']
 __copyright__  = ["Copyright 2018 Victor Calderon, "]
