@@ -349,7 +349,7 @@ class ReadML(object):
             if not (idx <= (len(files_arr) - 1)):
                 msg = '`idx` ({0}) is larger than the number of files '
                 msg += 'in the directory ({1}).'
-                msg = msg.format(idx, len(idx) - 1)
+                msg = msg.format(idx, len(files_arr) - 1)
                 raise ValueError(msg)
             # Reading in file and converting it to DataFrame
             merged_feat_path = files_arr[idx]
