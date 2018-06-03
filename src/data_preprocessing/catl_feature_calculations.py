@@ -229,7 +229,7 @@ def get_parser():
                         dest='dens_calc',
                         help='Option for calculating densities.',
                         type=_str2bool,
-                        default=True)
+                        default=False)
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',

@@ -32,9 +32,9 @@ import pickle
 
 class ReadML(object):
     """
-    Reads in the training and testing dictionaries for a given
-    set of variables. This is mainly used for reading in the output
-    of the `data preprocessing`.
+    Reads in the multiple outputs of the ML data preprocessing and 
+    analysis steps for this project. This class is mainly for handling
+    the aspects of reading/writing output files for this project.
     """
     def __init__(self, **kwargs):
         """
@@ -183,11 +183,14 @@ class ReadML(object):
         self.kf_splits      = kwargs.get('kdf_splits', 3)
         self.hidden_layers  = kwargs.get('hidden_layers', 100)
         self.unit_layer     = kwargs.get('unit_layer', 3)
+        self.score_method   = kwargs.get('score_method', 'threshold')
+        self.unit_layer     = kwargs.get('unit_layer', 3)
         #
         # Extra variables
         self.sample_Mr      = 'Mr{0}'.format(self.sample)
         self.sample_s       = str(self.sample)
-        self.proj_dict      = cwpaths.cookiecutter_paths('./')
+        self.proj_dict      = cwpaths.cookiecutter_paths(__file__)
+        # self.proj_dict      = cwpaths.cookiecutter_paths('./')
 
     def catl_prefix_path(self):
         """

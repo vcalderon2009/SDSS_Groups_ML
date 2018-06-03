@@ -260,7 +260,8 @@ def get_parser():
                         both the `training` and `testing` datasets will be 
                         produced. It used the `test_size` variable to 
                         determine the fraction of the sample used for the 
-                        `testing` dataset. Default : `0`.
+                        `testing` dataset. This variable is used only when 
+                        ``test_train_opt == 'box_sample_frac'``. Default : `0`.
                         Example : 0 >> It used the 0th simulation box 
                         for training and testing.""",
                         type=int,
@@ -293,7 +294,7 @@ def get_parser():
                         dest='dens_calc',
                         help='Option for calculating densities.',
                         type=_str2bool,
-                        default=True)
+                        default=False)
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
