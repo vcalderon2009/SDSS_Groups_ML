@@ -542,15 +542,12 @@ def main(args):
     prog_msg = param_dict['Prog_msg']
     #
     # Creating instance of `ReadML` with the input parameters
-    ml_args               = ReadML(param_dict)
-    param_dict['ml_args'] = ml_args
+    param_dict['ml_args'] = ReadML(**param_dict)
     ##
     ## Creating Folder Structure
     # proj_dict = cwpaths.cookiecutter_paths(__file__)
     proj_dict = cwpaths.cookiecutter_paths('./')
     proj_dict = directory_skeleton(param_dict, proj_dict)
-    # proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths(__file__))
-    proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths('./'))
     ##
     ## Printing out project variables
     print('\n'+50*'='+'\n')
