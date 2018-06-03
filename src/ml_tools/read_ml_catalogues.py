@@ -12,7 +12,7 @@ __email__      = ['victor.calderon@vanderbilt.edu']
 __maintainer__ = ['Victor Calderon']
 __all__        = ["ReadML"]
 """
-Utilities for reading in the ML outputs for this project
+Utilities for reading in the ML outputs for this project.
 """
 # Importing Modules
 from cosmo_utils       import mock_catalogues as cm
@@ -20,6 +20,7 @@ from cosmo_utils       import utils           as cu
 from cosmo_utils.utils import file_utils      as cfutils
 from cosmo_utils.utils import file_readers    as cfreaders
 from cosmo_utils.utils import work_paths      as cwpaths
+from cosmo_utils.ml    import ml_utils        as cmlu
 from cosmo_utils.mock_catalogues import catls_utils as cmcu
 
 import numpy as num
@@ -181,10 +182,8 @@ class ReadML(object):
         self.seed           = kwargs.get('seed', 1)
         # Extra variables
         self.sample_Mr      = 'Mr{0}'.format(self.sample)
+        self.sample_s       = str(self.sample)
         self.proj_dict      = cwpaths.cookiecutter_paths('./')
-
-    def __iter__(self):
-        return self
 
     def catl_prefix_path(self):
         """
@@ -410,8 +409,8 @@ class ReadML(object):
                             self.sample_frac,
                             self.dens_calc]
             # Main string
-            feat_proc_pre_str += '{0}_testsize_{1}_samplefrac_{2}_dens_{3}'
-            feat_proc_pre_str  = feat_proc_pre_str.format(*file_str_arr)
+            feat_proc_pre_str = '{0}_testsize_{1}_samplefrac_{2}_dens_{3}'
+            feat_proc_pre_str = feat_proc_pre_str.format(*file_str_arr)
         # `boxes_n`
         if (self.test_train_opt == 'boxes_n'):
             # String array
@@ -492,7 +491,7 @@ class ReadML(object):
 
         return catl_feat_filepath
 
-    def extract_feat_file(self, ext='p', return_path=False):
+    def extract_feat_file_info(self, ext='p', return_path=False):
         """
         Extracts the information from the `features` catalogues, and returns
         a set of dictionaries.
@@ -540,3 +539,202 @@ class ReadML(object):
             return train_dict, test_dict, catl_feat_filepath
         else:
             return train_dict, test_dict
+
+    def _predicted_cols(self):
+        """
+        Determines the list of `predicted` columsn to use for the ML analysis.
+
+        Returns
+        ---------
+        pred_cols : `list`
+            List of columns used for the `prediction` in the ML analysis.
+        """
+        # Choosing columns
+        if (self.n_predict == 1):
+            pred_cols = ['M_h']
+        elif (self.n_predict == 2):
+            pred_cols = ['M_h', 'galtype']
+        # Converting to numpy array
+
+        return pred_cols
+
+    def _feature_cols(self):
+        """
+        Determines the list of features used for the ML analysis
+
+        Returns
+        --------
+        features_cols : `list`
+            List of feature names
+        """
+        # Choosing names for the different features
+        if (self.n_feat_use == 'all'):
+            # Opening up a catalogue
+            catl_pd = self.extract_merged_catl_info()
+            # List of columns in `catl_pd`
+            catl_cols = catl_pd.columns.values
+            # List of predicted columns
+            pred_cols = self._predicted_cols()
+            # List of features used
+            features_cols = [s for s in catl_cols if s not in pred_cols]
+        # A subsample of columns
+        if (self.n_feat_use == 'sub'):
+            features_cols = [   'M_r',
+                                'GG_mr_brightest',
+                                'g_r',
+                                'GG_rproj',
+                                'GG_sigma_v',
+                                'GG_M_r',
+                                'GG_ngals',
+                                'GG_M_group',
+                                'GG_mdyn_rproj']
+
+        return features_cols
+
+    def extract_trad_masses(self, mass_opt='ham', score_method='perc',
+        threshold=0.1, perc=0.9, return_score=False, return_frac_diff=False):
+        """
+        Extracts the `training` and `testing` datasets for the
+        traditional methods of estimating masses.
+
+        Parameters
+        -----------
+        mass_opt : {'ham', 'dyn'} `str`, optional
+            Option for which kind of `estimated` mass to render the
+            `training` and `testing` dictionary.
+
+        score_method : {'perc', 'threshold', 'r2'} `str`, optional
+            Type of scoring to use when determining how well an algorithm
+            is performing. This variable is set to `perc` by default.
+
+            Options:
+                - 'perc' : Use percentage and rank-ordering of the values
+                - 'threshold' : Score based on diffs of `threshold` or less from true value.
+                - 'r2': R-squared statistic for error calcuation.
+
+        threshold : `float`, optional
+            Value to use when calculating error within some `threshold` value
+            from the truth. This variable is set to `0.1` by default.
+
+        perc : `float`, optional
+            Value used when determining score within some `perc`
+            percentile. The range for `perc` is [0, 1]. This variable
+            is set to `0.9` by default.
+
+        return_score : `bool`, optional
+            If True, the function returns a `score` for the given
+            `predicted` array. This variable is set to `False` by default.
+
+        return_frac_diff : `bool`, optional
+            If True, the function returns an array of the fractional
+            differences between the `predicted` array and the `true`
+            array. This variable is set to `False` by default.
+
+        Returns
+        ---------
+        pred_mass_arr : `numpy.ndarray`
+            Array with the estimated `mass_opt` mass.
+
+        true_mhalo_arr : `numpy.ndarray`
+            Array with the `true` halo mass.
+
+        frac_diff_arr : `numpy.ndarray`
+            Array of the fractional difference between `predicted` and
+            `true` arrays. This array is only returned when
+            ``return_score == True``.
+
+        score : `numpy.ndarray`, optional
+            Array with the overall score. This value is returned only
+            when ``return_score == True``.
+        """
+        # Check for inputs
+
+        # List of features
+        feat_cols = num.array(self._feature_cols())
+        pred_cols = num.array(self._predicted_cols())
+        # Extracting `training` and `testing` dictionaries from main catalogue
+        train_dict, test_dict = self.extract_feat_file_info()
+        # Dictionary with feature columsn for each option of `mass_opt`
+        mass_opt_dict = {'ham': 'GG_M_group', 'dyn': 'GG_mdyn_rproj'}
+        #
+        # Array for the `estimated` mass for the given `mass_opt` option.
+        if (len(feat_cols) == 1):
+            if (mass_opt_dict[mass_opt] in feat_cols):
+                # Array of estimated mass
+                pred_mass_arr = train_dict['X_train_ns']
+            else:
+                msg = '`{0}` was not found in the list of features!'.format(
+                    mass_opt[mass_opt])
+                raise ValueError(msg)
+        else:
+            if (mass_opt_dict[mass_opt] in feat_cols):
+                # Index of the mass string
+                mass_idx = num.where(feat_cols == mass_opt_dict[mass_opt])[0]
+                # Array of estimated mass
+                pred_mass_arr = train_dict['X_train_ns'].T[mass_idx].flatten()
+            else:
+                msg = '`{0}` was not found in the list of features!'.format(
+                    mass_opt[mass_opt])
+                raise ValueError(msg)
+        #
+        # Array for the `true` mass, i.e. Halo mass
+        if ((self.n_predict == 1) and ('M_h' in pred_cols)):
+            # Array of `true` halo mass
+            true_mhalo_arr = train_dict['Y_train_ns']
+        elif ((self.n_predict > 1) and ('M_h' in pred_cols)):
+            # `True` mass Index
+            true_mhalo_idx = num.where(pred_cols == 'M_h')[0]
+            # `True` mass array
+            true_mhalo_arr = train_dict['Y_train_ns'].T[true_mhalo_idx].flatten()
+        elif ('M_h' not in pred_cols):
+            msg = '`M_h` (True mass) was not part of the predicted values! '
+            msg += 'The predicted values were: ({1})'
+            msg = msg.format(pred_cols)
+            raise ValueError(msg)
+        # Return object list
+        return_obj_list = [pred_mass_arr, true_mhalo_arr]
+        ##
+        ## Fractional Difference
+        if return_frac_diff:
+            # Calculating fractional difference
+            frac_diff_arr  = 100 * (pred_mass_arr - true_mhalo_arr)
+            frac_diff_arr /= true_mhalo_arr
+            # Appending to return_obj_list`
+            return_obj_list.append(frac_diff_arr)
+        ##
+        ## Score
+        if return_score:
+            # Computing general score
+            score = cmlu.scoring_methods(true_mhalo_arr,
+                                        pred_arr=pred_mass_arr,
+                                        score_method=score_method,
+                                        threshold=threshold,
+                                        perc=perc)
+            # Appending to return_obj_list`
+            return_obj_list.append(score)
+
+        return return_obj_list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
