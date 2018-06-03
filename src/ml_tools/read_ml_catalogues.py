@@ -180,6 +180,10 @@ class ReadML(object):
         self.dens_calc      = kwargs.get('dens_calc', False)
         self.perf_opt       = kwargs.get('perf_opt', False)
         self.seed           = kwargs.get('seed', 1)
+        self.kf_splits      = kwargs.get('kdf_splits', 3)
+        self.hidden_layers  = kwargs.get('hidden_layers', 100)
+        self.unit_layer     = kwargs.get('unit_layer', 3)
+        #
         # Extra variables
         self.sample_Mr      = 'Mr{0}'.format(self.sample)
         self.sample_s       = str(self.sample)
@@ -209,7 +213,7 @@ class ReadML(object):
 
         return catl_pre_path
 
-    def catl_merged_dir(self, opt='catl'):
+    def catl_merged_dir(self, opt='catl', check_exist=True):
         """
         Directory for the `merged` catalogues with the features for the
         ML analysis.
@@ -222,6 +226,10 @@ class ReadML(object):
             Options:
                 - 'catls' : Directory of the individuals merged catls
                 - 'all' : Directory of all the catalogues combined.
+
+        check_exist : `bool`, optional
+            If `True`, it checks for whether or not the file exists.
+            This variable is set to `True` by default.
 
         Returns
         ------------
@@ -247,10 +255,11 @@ class ReadML(object):
                                             catl_pre_path,
                                             'merged_vac_combined')
         # Checking that folders exist
-        if not (os.path.exists(merged_feat_dir)):
-            msg = '`merged_feat_dir` ({0}) does not exist!'.format(
-                merged_feat_dir)
-            raise FileNotFoundError(msg)
+        if check_exist:
+            if not (os.path.exists(merged_feat_dir)):
+                msg = '`merged_feat_dir` ({0}) does not exist!'.format(
+                    merged_feat_dir)
+                raise FileNotFoundError(msg)
 
         return merged_feat_dir
 
@@ -430,9 +439,15 @@ class ReadML(object):
 
         return feat_proc_pre_str
 
-    def catl_feat_dir(self):
+    def catl_feat_dir(self, check_exist=True):
         """
         Directory for the `features` dictionaries for the ML analysic.
+
+        Parameters
+        -----------
+        check_exist : `bool`, optional
+            If `True`, it checks for whether or not the file exists.
+            This variable is set to `True` by default.
 
         Returns
         --------
@@ -448,9 +463,11 @@ class ReadML(object):
                                         catl_pre_path,
                                         'feat_processing')
         # Check for its existence
-        if not (os.path.exists(catl_feat_dir)):
-            msg = '`catl_feat_dir` ({0}) was not found!'.format(catl_feat_dir)
-            raise FileNotFoundError(msg)
+        if check_exist:
+            if not (os.path.exists(catl_feat_dir)):
+                msg = '`catl_feat_dir` ({0}) was not found!'.format(
+                    catl_feat_dir)
+                raise FileNotFoundError(msg)
 
         return catl_feat_dir
 
@@ -466,8 +483,8 @@ class ReadML(object):
             `p` by default.
 
         check_exist : `bool`, optional
-            If `True`, it check for whether the file exists or not.
-            This variable is set to `False`.
+            If `True`, it checks for whether or not the file exists.
+            This variable is set to `True` by default.
 
         Returns
         ---------
@@ -506,8 +523,8 @@ class ReadML(object):
             If True, the function also returns the path to the file being read.
 
         check_exist : `bool`, optional
-            If `True`, it check for whether the file exists or not.
-            This variable is set to `False`.
+            If `True`, it checks for whether or not the file exists.
+            This variable is set to `False` by default.
 
         Returns
         ---------
@@ -715,6 +732,42 @@ class ReadML(object):
 
         return return_obj_list
 
+    def main_catl_train_dir(self, check_exist=True):
+        """
+        Directory for the main training of the ML algorithms. This directory
+        is mainly for the training and testing of the algorithms.
+
+        Parameters
+        -----------
+        check_exist : `bool`, optional
+            If `True`, it checks for whether or not the file exists.
+            This variable is set to `True` by default.
+
+        Returns
+        --------
+        main_catl_train_dir : `str`
+            Output directory for the main ML analysis.
+        """
+        # Check input parameters
+        if not (isinstance(check_exist, bool)):
+            msg = '`check_exist` ({0}) must be of `boolean` type!'.format(
+                type(check_exist))
+            raise TypeError(msg)
+        # Catalogue Prefix
+        catl_prefix_path = self.catl_prefix_path()
+        # Output directory
+        main_catl_train_dir = os.path.join( self.proj_dict['int_dir'],
+                                            'train_test_dir',
+                                            catl_prefix_path)
+        # Check that folder exists
+        if check_exist:
+            if not (os.path.exists(main_catl_train_dir)):
+                msg = '`main_catl_train_dir` ({1}) was not found! '
+                msg += 'Check your path!'
+                msg = msg.format(main_catl_train_dir)
+                raise FileNotFoundError(msg)
+
+        return main_catl_train_dir
 
 
 
