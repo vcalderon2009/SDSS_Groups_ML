@@ -617,8 +617,8 @@ def directory_skeleton(param_dict, proj_dict):
     """
     #
     # Main output file for this script
-    out_dir = param_dict['ml_args'].catl_train_alg_comp_dir(check_exist=False,
-                create_dir=False)
+    out_dir = param_dict['ml_args'].catl_train_alg_comp_dir(check_exist=True,
+                create_dir=True)
     #
     # Adding to `proj_dict`
     proj_dict['out_dir'] = out_dir
@@ -1127,7 +1127,7 @@ def main(args):
     ##
     ## Creating Folder Structure
     # proj_dict = cwpaths.cookiecutter_paths(__file__)
-    proj_dict = cwpaths.cookiecutter_paths('./')
+    proj_dict = param_dict['ml_args'].proj_dict
     proj_dict = directory_skeleton(param_dict, proj_dict)
     ##
     ## Printing out project variables

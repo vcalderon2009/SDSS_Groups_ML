@@ -1005,31 +1005,3 @@ class ReadML(object):
             msg = '`obj` ({0}) must be of length `1`'.format(len(obj_arr))
 
         return models_dict
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
