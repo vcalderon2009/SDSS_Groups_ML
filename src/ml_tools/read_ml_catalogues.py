@@ -197,7 +197,7 @@ class ReadML(object):
                 - 'fixed' : Uses a fixed set of bins, evenly spaced by 0.4 dex.
                 - 'nbins' : Splits the data into `2` bins, for low- and high-mass systems.
 
-        ml_analysis : {'hod_fixed', 'dv_fixed', hod_dv_fixed}, `str`, optional
+        ml_analysis : {'hod_fixed', 'dv_fixed', 'hod_dv_fixed'}, `str`, optional
             Type of analysis to perform. This variable is set to 
             `hod_dv_fixed`.
 

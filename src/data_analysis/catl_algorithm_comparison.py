@@ -311,7 +311,7 @@ def get_parser():
     parser.add_argument('-kf_splits',
                         dest='kf_splits',
                         help="""
-                        Total number of K-folds to perform. Must be larger 
+                        Total number of K-folds to perform. Must be larger
                         than 2""",
                         type=int,
                         default=3)
@@ -320,7 +320,7 @@ def get_parser():
                         dest='hidden_layers',
                         help='Number of hidden layers to use for neural network',
                         type=int,
-                        default=1000)
+                        default=3)
     ## Option for determining scoring
     parser.add_argument('-score_method',
                         dest='score_method',
@@ -333,17 +333,41 @@ def get_parser():
     ## Threshold value used for when `score_method == 'threshold'`
     parser.add_argument('-threshold',
                         dest='threshold',
-                        help="""Threshold value used for when 
+                        help="""Threshold value used for when
                         `score_method == 'threshold'`""",
                         type=float,
                         default=0.1)
     ## Percentage value used for when `score_method == 'perc'`
     parser.add_argument('-perc_val',
                         dest='perc_val',
-                        help="""Percentage value used for when 
+                        help="""Percentage value used for when
                         `score_method == 'perc'`""",
                         type=float,
                         default=0.68)
+    ## Type of subsample/binning for the estimated group masses
+    parser.add_argument('-sample_method',
+                        dest='mass_sample_method',
+                        help="""
+                        Method for binning or sumsample the array of the
+                        estimated group mass.
+                        """,
+                        type=str,
+                        choices=['binning', 'subsample', 'weights'],
+                        default='binning')
+    ## Type of binning to use
+    parser.add_argument('-bin_val',
+                        dest='bin_val',
+                        help='Type of binning to use for the mass',
+                        type=str,
+                        choices=['fixed', 'nbins'],
+                        default='fixed')
+    ## Type of analysis to perform.
+    parser.add_argument('-ml_analysis',
+                        dest='ml_analysis',
+                        help='Type of analysis to perform.',
+                        type=str,
+                        choices=['hod_fixed', 'dv_fixed', 'hod_dv_fixed'],
+                        default='hod_dv_fixed')
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -354,7 +378,7 @@ def get_parser():
     parser.add_argument('-remove',
                         dest='remove_files',
                         help="""
-                        Delete files from previous analyses with same 
+                        Delete files from previous analyses with same
                         parameters
                         """,
                         type=_str2bool,
@@ -504,6 +528,52 @@ def is_tool(name):
 
     return which(name) is not None
 
+def add_to_dict(param_dict):
+    """
+    Aggregates extra variables to dictionary
+
+    Parameters
+    ----------
+    param_dict: python dictionary
+        dictionary with input parameters and values
+
+    Returns
+    ----------
+    param_dict: python dictionary
+        dictionary with old and new values added
+    """
+    ### Sample - Int
+    sample_s = str(param_dict['sample'])
+    ### Sample - Mr
+    sample_Mr = 'Mr{0}'.format(param_dict['sample'])
+    ## Sample volume
+    # Units (Mpc/h)**3
+    volume_sample = {   '18': 37820 / 0.01396,
+                        '19': 6046016.60311  ,
+                        '20': 2.40481e7      ,
+                        '21': 8.79151e7      }
+    vol_mr        = volume_sample[sample_s]
+    ##
+    ## Choice of Centrals and Satellites
+    cens = int(1)
+    sats = int(0)
+    ## Other constants
+    # Speed of light - In km/s
+    speed_c = ac.c.to(u.km/u.s).value
+
+    ##
+    ## Saving to `param_dict`
+    param_dict['sample_s'      ] = sample_s
+    param_dict['sample_Mr'     ] = sample_Mr
+    param_dict['vol_mr'        ] = vol_mr
+    param_dict['cens'          ] = cens
+    param_dict['sats'          ] = sats
+    param_dict['speed_c'       ] = speed_c
+    # param_dict['catl_input_str'] = catl_input_str
+    # param_dict['catl_pre_str'  ] = catl_pre_str
+
+    return param_dict
+
 def directory_skeleton(param_dict, proj_dict):
     """
     Creates the directory skeleton for the current project
@@ -522,7 +592,19 @@ def directory_skeleton(param_dict, proj_dict):
     proj_dict: python dictionary
         Dictionary with current and new paths to project directories
     """
-    ## In here, you define the directories of your project
+    # Output directory for this analysis
+    main_catl_train_dir = param_dict['ml_args'].main_catl_train_dir(
+                            check_exist=False)
+    #
+    # Main output file for this script
+    out_dir = os.path.join( main_catl_train_dir,
+                            'ml_alg_comparison')
+    #
+    # Creating paths
+    cfutils.Path_Folder(out_dir)
+    #
+    # Adding to `proj_dict`
+    proj_dict['out_dir'] = out_dir
 
     return proj_dict
 
