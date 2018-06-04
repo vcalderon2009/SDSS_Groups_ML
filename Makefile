@@ -195,18 +195,19 @@ data_preprocess: download_dataset
 ml_analysis:
 	@python $(SRC_ANALYSIS_DIR)/data_analysis_main.py \
 	-hod_model_n $(HOD_N) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) \
-	-dv $(DV) -clf_seed $(CLF_SEED) -sample $(SAMPLE) -abopt $(CATL_TYPE) \
+	-clf_seed $(CLF_SEED) -dv $(DV) -sample $(SAMPLE) -abopt $(CATL_TYPE) \
 	-cosmo $(COSMO) -nmin $(NMIN) -mass_factor $(MASS_FACTOR) \
 	-n_predict $(N_PREDICT) -shuffle_opt $(SHUFFLE_OPT) \
 	-dropna_opt $(DROP_NA) -pre_opt $(PRE_OPT) \
-	-test_train_opt $(TEST_TRAIN_OPT) -box_idx $(BOX_IDX)\
-	-box_test $(BOX_TEST) -sample_frac $(SAMPLE_FRAC) -test_size $(TEST_SIZE) \
-	-n_feat_use $(N_FEAT_USE) -dens_calc $(DENS_CALC) \
-	-hidden_layers $(HIDDEN_LAYERS) -unit_layer $(UNIT_LAYER) \
-	-score_method $(SCORE_METHOD) -threshold $(THRESHOLD) \
-	-perc_val $(PERC_VAL) -sample_method $(SAMPLE_METHOD) \
-	-bin_val $(BIN_VAL) -ml_analysis $(ML_ANALYSIS) -cpu $(CPU_FRAC) \
-	-remove $(REMOVE_FILES) -v $(VERBOSE) -perf $(PERF_OPT) -seed $(SEED)
+	-test_train_opt $(TEST_TRAIN_OPT) -box_idx $(BOX_IDX) \
+	-box_test $(BOX_TEST) -sample_frac $(SAMPLE_FRAC) \
+	-test_size $(TEST_SIZE) -n_feat_use $(N_FEAT_USE) -dens_calc $(DENS_CALC) \
+	-kf_splits $(KF_SPLITS) -hidden_layers $(HIDDEN_LAYERS) \
+	-unit_layer $(UNIT_LAYER) -score_method $(SCORE_METHOD) \
+	-threshold $(THRESHOLD) -perc_val $(PERC_VAL) \
+	-sample_method $(SAMPLE_METHOD) -bin_val $(BIN_VAL) \
+	-ml_analysis $(ML_ANALYSIS) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) \
+	-v $(VERBOSE) -perf $(PERF_OPT) -seed $(SEED)
 
 ## Create set of `merged` catalogues, i.e. galaxy + group information
 catl_props:
