@@ -394,7 +394,7 @@ def get_parser():
                         dest='ml_analysis',
                         help='Type of analysis to perform.',
                         type=str,
-                        choices=['hod_fixed'],
+                        choices=['hod_dv_fixed'],
                         default='hod_dv_fixed')
     ## CPU Counts
     parser.add_argument('-cpu',
@@ -761,6 +761,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, arr_len=10,
         # X and Y coordinates
         model_kk_data = models_dict[model_kk]
         model_kk_x    = model_kk_data['mhalo_true']
+        # model_kk_x    = model_kk_data['mgroup_arr']
         model_kk_y    = model_kk_data['frac_diff']
         # Calculating error in bins
         (   x_stat_arr,
@@ -785,6 +786,11 @@ def frac_diff_model(models_dict, param_dict, proj_dict, arr_len=10,
     # Dynamical
     dyn_pred, dyn_true, dyn_frac_diff = param_dict['ml_args'].extract_trad_masses(mass_opt='dyn',
                                             return_frac_diff=True)
+    # Only choosing non-zero values
+    dyn_pred_mask = dyn_pred > 9
+    dyn_pred      = dyn_pred[dyn_pred_mask]
+    dyn_true      = dyn_true[dyn_pred_mask]
+    dyn_frac_diff = dyn_frac_diff[dyn_pred_mask]
     ##
     ## Binning data
     # HAM
@@ -803,7 +809,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, arr_len=10,
         y_stat_dyn   ,
         y_std_dyn    ,
         y_std_err_dyn) = cstats.Stats_one_arr(  dyn_true,
-                                                dyn_pred,
+                                                dyn_frac_diff,
                                                 base=param_dict['ml_args'].mass_bin_width,
                                                 arr_len=arr_len,
                                                 bin_statval=bin_statval)
@@ -816,6 +822,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, arr_len=10,
     ml_algs_names_dict = dict(zip(ml_algs_names, ml_algs_names_mod))
     # Labels
     xlabel = r'\boldmath$\log M_{halo,\textrm{true}}\left[ h^{-1} M_{\odot}\right]$'
+    # xlabel = r'\boldmath$\log M_{group}\left[ h^{-1} M_{\odot}\right]$')
     ylabel = r'Fractional Difference \boldmath$[\%]$'
     ##
     plt.clf()
@@ -908,7 +915,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, arr_len=10,
         plt.savefig(fname, bbox_inches='tight')
     else:
         plt.savefig(fname, bbox_inches='tight', dpi=400)
-    print('{0} Figure saved as: {1}'.format(Prog_msg, fname))
+    print('{0} Figure saved as: {1}'.format(file_msg, fname))
     plt.clf()
     plt.close()
 

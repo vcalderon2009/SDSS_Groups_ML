@@ -385,7 +385,7 @@ def get_parser():
                         dest='ml_analysis',
                         help='Type of analysis to perform.',
                         type=str,
-                        choices=['hod_fixed'],
+                        choices=['hod_dv_fixed'],
                         default='hod_dv_fixed')
     ## CPU Counts
     parser.add_argument('-cpu',

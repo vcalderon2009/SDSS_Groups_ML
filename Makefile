@@ -23,7 +23,7 @@ MOCKS_CATL_DIR     = $(DATA_DIR)/external/SDSS/mocks
 DATA_CATL_DIR      = $(DATA_DIR)/external/SDSS/data
 
 # INPUT VARIABLES
-# -- General
+# -- General -- #
 CPU_FRAC       = 0.75
 REMOVE_FILES   = "False"
 HOD_N          = 0
@@ -52,7 +52,7 @@ TEST_SIZE      = 0.25
 N_FEAT_USE     = "sub"
 PERF_OPT       = "False"
 SEED           = 1235
-# -- Training
+# -- Training -- #
 HIDDEN_LAYERS= 3
 UNIT_LAYER   = 100
 SCORE_METHOD = 'threshold'
@@ -62,17 +62,8 @@ SAMPLE_METHOD= 'binning'
 BIN_VAL      = 'fixed'
 ML_ANALYSIS  = 'hod_dv_fixed'
 KF_SPLITS    = 3
-# SHUFFLE_OPT  = "True"
-# TEST_SIZE    = 0.25
-# SAMPLE_FRAC  = 0.05
-# DROP_NA      = "True"
-# N_PREDICT    = 1
-# PRE_OPT      = 'standard'
 
-
-
-
-
+# Checking for Anaconda
 ifeq (,$(shell which conda))
 HAS_CONDA=False
 else
