@@ -683,14 +683,14 @@ def sklearns_models(param_dict):
 ## --------- Main Analysis of the data ------------##
 
 # ML Models training wrapper
-def ml_models_training(models_out_dict, param_dict, proj_dict):
+def ml_models_training(models_dict, param_dict, proj_dict):
     """
     Trains different ML models to determine metrics of accuracy, feature
     importance, and more for a given ML algorithm.
 
     Parameters
     ------------
-    models_out_dict : `dict`
+    models_dict : `dict`
         Dictionary for storing the outputs of the different ML algorithms.
 
     param_dict : `dict`
@@ -701,19 +701,23 @@ def ml_models_training(models_out_dict, param_dict, proj_dict):
 
     Returns
     ------------
-    models_out_dict : `dict`
+    models_dict : `dict`
         Dictionary for storing the outputs of the different ML algorithms.
     """
     file_msg = param_dict['Prog_msg']
+    ##
+    ## Preparing the data
+    train_dict, test_dict = param_dict['ml_args'].extract_feat_file_info()
     # List of the different ML models
     skem_keys_arr = num.sort(list(param_dict['skem_dict'].keys()))
     # Looping over each ML algorithm
     for zz, skem_ii in tqdm(enumerate(skem_keys_arr)):
         print('{0} Analyzing: `{1}`'.format(file_msg, skem_ii))
         # Training datset
-        models_out_dict[skem_ii] = ml_analysis(skem_ii, param_dict, proj_dict)
+        models_dict[skem_ii] = ml_analysis(skem_ii, train_dict, test_dict,
+                                    param_dict, proj_dict)
 
-    return models_out_dict
+    return models_dict
 
 # Main Analysis for fixed HOD and DV
 def ml_analysis(skem_ii, param_dict, proj_dict):
@@ -728,6 +732,12 @@ def ml_analysis(skem_ii, param_dict, proj_dict):
     ------------
     skem_ii : `str`
         Key of the Regressor being used. Taken from `skem_dict` dictionary.
+
+    train_dict : `dict`
+        Dictionary with the `training` data.
+
+    test_dict : `dict`
+        Dictionary with the `testing` data.
 
     param_dict : `dict`
         Dictionary with input parameters and values related to this project.
@@ -774,13 +784,17 @@ def main(args):
             print('{0} `{1}`: {2}'.format(prog_msg, key, key_val))
     print('\n'+50*'='+'\n')
     ##
-    ## Preparing the data
-    train_dict, test_dict = param_dict['ml_args'].extract_feat_file_info()
-    ##
     ## -------- ML main analysis -------- ##
     # Dictionary for storing outputs
-    models_out_dict = {}
+    models_dict = {}
     #
+    # Analyzing data
+    models_dict = ml_models_training(models_dict, param_dict, proj_dict)
+    #
+    ## -------- Saving final results -------- ##
+    # Saving `models_dict`
+    
+
 
 
 
