@@ -51,8 +51,22 @@ from argparse import ArgumentParser
 from argparse import HelpFormatter
 from operator import attrgetter
 from tqdm import tqdm
+from multiprocessing import Pool, Process, cpu_count
+
+# ML modules
+import sklearn
+import sklearn.metrics          as skmetrics
+import sklearn.model_selection  as skms
+import sklearn.ensemble         as skem
+import sklearn.neural_network   as skneuro
+import sklearn.preprocessing    as skpre
+import xgboost
+import scipy
 
 ## Functions
+
+## --------- General functions ------------##
+
 class SortingHelpFormatter(HelpFormatter):
     def add_arguments(self, actions):
         """
@@ -321,6 +335,15 @@ def get_parser():
                         help='Number of hidden layers to use for neural network',
                         type=int,
                         default=3)
+    ## Number of units per hidden layer for the neural network.
+    parser.add_argument('-unit_layer',
+                        dest='unit_layer',
+                        help="""
+                        Number of units per hidden layer for the neural
+                        network. Default = `100`.
+                        """,
+                        type=int,
+                        default=100)
     ## Option for determining scoring
     parser.add_argument('-score_method',
                         dest='score_method',
@@ -560,17 +583,21 @@ def add_to_dict(param_dict):
     ## Other constants
     # Speed of light - In km/s
     speed_c = ac.c.to(u.km/u.s).value
-
+    ## Number of CPU's to use
+    cpu_number = int(cpu_count() * param_dict['cpu_frac'])
+    ##
+    ## Dictionary of ML Regressors
+    skem_dict = sklearns_models(param_dict)
     ##
     ## Saving to `param_dict`
-    param_dict['sample_s'      ] = sample_s
-    param_dict['sample_Mr'     ] = sample_Mr
-    param_dict['vol_mr'        ] = vol_mr
-    param_dict['cens'          ] = cens
-    param_dict['sats'          ] = sats
-    param_dict['speed_c'       ] = speed_c
-    # param_dict['catl_input_str'] = catl_input_str
-    # param_dict['catl_pre_str'  ] = catl_pre_str
+    param_dict['sample_s'  ] = sample_s
+    param_dict['sample_Mr' ] = sample_Mr
+    param_dict['vol_mr'    ] = vol_mr
+    param_dict['cens'      ] = cens
+    param_dict['sats'      ] = sats
+    param_dict['speed_c'   ] = speed_c
+    param_dict['cpu_number'] = cpu_number
+    param_dict['skem_dict' ] = skem_dict
 
     return param_dict
 
@@ -608,7 +635,54 @@ def directory_skeleton(param_dict, proj_dict):
 
     return proj_dict
 
+## --------- Preparing data ------------##
 
+# Different types of regressors
+def sklearns_models(param_dict):
+    """
+    Defines the set of Regressors used by Scikit-Learn
+
+    Parameters
+    -----------
+    param_dict : `dict`
+        Dictionary with input parameters and values related to this project.
+
+    Returns
+    ----------
+    skem_dict : `dict`
+        Dictionary with a set of regressors uninitialized
+    """
+    # Constants
+    cpu_number = param_dict['cpu_number']
+    # Dictionary with regressors
+    skem_dict = {}
+    # Random Forest
+    skem_dict['random_forest'] = skem.RandomForestRegressor(
+                                    n_jobs=cpu_number,
+                                    random_state=param_dict['seed'])
+    # XGBoost
+    skem_dict['XGBoost'] = xgboost.XGBRegressor(
+                            n_jobs=cpu_number,
+                            random_state=param_dict['seed'])
+    # Neural Network
+    if (param_dict['hidden_layers'] == 1)
+        hidden_layer_obj = (param_dict['unit_layer'],)
+    elif (param_dict['hidden_layers'] > 1):
+        hidden_layers = param_dict['hidden_layers']
+        unit_layer    = param_dict['unit_layer']
+        hidden_layer_obj = tuple([unit_layer for x in range(hidden_layers)])
+    skem_dict['neural_network'] = skneuro.MLPRegressor(
+                                    random_state=param_dict['seed'],
+                                    solver='adam',
+                                    hidden_layer_sizes=hidden_layer_obj,
+                                    warm_start=True)
+
+    return skem_dict
+
+
+## --------- Training and Testing the data ------------##
+
+## --------- Main Function ------------##
 
 def main(args):
     """
@@ -637,6 +711,8 @@ def main(args):
         if key != 'Prog_msg':
             print('{0} `{1}`: {2}'.format(prog_msg, key, key_val))
     print('\n'+50*'='+'\n')
+    ##
+    ## Preparing the data
 
 
 # Main function
