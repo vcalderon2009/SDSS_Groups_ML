@@ -18,6 +18,7 @@ DATA_DIR           = $(PROJECT_DIR)/data
 SRC_DIR            = $(PROJECT_DIR)/src
 SRC_DATA_DIR       = $(SRC_DIR)/data
 SRC_PREPROC_DIR    = $(SRC_DIR)/data_preprocessing
+SRC_ANALYSIS_DIR   = $(SRC_DIR)/data_analysis
 MOCKS_CATL_DIR     = $(DATA_DIR)/external/SDSS/mocks
 DATA_CATL_DIR      = $(DATA_DIR)/external/SDSS/data
 
@@ -52,6 +53,14 @@ N_FEAT_USE     = "sub"
 PERF_OPT       = "False"
 SEED           = 1235
 # -- Training
+HIDDEN_LAYERS= 3
+UNIT_LAYER   = 100
+SCORE_METHOD = 'threshold'
+THRESHOLD    = 0.1
+PERC_VAL     = 0.68
+SAMPLE_METHOD= 'binning'
+BIN_VAL      = 'fixed'
+ML_ANALYSIS  = 'hod_dv_fixed'
 KF_SPLITS    = 3
 # SHUFFLE_OPT  = "True"
 # TEST_SIZE    = 0.25
@@ -59,10 +68,10 @@ KF_SPLITS    = 3
 # DROP_NA      = "True"
 # N_PREDICT    = 1
 # PRE_OPT      = 'standard'
-SCORE_METHOD = 'perc'
-HIDDEN_LAYERS= 100
-THRESHOLD    = 0.1
-PERC_VAL     = 0.68
+
+
+
+
 
 ifeq (,$(shell which conda))
 HAS_CONDA=False
@@ -190,6 +199,23 @@ data_preprocess: download_dataset
 	-box_test $(BOX_TEST) -sample_frac $(SAMPLE_FRAC) -test_size $(TEST_SIZE) \
 	-n_feat_use $(N_FEAT_USE) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) \
 	-v $(VERBOSE) -perf $(PERF_OPT) -seed $(SEED) -dens_calc $(DENS_CALC)
+
+## ML analysis of the preprocessed data and plots the necessary figures.
+ml_analysis:
+	@python $(SRC_ANALYSIS_DIR)/data_analysis_main.py \
+	-hod_model_n $(HOD_N) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) \
+	-dv $(DV) -clf_seed $(CLF_SEED) -sample $(SAMPLE) -abopt $(CATL_TYPE) \
+	-cosmo $(COSMO) -nmin $(NMIN) -mass_factor $(MASS_FACTOR) \
+	-n_predict $(N_PREDICT) -shuffle_opt $(SHUFFLE_OPT) \
+	-dropna_opt $(DROP_NA) -pre_opt $(PRE_OPT) \
+	-test_train_opt $(TEST_TRAIN_OPT) -box_idx $(BOX_IDX)\
+	-box_test $(BOX_TEST) -sample_frac $(SAMPLE_FRAC) -test_size $(TEST_SIZE) \
+	-n_feat_use $(N_FEAT_USE) -dens_calc $(DENS_CALC) \
+	-hidden_layers $(HIDDEN_LAYERS) -unit_layer $(UNIT_LAYER) \
+	-score_method $(SCORE_METHOD) -threshold $(THRESHOLD) \
+	-perc_val $(PERC_VAL) -sample_method $(SAMPLE_METHOD) \
+	-bin_val $(BIN_VAL) -ml_analysis $(ML_ANALYSIS) -cpu $(CPU_FRAC) \
+	-remove $(REMOVE_FILES) -v $(VERBOSE) -perf $(PERF_OPT) -seed $(SEED)
 
 ## Create set of `merged` catalogues, i.e. galaxy + group information
 catl_props:
