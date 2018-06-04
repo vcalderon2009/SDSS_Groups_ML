@@ -32,7 +32,7 @@ import pickle
 
 class ReadML(object):
     """
-    Reads in the multiple outputs of the ML data preprocessing and 
+    Reads in the multiple outputs of the ML data preprocessing and
     analysis steps for this project. This class is mainly for handling
     the aspects of reading/writing output files for this project.
     """
@@ -127,8 +127,9 @@ class ReadML(object):
             the fraction of the sample used for the `testing` dataset.
             This variable is set to `0` by default.
 
-        sample_frac : `float`
-            Fraction of the total dataset ot use.
+        sample_frac : `float`, optional
+            Fraction of the total dataset ot use. This variable is set
+            to `0.01` by default.
 
         test_size : float, optional
             Percentage of the catalogue that represents the `test` size of
@@ -154,6 +155,56 @@ class ReadML(object):
         seed : {0 - 4294967295}, `int`, optional
             Random seed to be used for the analysis. This variable is set to
             `1` by default.
+
+        kf_splits : `int`, optional 
+            Total number of K-folds to perform. Must be larger than 2.
+            This variable is set to `3` by default.
+
+        hidden_layers : `int`, optional
+            Number of `hidden` layers to use for the Neural Network.
+            This variable is set to `3` by default.
+
+        unit_layer : `int`, optional
+            Number of `units` per layer. This is used by the neural network.
+            This variable is set to `100` by default.
+
+        score_method : {'perc', 'threshold', 'model_score', 'r2'} `str`, optional
+            Type of scoring to use when determining how well an algorithm
+            is performing.
+
+            Options:
+                - 'perc' : Use percentage and rank-ordering of the values
+                - 'threshold' : Score based on diffs of `threshold` or less from true value.
+                - 'model_score' : Out-of-the-box method from `sklearn` to determine success.
+                - 'r2': R-squared statistic for error calcuation.
+
+        sample_method : {'binning', 'subsample', 'weights'}, `str`, optional
+            Method for binning or subsample the array of the estimated 
+            group mass. This variable set to `binning` by default.
+
+            Options:
+                - 'binning' : It bins the estimated group mass
+                - 'subsample' : It subsamples the group mass to be equally 
+                    representative at all masses
+                - 'weights' : Applies larger weights to more massive systems.
+
+        bin_val : {'fixed', 'nbins'} `str`, optional
+            If ``sample_method == 'binning'``, `bin_val` determines the
+            type of binning to use. This variable is set to 'fixed' by
+            default.
+
+            Options:
+                - 'fixed' : Uses a fixed set of bins, evenly spaced by 0.4 dex.
+                - 'nbins' : Splits the data into `2` bins, for low- and high-mass systems.
+
+        ml_analysis : {'hod_fixed', 'dv_fixed', hod_dv_fixed}, `str`, optional
+            Type of analysis to perform. This variable is set to 
+            `hod_dv_fixed`.
+
+            Options:
+                - 'hod_fixed' : Keeps the `hod_n` fixes, but varies `dv`.
+                - 'dv_fixed' : Keeps `dv` fixed, but varies `hod_n`.
+                - 'hod_dv_fixed' : Keeps both `dv` and `hod_n` fixed.
         """
         super().__init__()
         # Assigning variables
@@ -181,15 +232,21 @@ class ReadML(object):
         self.perf_opt       = kwargs.get('perf_opt', False)
         self.seed           = kwargs.get('seed', 1)
         self.kf_splits      = kwargs.get('kdf_splits', 3)
-        self.hidden_layers  = kwargs.get('hidden_layers', 100)
-        self.unit_layer     = kwargs.get('unit_layer', 3)
+        self.hidden_layers  = kwargs.get('hidden_layers', 1)
+        self.unit_layer     = kwargs.get('unit_layer', 100)
         self.score_method   = kwargs.get('score_method', 'threshold')
-        self.unit_layer     = kwargs.get('unit_layer', 3)
+        self.threshold      = kwargs.get('threshold', 0.1)
+        self.perc           = kwargs.get('perc', 0.9)
+        self.sample_method  = kwargs.get('sample_method', 'binning')
+        self.bin_val        = kwargs.get('bin_val', 'fixed')
+        self.ml_analysis    = kwargs.get('ml_analysis', 'hod_dv_fixed')
         #
         # Extra variables
         self.sample_Mr      = 'Mr{0}'.format(self.sample)
         self.sample_s       = str(self.sample)
         self.proj_dict      = cwpaths.cookiecutter_paths(__file__)
+        self.mass_bin_width = 0.4
+        self.nbins          = 2
         # self.proj_dict      = cwpaths.cookiecutter_paths('./')
 
     def catl_prefix_path(self):
@@ -735,7 +792,7 @@ class ReadML(object):
 
         return return_obj_list
 
-    def main_catl_train_dir(self, check_exist=True):
+    def main_catl_train_dir(self, check_exist=True, create_dir=False):
         """
         Directory for the main training of the ML algorithms. This directory
         is mainly for the training and testing of the algorithms.
@@ -746,31 +803,93 @@ class ReadML(object):
             If `True`, it checks for whether or not the file exists.
             This variable is set to `True` by default.
 
+        create_dir : `bool`, optional
+            If `True`, it creates the directory if it does not exist.
+
         Returns
         --------
         main_catl_train_dir : `str`
             Output directory for the main ML analysis.
         """
         # Check input parameters
+        # `check_exist`
         if not (isinstance(check_exist, bool)):
             msg = '`check_exist` ({0}) must be of `boolean` type!'.format(
                 type(check_exist))
+            raise TypeError(msg)
+        #
+        # `create_dir`
+        if not (isinstance(create_dir, bool)):
+            msg = '`create_dir` ({0}) must be of `boolean` type!'.format(
+                type(create_dir))
             raise TypeError(msg)
         # Catalogue Prefix
         catl_prefix_path = self.catl_prefix_path()
         # Output directory
         main_catl_train_dir = os.path.join( self.proj_dict['int_dir'],
                                             'train_test_dir',
+                                            self.ml_analysis,
                                             catl_prefix_path)
+        # Creating directory if necessary
+        if create_dir:
+            cfutils.Path_Folder(main_catl_train_dir)
         # Check that folder exists
         if check_exist:
             if not (os.path.exists(main_catl_train_dir)):
-                msg = '`main_catl_train_dir` ({1}) was not found! '
+                msg = '`main_catl_train_dir` ({0}) was not found! '
                 msg += 'Check your path!'
                 msg = msg.format(main_catl_train_dir)
                 raise FileNotFoundError(msg)
 
         return main_catl_train_dir
+
+    def _catl_train_prefix_str(self):
+        """
+        String used as the prefix of files for the ML analysis.
+
+        Returns
+        --------
+        catl_train_str : `str`
+            String used as the prefix of files during the `data_analysis`
+            step.
+        """
+        # Feature string - Prefix
+        feat_proc_pre_str = self._feat_proc_pre_str()
+        # Score Method
+        # `perc`
+        if (self.score_method == 'perc'):
+            score_str = '_perc_{0}'.format(self.perc)
+        # `threshold`
+        if (self.score_method == 'threshold'):
+            score_str = '_th_{0}'.format(self.threshold)
+        # `model_score`
+        if (self.score_method == 'model_score'):
+            score_str = '_ms'
+        # `r2`
+        if (self.score_method == 'r2'):
+            score_str = '_r2'
+        #
+        # Sample Method
+        #
+        if (self.sample_method in ['subsample', 'weights']):
+            sm_str = '_{0}'.format(self.sample_method)
+        elif (self.sample_method == 'binning'):
+            sm_str = '_sm_{0}_{1}'.format(self.sample_method, self.bin_val)
+        #
+        # File Prefix - ML Analysis
+        catl_train_str_arr = [  feat_proc_pre_str,
+                                self.hidden_layers,
+                                self.score_method,
+                                score_str,
+                                sm_str]
+        catl_train_str = '{0}_hl_{1}_score_{2}_{3}_{4}'
+        catl_train_str = catl_train_str.format(*catl_train_str_arr)
+
+        return catl_train_str
+
+
+
+
 
 
 
