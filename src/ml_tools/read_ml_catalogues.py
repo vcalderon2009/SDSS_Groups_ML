@@ -468,8 +468,8 @@ class ReadML(object):
                             self.pre_opt,
                             self.n_feat_use,
                             self.test_train_opt]
-        feat_pre_str  = '{0}_sh_{1}_npredict_{2}_preopt_{3}_nfeat_{4}_'
-        feat_pre_str += 'testtrain_{5}'
+        feat_pre_str  = '{0}_sh_{1}_npredic_{2}_preopt_{3}_nfeat_{4}_'
+        feat_pre_str += 'tt_{5}'
         feat_pre_str  = feat_pre_str.format(*feat_pre_str_arr)
         # `sample_frac`
         if (self.test_train_opt == 'sample_frac'):
@@ -859,10 +859,10 @@ class ReadML(object):
         # Score Method
         # `perc`
         if (self.score_method == 'perc'):
-            score_str = '_perc_{0}'.format(self.perc)
+            score_str = '_p_{0}'.format(self.perc)
         # `threshold`
         if (self.score_method == 'threshold'):
-            score_str = '_th_{0}'.format(self.threshold)
+            score_str = '_t_{0}'.format(self.threshold)
         # `model_score`
         if (self.score_method == 'model_score'):
             score_str = '_ms'
@@ -884,7 +884,7 @@ class ReadML(object):
                                 self.score_method,
                                 score_str,
                                 sm_str]
-        catl_train_str = '{0}_hl_{1}_units_{2}_score_{3}_{4}_{5}'
+        catl_train_str = '{0}_{1}_{2}_{3}_{4}_{5}'
         catl_train_str = catl_train_str.format(*catl_train_str_arr)
 
         return catl_train_str
