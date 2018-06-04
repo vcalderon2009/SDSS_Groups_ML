@@ -532,7 +532,7 @@ def param_vals_test(param_dict):
         msg  = msg.format(param_dict['Prog_msg'], param_dict['kf_splits'])
         raise ValueError(msg)
     ##
-    ## Checking that `kf_splits` is larger than `2`
+    ## Checking that `n_predict` is not smaller than `1`.
     if (param_dict['n_predict'] < 1):
         msg  = '{0} The value for `n_predict` ({1}) must be LARGER than `1`'
         msg += 'Exiting...'
