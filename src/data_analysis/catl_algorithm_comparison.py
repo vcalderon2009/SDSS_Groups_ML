@@ -665,7 +665,7 @@ def sklearns_models(param_dict):
                             n_jobs=cpu_number,
                             random_state=param_dict['seed'])
     # Neural Network
-    if (param_dict['hidden_layers'] == 1)
+    if (param_dict['hidden_layers'] == 1):
         hidden_layer_obj = (param_dict['unit_layer'],)
     elif (param_dict['hidden_layers'] > 1):
         hidden_layers = param_dict['hidden_layers']
