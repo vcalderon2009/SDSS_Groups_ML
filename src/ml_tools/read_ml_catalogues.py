@@ -880,10 +880,11 @@ class ReadML(object):
         # File Prefix - ML Analysis
         catl_train_str_arr = [  feat_proc_pre_str,
                                 self.hidden_layers,
+                                self.unit_layer,
                                 self.score_method,
                                 score_str,
                                 sm_str]
-        catl_train_str = '{0}_hl_{1}_score_{2}_{3}_{4}'
+        catl_train_str = '{0}_hl_{1}_units_{2}_score_{3}_{4}_{5}'
         catl_train_str = catl_train_str.format(*catl_train_str_arr)
 
         return catl_train_str
