@@ -872,9 +872,9 @@ class ReadML(object):
         # Sample Method
         #
         if (self.sample_method in ['subsample', 'weights']):
-            sm_str = '_{0}'.format(self.sample_method)
+            sm_str = '{0}'.format(self.sample_method)
         elif (self.sample_method == 'binning'):
-            sm_str = '_sm_{0}_{1}'.format(self.sample_method, self.bin_val)
+            sm_str = 'sm_{0}_{1}'.format(self.sample_method, self.bin_val)
         #
         # File Prefix - ML Analysis
         catl_train_str_arr = [  feat_proc_pre_str,

@@ -680,7 +680,69 @@ def sklearns_models(param_dict):
     return skem_dict
 
 
-## --------- Training and Testing the data ------------##
+## --------- Main Analysis of the data ------------##
+
+# ML Models training wrapper
+def ml_models_training(models_out_dict, param_dict, proj_dict):
+    """
+    Trains different ML models to determine metrics of accuracy, feature
+    importance, and more for a given ML algorithm.
+
+    Parameters
+    ------------
+    models_out_dict : `dict`
+        Dictionary for storing the outputs of the different ML algorithms.
+
+    param_dict : `dict`
+        Dictionary with input parameters and values related to this project.
+
+    proj_dict: python dictionary
+        Dictionary with current and new paths to project directories
+
+    Returns
+    ------------
+    models_out_dict : `dict`
+        Dictionary for storing the outputs of the different ML algorithms.
+    """
+    file_msg = param_dict['Prog_msg']
+    # List of the different ML models
+    skem_keys_arr = num.sort(list(param_dict['skem_dict'].keys()))
+    # Looping over each ML algorithm
+    for zz, skem_ii in tqdm(enumerate(skem_keys_arr)):
+        print('{0} Analyzing: `{1}`'.format(file_msg, skem_ii))
+        # Training datset
+        models_out_dict[skem_ii] = ml_analysis(skem_ii, param_dict, proj_dict)
+
+    return models_out_dict
+
+# Main Analysis for fixed HOD and DV
+def ml_analysis(skem_ii, param_dict, proj_dict):
+    """
+    Main analysis for fixed `HOD` and velocity bias.
+    This functions determines:
+        - Fractional difference between `predicted` and `true` values.
+        - Feature importance for each algorithm
+        - 1-sigma error in log(M_halo)
+
+    Parameters
+    ------------
+    skem_ii : `str`
+        Key of the Regressor being used. Taken from `skem_dict` dictionary.
+
+    param_dict : `dict`
+        Dictionary with input parameters and values related to this project.
+
+    proj_dict: python dictionary
+        Dictionary with current and new paths to project directories
+    
+    Returns
+    --------
+    model_dict : `dict`
+        Dictionary containing metrics for the ML model.
+
+        Keys : 
+            - ''
+    """
 
 ## --------- Main Function ------------##
 
@@ -713,6 +775,13 @@ def main(args):
     print('\n'+50*'='+'\n')
     ##
     ## Preparing the data
+    train_dict, test_dict = param_dict['ml_args'].extract_feat_file_info()
+    ##
+    ## -------- ML main analysis -------- ##
+    # Dictionary for storing outputs
+    models_out_dict = {}
+    #
+
 
 
 # Main function
