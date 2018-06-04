@@ -468,7 +468,7 @@ class ReadML(object):
                             self.pre_opt,
                             self.n_feat_use,
                             self.test_train_opt]
-        feat_pre_str  = '{0}_sh_{1}_npredic_{2}_preopt_{3}_nfeat_{4}_'
+        feat_pre_str  = '{0}_sh_{1}_np_{2}_preopt_{3}_nf_{4}_'
         feat_pre_str += 'tt_{5}'
         feat_pre_str  = feat_pre_str.format(*feat_pre_str_arr)
         # `sample_frac`
@@ -476,27 +476,24 @@ class ReadML(object):
             # String array
             file_str_arr = [feat_pre_str,
                             self.test_size,
-                            self.sample_frac,
-                            self.dens_calc]
+                            self.sample_frac]
             # Main string
-            feat_proc_pre_str = '{0}_testsize_{1}_samplefrac_{2}_dens_{3}'
+            feat_proc_pre_str = '{0}_tsize_{1}_sf_{2}'
             feat_proc_pre_str = feat_proc_pre_str.format(*file_str_arr)
         # `boxes_n`
         if (self.test_train_opt == 'boxes_n'):
             # String array
             file_str_arr = [feat_pre_str,
-                            self.box_idx,
-                            self.dens_calc]
+                            self.box_idx]
             # Main string
-            feat_proc_pre_str = '{0}_boxidx_{1}_dens_{2}'.format(*file_str_arr)
+            feat_proc_pre_str = '{0}_bidx_{1}'.format(*file_str_arr)
         # `box_sample_frac`
         if (self.test_train_opt == 'box_sample_frac'):
             # String array
             file_str_arr = [feat_pre_str,
-                            self.box_test,
-                            self.dens_calc]
+                            self.box_test]
             # Main string
-            feat_proc_pre_str = '{0}_boxtest_{1}_dens_{2}'.format(*file_str_arr)
+            feat_proc_pre_str = '{0}_btest_{1}'.format(*file_str_arr)
 
         return feat_proc_pre_str
 
@@ -559,7 +556,7 @@ class ReadML(object):
         feat_proc_pre_str = self._feat_proc_pre_str()
         # `catl_feat_filepath`
         catl_feat_filepath = os.path.join(catl_feat_dir,
-            '{0}_feature_processing_out.{1}'.format(feat_proc_pre_str, ext))
+            '{0}_feat_pro_out.{1}'.format(feat_proc_pre_str, ext))
         # Checking if file exists
         if check_exist:
             if not (os.path.exists(catl_feat_filepath)):
