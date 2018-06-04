@@ -28,6 +28,7 @@ import os
 import pickle
 
 # Extra-modules
+import src
 from glob import glob
 import argparse
 from datetime import datetime
