@@ -694,7 +694,7 @@ def array_insert(arr1, arr2, axis=1):
 ## --------- Main Analysis of the data ------------##
 
 # Finding indices of bins
-def binning_idx(train_dict, test_dict, param_dict):
+def binning_idx(train_dict, test_dict, param_dict, mass_opt='group'):
     """
     Finds the indices for the different sets of dictionaries, based on
     the parameter `bin_val`
@@ -710,6 +710,9 @@ def binning_idx(train_dict, test_dict, param_dict):
     param_dict : `dict`
         Dictionary with input parameters and values related to this project.
 
+    mass_opt : {'group', 'halo'} `bool`, optional
+        Option for which mass to use when binning.
+
     Returns
     ---------
     train_idx_bins : `numpy.ndarray`, shape [N, n_bins]
@@ -721,9 +724,25 @@ def binning_idx(train_dict, test_dict, param_dict):
     """
     # Predicted columns
     pred_cols = num.array(param_dict['ml_args']._predicted_cols())
+    # Feature columns
+    feat_cols = num.array(param_dict['ml_args']._feature_cols())
     # Unpacking dictionaries
-    Y_train = train_dict['Y_train']
-    Y_test  = test_dict ['Y_test' ]
+    X_train_ns = train_dict['X_train_ns']
+    Y_train    = train_dict['Y_train']
+    X_test_ns  = test_dict ['X_test_ns']
+    Y_test     = test_dict ['Y_test']
+    ### --- Group mass --- ###
+    # Unpacking `estimated` group mass
+    if ((len(feat_cols) == 1) and ('GG_M_group' in feat_cols)):
+        mgroup_train = X_train_ns
+        mgroup_test  = X_test_ns
+    elif ((len(feat_cols) > 1) and ('GG_M_group' in feat_cols)):
+        # Group mass index
+        mgroup_idx = num.where(feat_cols == 'GG_M_group')[0]
+        # Training and testing arrays
+        mgroup_train = X_train_ns.T[mgroup_idx].flatten()
+        mgroup_test  = X_test_ns.T[mgroup_idx].flatten()
+    ### --- Halo mass --- ###
     # Unpacking `true` halo mass array
     if ((param_dict['n_predict'] == 1) and ('M_h' in pred_cols)):
         mhalo_train = Y_train
@@ -735,9 +754,17 @@ def binning_idx(train_dict, test_dict, param_dict):
         mhalo_train = Y_train.T[mhalo_idx].flatten()
         mhalo_test  = Y_test.t[mhalo_idx].flatten()
     #
-    # Indices for `mhalo`
-    train_idx = num.arange(len(mhalo_train))
-    test_idx  = num.arange(len(mhalo_test))
+    # Indices for `mass`
+    if (mass_opt == 'group'):
+        mass_train = mgroup_train
+        mass_test  = mgroup_test
+    elif (mass_opt == 'halo'):
+        mass_train = mhalo_train
+        mass_test  = mhalo_test
+    ##
+    ## Indices for `training` and `testing`
+    train_idx = num.arange(len(mass_train))
+    test_idx  = num.arange(len(mass_test))
     #
     ## Binning data
     # Evenly-spaced bins
@@ -745,14 +772,14 @@ def binning_idx(train_dict, test_dict, param_dict):
         # Bin width for `mhalo`
         bin_width = param_dict['ml_args'].mass_bin_width
         # Selecting boundaries
-        mhalo_min  = num.max([mhalo_train.min(), mhalo_test.min()])
-        mhalo_max  = num.min([mhalo_train.max(), mhalo_test.max()])
-        mhalo_bins = num.array([mhalo_min, mhalo_max])
+        mass_min  = num.max([mass_train.min(), mass_test.min()])
+        mass_max  = num.min([mass_train.max(), mass_test.max()])
+        mass_bins = num.array([mass_min, mass_max])
         ## - Training
         # Creating bins
-        train_bins = cstats.Bins_array_create(mhalo_bins, base=bin_width)
+        train_bins = cstats.Bins_array_create(mass_bins, base=bin_width)
         # Digitizing array
-        train_digits = num.digitize(mhalo_train, train_bins)
+        train_digits = num.digitize(mass_train, train_bins)
         # Total number of bins indices
         train_digits_idx = num.arange(1, len(train_bins))
         # Indices in each bin
@@ -761,9 +788,9 @@ def binning_idx(train_dict, test_dict, param_dict):
         ##
         ## - Testing
         # Creating bins
-        test_bins = cstats.Bins_array_create(mhalo_bins, base=bin_width)
+        test_bins = cstats.Bins_array_create(mass_bins, base=bin_width)
         # Digitizing array
-        test_digits = num.digitize(mhalo_test, test_bins)
+        test_digits = num.digitize(mass_test, test_bins)
         # Total number of bins indices
         test_digits_idx = num.arange(1, len(test_bins))
         # Indices in each bin
@@ -774,22 +801,22 @@ def binning_idx(train_dict, test_dict, param_dict):
     if (param_dict['bin_val'] == 'nbins'):
         # Selecting boundary
         nbins = param_dict['ml_args'].nbins
-        mhalo_min  = num.min([mhalo_train.min(), mhalo_test.min()])
-        mhalo_max  = num.max([mhalo_train.max(), mhalo_test.max()])
-        mhalo_bins = num.linspace(mhalo_min, mhalo_max, nbins + 1)
+        mass_min  = num.min([mass_train.min(), mass_test.min()])
+        mass_max  = num.max([mass_train.max(), mass_test.max()])
+        mass_bins = num.linspace(mass_min, mass_max, nbins + 1)
         ## -- Training
         # Digitizing array
-        train_digits = num.digitize(mhalo_train, mhalo_bins)
+        train_digits = num.digitize(mass_train, mass_bins)
         # Total number of bins indices
-        train_digits_idx = num.arange(1, len(mhalo_bins))
+        train_digits_idx = num.arange(1, len(mass_bins))
         # Indices in each bin
         train_idx_bins = num.array([train_idx[train_digits == ii]
                             for ii in train_digits_idx])
         ## -- Testing
         # Digitizing array
-        test_digits = num.digitize(mhalo_test, mhalo_bins)
+        test_digits = num.digitize(mass_test, mass_bins)
         # Total number of bins indices
-        test_digits_idx = num.arange(1, len(mhalo_bins))
+        test_digits_idx = num.arange(1, len(mass_bins))
         # Indices in each bin
         test_idx_bins = num.array([test_idx[test_digits == ii]
                             for ii in test_digits_idx])
@@ -834,11 +861,13 @@ def model_metrics(skem_ii, test_dict_ii, train_dict_ii, param_dict):
     ##
     ## Unpacking dictionariesx
     # Training
-    X_train_ii = train_dict_ii['X_train']
-    Y_train_ii = train_dict_ii['Y_train']
+    X_train_ii    = train_dict_ii['X_train']
+    X_train_ns_ii = train_dict_ii['X_train_ns']
+    Y_train_ii    = train_dict_ii['Y_train']
     # Testing
-    X_test_ii = test_dict_ii['X_test']
-    Y_test_ii = test_dict_ii['Y_test']
+    X_test_ii     = test_dict_ii['X_test']
+    X_test_ns_ii  = test_dict_ii['X_test_ns']
+    Y_test_ii     = test_dict_ii['Y_test']
     ##
     ## Training model
     #
@@ -861,7 +890,6 @@ def model_metrics(skem_ii, test_dict_ii, train_dict_ii, param_dict):
     #
     ## Fractional difference - Mass
     # Array of `estimated` mass
-
     if ((param_dict['n_predict'] == 1) and ('M_h' in pred_cols)):
         # Array of `true` halo mass
         mhalo_ii_arr      = Y_test_ii
@@ -886,13 +914,37 @@ def model_metrics(skem_ii, test_dict_ii, train_dict_ii, param_dict):
         feat_importance_ii = num.ones(feat_cols.shape) * num.nan
         # Rank
     #
+    # Estimated Group mass
+    if ((len(feat_cols) == 1) and ('GG_M_group' in feat_cols)):
+        mgroup_arr = X_test_ns_ii
+    elif ((len(feat_cols) > 1) and ('GG_M_group' in feat_cols)):
+        # Group mass idx
+        mgroup_idx = num.where(feat_cols == 'GG_M_group')[0]
+        # Group mass array
+        mgroup_arr = X_test_ns_ii.T[mgroup_idx].flatten()
+    else:
+        mgroup_arr = num.ones(len(X_test_ns_ii)) * num.nan
+    #
+    # Estimated Group mass
+    if ((len(feat_cols) == 1) and ('GG_mdyn_rproj' in feat_cols)):
+        mdyn_arr = X_test_ns_ii
+    elif ((len(feat_cols) > 1) and ('GG_mdyn_rproj' in feat_cols)):
+        # Group mass idx
+        mdyn_idx = num.where(feat_cols == 'GG_mdyn_rproj')[0]
+        # Group mass array
+        mdyn_arr = X_test_ns_ii.T[mdyn_idx].flatten()
+    else:
+        mdyn_arr = num.ones(len(X_test_ns_ii)) * num.nan
+    #
     # Saving to dictionary
     model_gen_dict = {  'model_ii'  : model_ii,
                         'score'     : model_ii_score,
                         'mhalo_pred': mhalo_ii_pred_arr,
                         'mhalo_true': mhalo_ii_arr,
                         'frac_diff' : frac_diff_ii,
-                        'feat_imp'  : feat_importance_ii}
+                        'feat_imp'  : feat_importance_ii,
+                        'mgroup_arr': mgroup_arr,
+                        'mdyn_arr'  : mdyn_arr}
 
     return model_gen_dict
 
@@ -1011,6 +1063,10 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
                 mhalo_true_main = model_metrics_ii['mhalo_true']
                 # `frac_diff`
                 frac_diff_main  = model_metrics_ii['frac_diff']
+                # `mgroup_arr`
+                mgroup_main     = model_metrics_ii['mgroup_arr']
+                # Dynamical mass
+                mdyn_main       = model_metrics_ii['mdyn_arr']
                 # `feat_imp`
                 feat_imp_main   = model_metrics_ii['feat_imp']
                 # `score`
@@ -1029,6 +1085,14 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
                 # `frac_diff`
                 frac_diff_main  = array_insert(frac_diff_main,
                                     model_metrics_ii['frac_diff'],
+                                    axis=0)
+                # `mgroup_arr`
+                mgroup_main     = array_insert(mgroup_main,
+                                    model_metrics_ii['mgroup_arr'],
+                                    axis=0)
+                # Dynamical mass
+                mdyn_main       = array_insert(mdyn_main,
+                                    model_metrics_ii['mdyn_arr'],
                                     axis=0)
                 # `feat_imp`
                 feat_imp_temp   = model_metrics_ii['feat_imp']
@@ -1052,6 +1116,8 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
         ml_model_dict['mhalo_pred'] = mhalo_pred_main
         ml_model_dict['mhalo_true'] = mhalo_true_main
         ml_model_dict['frac_diff' ] = frac_diff_main
+        ml_model_dict['mgroup_arr'] = mgroup_main
+        ml_model_dict['mdyn_arr'  ] = mdyn_main
         ml_model_dict['feat_imp'  ] = feat_imp_mean
     ##
     ## -- Feature importance ranking --
