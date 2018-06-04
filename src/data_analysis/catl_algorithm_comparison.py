@@ -121,7 +121,7 @@ def get_parser():
 
     Returns
     -------
-    args: 
+    args:
         input arguments to the script
     """
     ## Define parser object
@@ -132,15 +132,15 @@ def get_parser():
     """
     parser = ArgumentParser(description=description_msg,
                             formatter_class=SortingHelpFormatter,)
-    ## 
+    ##
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
-    ## Number of HOD's to create. Dictates how many different types of 
+    ## Number of HOD's to create. Dictates how many different types of
     ##      mock catalogues to create
     parser.add_argument('-hod_model_n',
                         dest='hod_n',
                         help="Number of distinct HOD model to use.",
                         type=int,
-                        choices=range(0,10),
+                        choices=range(0, 10),
                         metavar='[0-10]',
                         default=0)
     ## Type of dark matter halo to use in the simulation
@@ -148,23 +148,23 @@ def get_parser():
                         dest='halotype',
                         help='Type of the DM halo.',
                         type=str,
-                        choices=['so','fof'],
+                        choices=['so', 'fof'],
                         default='so')
     ## CLF/CSMF method of assigning galaxy properties
     parser.add_argument('-clf_method',
                         dest='clf_method',
                         help="""
-                        Method for assigning galaxy properties to mock 
+                        Method for assigning galaxy properties to mock
                         galaxies. Options:
                         (1) = Independent assignment of (g-r), sersic, logssfr
-                        (2) = (g-r) decides active/passive designation and 
+                        (2) = (g-r) decides active/passive designation and
                         draws values independently.
-                        (3) (g-r) decides active/passive designation, and 
-                        assigns other galaxy properties for that given 
+                        (3) (g-r) decides active/passive designation, and
+                        assigns other galaxy properties for that given
                         galaxy.
                         """,
                         type=int,
-                        choices=[1,2,3],
+                        choices=[1, 2, 3],
                         default=1)
     ## Random Seed for CLF
     parser.add_argument('-clf_seed',
@@ -177,7 +177,7 @@ def get_parser():
     parser.add_argument('-dv',
                         dest='dv',
                         help="""
-                        Difference between galaxy and mass velocity profiles 
+                        Difference between galaxy and mass velocity profiles
                         (v_g-v_c)/(v_m-v_c)
                         """,
                         type=_check_pos_val,
@@ -187,7 +187,7 @@ def get_parser():
                         dest='sample',
                         help='SDSS Luminosity sample to analyze',
                         type=str,
-                        choices=['all', '19','20','21'],
+                        choices=['19', '20', '21'],
                         default='19')
     ## SDSS Type
     parser.add_argument('-abopt',
@@ -208,17 +208,17 @@ def get_parser():
                         dest='nmin',
                         help='Minimum number of galaxies in a galaxy group',
                         type=int,
-                        choices=range(2,1000),
+                        choices=range(2, 1000),
                         metavar='[1-1000]',
                         default=2)
     ## Factor by which to evaluate the distance to closest cluster.
     parser.add_argument('-mass_factor',
                         dest='mass_factor',
                         help="""
-                        Factor by which to evaluate the distance to closest 
+                        Factor by which to evaluate the distance to closest
                         cluster""",
                         type=int,
-                        choices=range(2,100),
+                        choices=range(2, 100),
                         metavar='[2-100]',
                         default=10)
     ## Total number of properties to predict. Default = 1
@@ -283,15 +283,15 @@ def get_parser():
     parser.add_argument('-box_test',
                         dest='box_test',
                         help="""
-                        Index of the simulation box to use for the 
+                        Index of the simulation box to use for the
                         `training` and `testing` datasets.
-                        This index represents the simulation box, from which 
-                        both the `training` and `testing` datasets will be 
-                        produced. It used the `test_size` variable to 
-                        determine the fraction of the sample used for the 
-                        `testing` dataset. This variable is used only when 
+                        This index represents the simulation box, from which
+                        both the `training` and `testing` datasets will be
+                        produced. It used the `test_size` variable to
+                        determine the fraction of the sample used for the
+                        `testing` dataset. This variable is used only when
                         ``test_train_opt == 'box_sample_frac'``. Default : `0`.
-                        Example : 0 >> It used the 0th simulation box 
+                        Example : 0 >> It used the 0th simulation box
                         for training and testing.""",
                         type=int,
                         default=0)
@@ -335,7 +335,9 @@ def get_parser():
     ## Number of hidden layers to use
     parser.add_argument('-hidden_layers',
                         dest='hidden_layers',
-                        help='Number of hidden layers to use for neural network',
+                        help="""
+                        Number of hidden layers to use for neural network
+                        """,
                         type=int,
                         default=3)
     ## Number of units per hidden layer for the neural network.
@@ -410,7 +412,7 @@ def get_parser():
                         type=_str2bool,
                         default=False)
     ## Verbose
-    parser.add_argument('-v','--verbose',
+    parser.add_argument('-v', '--verbose',
                         dest='verbose',
                         help='Option to print out project parameters',
                         type=_str2bool,
@@ -522,7 +524,7 @@ def param_vals_test(param_dict):
         # Value of `box_test`
         if not (param_dict['box_test'] >= 0):
             msg = '{0} `box_test` ({1}) must be larger or equal to `0`.'
-            msg = msg.format(file_msg, box_test)
+            msg = msg.format(file_msg, param_dict['box_test'])
             raise ValueError(msg)
         # Testing `test_size`
         # `test_size`
@@ -536,14 +538,14 @@ def param_vals_test(param_dict):
     if (param_dict['kf_splits'] < 2):
         msg  = '{0} The value for `kf_splits` ({1}) must be LARGER than `2`'
         msg += 'Exiting...'
-        msg  = msg.format(param_dict['Prog_msg' ], param_dict['kf_splits'])
+        msg  = msg.format(param_dict['Prog_msg'], param_dict['kf_splits'])
         raise ValueError(msg)
     ##
     ## Checking that `kf_splits` is larger than `2`
     if (param_dict['n_predict'] < 1):
         msg  = '{0} The value for `n_predict` ({1}) must be LARGER than `1`'
         msg += 'Exiting...'
-        msg  = msg.format(param_dict['Prog_msg' ], param_dict['n_predict'])
+        msg  = msg.format(param_dict['Prog_msg'], param_dict['n_predict'])
         raise ValueError(msg)
 
 def is_tool(name):
@@ -590,7 +592,7 @@ def add_to_dict(param_dict):
     cpu_number = int(cpu_count() * param_dict['cpu_frac'])
     ##
     ## Dictionary of ML Regressors
-    skem_dict = sklearns_models(param_dict)
+    skem_dict = sklearns_models(param_dict, cpu_number)
     ##
     ## Saving to `param_dict`
     param_dict['sample_s'  ] = sample_s
@@ -627,8 +629,7 @@ def directory_skeleton(param_dict, proj_dict):
                             check_exist=False)
     #
     # Main output file for this script
-    out_dir = os.path.join( main_catl_train_dir,
-                            'ml_alg_comparison')
+    out_dir = os.path.join(main_catl_train_dir, 'ml_alg_comparison')
     #
     # Creating paths
     cfutils.Path_Folder(out_dir)
@@ -641,7 +642,7 @@ def directory_skeleton(param_dict, proj_dict):
 ## --------- Preparing data ------------##
 
 # Different types of regressors
-def sklearns_models(param_dict):
+def sklearns_models(param_dict, cpu_count):
     """
     Defines the set of Regressors used by Scikit-Learn
 
@@ -649,6 +650,9 @@ def sklearns_models(param_dict):
     -----------
     param_dict : `dict`
         Dictionary with input parameters and values related to this project.
+
+    cpu_count : `int`
+        Number of CPU's to use.
 
     Returns
     ----------
@@ -747,13 +751,13 @@ def ml_analysis(skem_ii, param_dict, proj_dict):
 
     proj_dict: python dictionary
         Dictionary with current and new paths to project directories
-    
+
     Returns
     --------
     model_dict : `dict`
         Dictionary containing metrics for the ML model.
 
-        Keys : 
+        Keys :
             - ''
     """
 
@@ -798,8 +802,6 @@ def main(args):
     #
     ## -------- Saving final results -------- ##
     # Saving `models_dict`
-
-
 
 
 
