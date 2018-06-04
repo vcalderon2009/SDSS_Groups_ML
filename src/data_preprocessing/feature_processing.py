@@ -20,6 +20,7 @@ from cosmo_utils.utils import file_readers as cfreaders
 from cosmo_utils.utils import work_paths   as cwpaths
 from cosmo_utils.utils import gen_utils    as cgu
 from cosmo_utils.ml    import ml_utils     as cmlu
+from src.ml_tools      import ReadML
 
 
 import numpy as num
@@ -453,9 +454,9 @@ def add_to_dict(param_dict):
         dictionary with old and new values added
     """
     ### Sample - Int
-    sample_s = str(param_dict['sample'])
+    sample_s = param_dict['ml_args'].sample_s
     ### Sample - Mr
-    sample_Mr = 'Mr{0}'.format(param_dict['sample'])
+    sample_Mr = param_dict['ml_args'].sample_Mr
     ## Sample volume
     # Units (Mpc/h)**3
     volume_sample = {   '18': 37820 / 0.01396,
@@ -471,25 +472,11 @@ def add_to_dict(param_dict):
     # Speed of light - In km/s
     speed_c = ac.c.to(u.km/u.s).value
     ##
-    ## Catalogue Prefix for input catalogue
-    catl_input_arr = [  sample_Mr,
-                        param_dict['halotype'],
-                        param_dict['hod_n'],
-                        param_dict['dv'],
-                        param_dict['clf_method'],
-                        param_dict['clf_seed'],
-                        param_dict['catl_type'],
-                        param_dict['cosmo_choice'],
-                        param_dict['nmin'],
-                        param_dict['mass_factor'],
-                        param_dict['perf_opt']]
-    # Input string
-    catl_input_str = '{0}_halo_{1}_hodn_{2}_dv_{3}_clfm_{4}_clfseed_{5}_'
-    catl_input_str += 'ctype_{6}_cosmo_{7}_nmin_{8}_massf_{9}_perf_{10}'
-    catl_input_str = catl_input_str.format(*catl_input_arr)
+    ## Catalogue Prefix for input catalogue and main catalogue
+    catl_input_str = param_dict['ml_args']._catl_pre_str()
     ##
     ## Catalogue main string
-    catl_pre_str = catl_input_str
+    catl_pre_str   = param_dict['ml_args']._catl_pre_str()
     ##
     ## Saving to `param_dict`
     param_dict['sample_s'      ] = sample_s
@@ -526,55 +513,10 @@ def test_feat_file(param_dict, proj_dict):
     """
     ## Filename, under which to save all of the information
     # Main String
-    # `sample_frac`
-    if (param_dict['test_train_opt'] == 'sample_frac'):
-        filename_str_arr = [    param_dict['catl_pre_str'],
-                                param_dict['shuffle_opt'],
-                                param_dict['n_predict'],
-                                param_dict['pre_opt'],
-                                param_dict['n_feat_use'],
-                                param_dict['test_train_opt'],
-                                param_dict['test_size'],
-                                param_dict['sample_frac'],
-                                param_dict['dens_calc']]
-        ## Main string
-        filename_str  = '{0}_sh_{1}_npredict_{2}_preopt_{3}_nfeat_{4}_'
-        filename_str += 'testtrain_{5}_testsize_{6}_samplefrac_{7}_'
-        filename_str += 'dens_{8}'
-        filename_str  = filename_str.format(*filename_str_arr)
-    # `boxes_n
-    if (param_dict['test_train_opt'] == 'boxes_n'):
-        filename_str_arr = [    param_dict['catl_pre_str'],
-                                param_dict['shuffle_opt'],
-                                param_dict['n_predict'],
-                                param_dict['pre_opt'],
-                                param_dict['n_feat_use'],
-                                param_dict['test_train_opt'],
-                                param_dict['box_idx'],
-                                param_dict['dens_calc']]
-        ## Main string
-        filename_str  = '{0}_sh_{1}_npredict_{2}_preopt_{3}_nfeat_{4}_'
-        filename_str += 'testtrain_{5}_boxidx_{6}_dens_{7}'
-        filename_str  = filename_str.format(*filename_str_arr)
-    # `box_sample_frac`
-    if (param_dict['test_train_opt'] == 'box_sample_frac'):
-        filename_str_arr = [    param_dict['catl_pre_str'],
-                                param_dict['shuffle_opt'],
-                                param_dict['n_predict'],
-                                param_dict['pre_opt'],
-                                param_dict['n_feat_use'],
-                                param_dict['test_train_opt'],
-                                param_dict['box_test'],
-                                param_dict['dens_calc']]
-        ## Main string
-        filename_str  = '{0}_sh_{1}_npredict_{2}_preopt_{3}_nfeat_{4}_'
-        filename_str += 'testtrain_{5}_boxtest_{6}_dens_{7}'
-        filename_str  = filename_str.format(*filename_str_arr)
+    filename_str = param_dict['ml_args']._feat_proc_pre_str()
     ##
     ## Path to output file
-    filepath = os.path.join(proj_dict['catl_feat_dir'],
-                            '{0}_feature_processing_out.p'.format(
-                                filename_str))
+    filepath = param_dict['ml_args'].catl_feat_file(check_exist=False)
     ## Saving
     ##
     ## Checking if to run or not
@@ -614,40 +556,17 @@ def directory_skeleton(param_dict, proj_dict):
         Dictionary with current and new paths to project directories
     """
     ##
-    ## Catalogue prefix string
-    prefix_str = os.path.join(  'SDSS',
-                                'mocks',
-                                'halos_{0}'.format(param_dict['halotype']),
-                                'dv_{0}'.format(param_dict['dv']),
-                                'hod_model_{0}'.format(param_dict['hod_n']),
-                                'clf_seed_{0}'.format(param_dict['clf_seed']),
-                                'clf_method_{0}'.format(param_dict['clf_method']),
-                                param_dict['catl_type'],
-                                param_dict['sample_Mr'],
-                                'dens_{0}'.format(param_dict['dens_calc']))
+    ## Directory for the processed features
+    catl_feat_dir = param_dict['ml_args'].catl_feat_dir(check_exist=False)
     ##
     ## Directory of the catalogues being analyzed - Compilation of all mocks
-    catl_dir = os.path.join(    proj_dict['int_dir'],
-                                'merged_feat_catl',
-                                prefix_str,
-                                'merged_vac_combined')
+    catl_dir = param_dict['ml_args'].catl_merged_dir(opt='combined',
+                    check_exist=True)
     ##
-    ## Directory for the processed features
-    catl_feat_dir = os.path.join(   proj_dict['int_dir'],
-                                    'catl_features',
-                                    prefix_str,
-                                    'feat_processing')
-    ##
-    ## Checking that directories exists
-    for dir_ii in [catl_dir]:
-        if not os.path.exists(dir_ii):
-            msg = '{0} `dir_ii` ({1}) does not exist!'.format(
-                param_dict['Prog_msg'], dir_ii)
-            raise FileNotFoundError(msg)
-    ## Creating directories
+    ## Creating new directory
     cfutils.Path_Folder(catl_feat_dir)
-    ##
-    ## Saving directory to dictionary
+    #
+    # Saving directory to dictionary
     proj_dict['catl_dir'     ] = catl_dir
     proj_dict['catl_feat_dir'] = catl_feat_dir
 
@@ -744,24 +663,8 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
     catl_cols = catl_pd_tot.columns.values
     ##
     ## List of `features` and `predicted values`
-    if param_dict['n_predict'] == 1:
-        predicted_cols = ['M_h']
-    elif param_dict['n_predict'] == 2:
-        predicted_cols = ['M_h', 'galtype']
-    ##
-    ## List of features to use
-    if (param_dict['n_feat_use'] == 'all'):
-        features_cols = [s for s in catl_cols if s not in predicted_cols]
-    elif (param_dict['n_feat_use'] == 'sub'):
-        features_cols = [   'M_r',
-                            'GG_mr_brightest',
-                            'g_r',
-                            'GG_rproj',
-                            'GG_sigma_v',
-                            'GG_M_r',
-                            'GG_ngals',
-                            'GG_M_group',
-                            'GG_mdyn_rproj']
+    predicted_cols = param_dict['ml_args']._predicted_cols()
+    features_cols  = param_dict['ml_args']._feature_cols()
     ## Dropping NaN's
     if dropna_opt:
         catl_pd_tot.dropna(how='any', inplace=True)
@@ -974,6 +877,9 @@ def main():
     param_dict = vars(args)
     ## Checking for correct input
     param_vals_test(param_dict)
+    ##
+    ## ML- and other related variables
+    param_dict['ml_args'] = ReadML(**param_dict)
     ## Adding extra variables
     param_dict = add_to_dict(param_dict)
     ## Program message
@@ -981,7 +887,8 @@ def main():
     ##
     ## Creating Folder Structure
     # proj_dict = directory_skeleton(param_dict, cwpaths.cookiecutter_paths(__file__))
-    proj_dict = directory_skeleton(param_dict, cwpaths.cookiecutter_paths('./'))
+    proj_dict = param_dict['ml_args'].proj_dict
+    proj_dict = directory_skeleton(param_dict, proj_dict)
     ##
     ## Printing out project variables
     print('\n'+50*'='+'\n')

@@ -286,7 +286,7 @@ class ReadML(object):
 
             Options:
                 - 'catls' : Directory of the individuals merged catls
-                - 'all' : Directory of all the catalogues combined.
+                - 'combined' : Directory of all the catalogues combined.
 
         check_exist : `bool`, optional
             If `True`, it checks for whether or not the file exists.
