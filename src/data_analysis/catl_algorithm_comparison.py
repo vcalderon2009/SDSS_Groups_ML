@@ -39,6 +39,7 @@ from cosmo_utils.mock_catalogues import catls_utils as cmcu
 
 from src.ml_tools import ReadML
 
+from datetime import datetime
 import numpy as num
 import os
 import sys
@@ -642,7 +643,7 @@ def directory_skeleton(param_dict, proj_dict):
 ## --------- Preparing data ------------##
 
 # Different types of regressors
-def sklearns_models(param_dict, cpu_count):
+def sklearns_models(param_dict, cpu_number):
     """
     Defines the set of Regressors used by Scikit-Learn
 
@@ -651,7 +652,7 @@ def sklearns_models(param_dict, cpu_count):
     param_dict : `dict`
         Dictionary with input parameters and values related to this project.
 
-    cpu_count : `int`
+    cpu_number : `int`
         Number of CPU's to use.
 
     Returns
@@ -769,6 +770,8 @@ def main(args):
     group properties by using a set of calculated `features` from synthetic
     galaxy/group catalogues.
     """
+    ## Starting time
+    start_time = datetime.now()
     ## Reading all elements and converting to python dictionary
     param_dict = vars(args)
     ## Checking for correct input
@@ -802,6 +805,12 @@ def main(args):
     #
     ## -------- Saving final results -------- ##
     # Saving `models_dict`
+
+    ##
+    ## End time for running the catalogues
+    end_time = datetime.now()
+    total_time = end_time - start_time
+    print('{0} Total Time taken (Create): {1}'.format(prog_msg, total_time))
 
 
 
