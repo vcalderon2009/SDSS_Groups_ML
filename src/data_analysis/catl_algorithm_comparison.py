@@ -372,7 +372,7 @@ def get_parser():
                         """,
                         type=str,
                         choices=['binning', 'subsample', 'weights', 'normal'],
-                        default='normal')
+                        default='binning')
     ## Type of binning to use
     parser.add_argument('-bin_val',
                         dest='bin_val',
