@@ -178,11 +178,12 @@ class ReadML(object):
                 - 'model_score' : Out-of-the-box method from `sklearn` to determine success.
                 - 'r2': R-squared statistic for error calcuation.
 
-        sample_method : {'binning', 'subsample', 'weights'}, `str`, optional
+        sample_method : {'normal', binning', 'subsample', 'weights'}, `str`, optional
             Method for binning or subsample the array of the estimated 
             group mass. This variable set to `binning` by default.
 
             Options:
+                - 'normal' : Applied no special sampling method.
                 - 'binning' : It bins the estimated group mass
                 - 'subsample' : It subsamples the group mass to be equally 
                     representative at all masses
@@ -871,7 +872,7 @@ class ReadML(object):
         #
         # Sample Method
         #
-        if (self.sample_method in ['subsample', 'weights']):
+        if (self.sample_method in ['subsample', 'weights', 'normal']):
             sm_str = '{0}'.format(self.sample_method)
         elif (self.sample_method == 'binning'):
             sm_str = 'sm_{0}_{1}'.format(self.sample_method, self.bin_val)

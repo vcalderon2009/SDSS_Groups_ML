@@ -28,21 +28,16 @@ to improve the accuracy of the results. These include:
       than low-mass systems.
 """
 # Importing Modules
-from cosmo_utils       import mock_catalogues as cm
-from cosmo_utils       import utils           as cu
 from cosmo_utils.utils import file_utils      as cfutils
-from cosmo_utils.utils import file_readers    as cfreaders
 from cosmo_utils.utils import work_paths      as cwpaths
 from cosmo_utils.utils import stats_funcs     as cstats
-from cosmo_utils.utils import geometry        as cgeom
-from cosmo_utils.mock_catalogues import catls_utils as cmcu
+from cosmo_utils.ml    import ml_utils        as cmlu
 
 from src.ml_tools import ReadML
 
 from datetime import datetime
 import numpy as num
 import os
-import sys
 import pandas as pd
 import pickle
 
@@ -52,20 +47,15 @@ from argparse import ArgumentParser
 from argparse import HelpFormatter
 from operator import attrgetter
 from tqdm import tqdm
-from multiprocessing import Pool, Process, cpu_count
+from multiprocessing import cpu_count
 import astropy.constants as ac
 import astropy.units     as u
-import copy
 
 # ML modules
 import sklearn
-import sklearn.metrics          as skmetrics
-import sklearn.model_selection  as skms
 import sklearn.ensemble         as skem
 import sklearn.neural_network   as skneuro
-import sklearn.preprocessing    as skpre
 import xgboost
-import scipy
 
 ## Functions
 
@@ -375,14 +365,14 @@ def get_parser():
                         default=0.68)
     ## Type of subsample/binning for the estimated group masses
     parser.add_argument('-sample_method',
-                        dest='mass_sample_method',
+                        dest='sample_method',
                         help="""
                         Method for binning or sumsample the array of the
                         estimated group mass.
                         """,
                         type=str,
-                        choices=['binning', 'subsample', 'weights'],
-                        default='binning')
+                        choices=['binning', 'subsample', 'weights', 'normal'],
+                        default='normal')
     ## Type of binning to use
     parser.add_argument('-bin_val',
                         dest='bin_val',
@@ -685,8 +675,231 @@ def sklearns_models(param_dict, cpu_number):
 
     return skem_dict
 
+def array_insert(arr1, arr2, axis=1):
+    """
+    Joins the arrays into a signle multi-dimensional array
+
+    Parameters
+    ----------
+    arr1: array_like
+        first array to merge
+
+    arr2: array_like
+        second array to merge
+
+    Return
+    ---------
+    arr3: array_like
+        merged array from `arr1` and `arr2`
+    """
+    arr3 = num.insert(arr1, len(arr1.T), arr2, axis=axis)
+
+    return arr3
 
 ## --------- Main Analysis of the data ------------##
+
+# Finding indices of bins
+def binning_idx(train_dict, test_dict, param_dict):
+    """
+    Finds the indices for the different sets of dictionaries, based on
+    the parameter `bin_val`
+
+    Parameters
+    ------------
+    test_dict_ii : `dict`
+        Dictionary with the `training` data.
+
+    train_dict_ii : `dict`
+        Dictionary with the `testing` data.
+
+    param_dict : `dict`
+        Dictionary with input parameters and values related to this project.
+
+    Returns
+    ---------
+    train_idx_bins : `numpy.ndarray`, shape [N, n_bins]
+        Indices from the `train_dict` for each bin in halo mass.
+
+    test_idx_bins : `numpy.ndarray`, shape [N, n_bins]
+        Indices from the `test_dict` for each bin in halo mass.
+
+    """
+    # Predicted columns
+    pred_cols = num.array(param_dict['ml_args']._predicted_cols())
+    # Unpacking dictionaries
+    Y_train = train_dict['Y_train']
+    Y_test  = test_dict ['Y_test' ]
+    # Unpacking `true` halo mass array
+    if ((param_dict['n_predict'] == 1) and ('M_h' in pred_cols)):
+        mhalo_train = Y_train
+        mhalo_test  = Y_test
+    elif ((param_dict['n_predict'] > 1) and ('M_h' in pred_cols)):
+        # Halo mass index
+        mhalo_idx = num.where(pred_cols == 'M_h')[0]
+        # Training and testing arrays
+        mhalo_train = Y_train.T[mhalo_idx].flatten()
+        mhalo_test  = Y_test.t[mhalo_idx].flatten()
+    #
+    # Indices for `mhalo`
+    train_idx = num.arange(len(mhalo_train))
+    test_idx  = num.arange(len(mhalo_test))
+    #
+    ## Binning data
+    # Evenly-spaced bins
+    if (param_dict['bin_val'] == 'fixed'):
+        # Bin width for `mhalo`
+        bin_width = param_dict['ml_args'].mass_bin_width
+        # Selecting boundaries
+        mhalo_min  = num.max([mhalo_train.min(), mhalo_test.min()])
+        mhalo_max  = num.min([mhalo_train.max(), mhalo_test.max()])
+        mhalo_bins = num.array([mhalo_min, mhalo_max])
+        ## - Training
+        # Creating bins
+        train_bins = cstats.Bins_array_create(mhalo_bins, base=bin_width)
+        # Digitizing array
+        train_digits = num.digitize(mhalo_train, train_bins)
+        # Total number of bins indices
+        train_digits_idx = num.arange(1, len(train_bins))
+        # Indices in each bin
+        train_idx_bins = num.array([train_idx[train_digits == ii]
+                            for ii in train_digits_idx])
+        ##
+        ## - Testing
+        # Creating bins
+        test_bins = cstats.Bins_array_create(mhalo_bins, base=bin_width)
+        # Digitizing array
+        test_digits = num.digitize(mhalo_test, test_bins)
+        # Total number of bins indices
+        test_digits_idx = num.arange(1, len(test_bins))
+        # Indices in each bin
+        test_idx_bins = num.array([test_idx[test_digits == ii]
+                            for ii in test_digits_idx])
+    #
+    # Fixed number of bins
+    if (param_dict['bin_val'] == 'nbins'):
+        # Selecting boundary
+        nbins = param_dict['ml_args'].nbins
+        mhalo_min  = num.min([mhalo_train.min(), mhalo_test.min()])
+        mhalo_max  = num.max([mhalo_train.max(), mhalo_test.max()])
+        mhalo_bins = num.linspace(mhalo_min, mhalo_max, nbins + 1)
+        ## -- Training
+        # Digitizing array
+        train_digits = num.digitize(mhalo_train, mhalo_bins)
+        # Total number of bins indices
+        train_digits_idx = num.arange(1, len(mhalo_bins))
+        # Indices in each bin
+        train_idx_bins = num.array([train_idx[train_digits == ii]
+                            for ii in train_digits_idx])
+        ## -- Testing
+        # Digitizing array
+        test_digits = num.digitize(mhalo_test, mhalo_bins)
+        # Total number of bins indices
+        test_digits_idx = num.arange(1, len(mhalo_bins))
+        # Indices in each bin
+        test_idx_bins = num.array([test_idx[test_digits == ii]
+                            for ii in test_digits_idx])
+
+    return train_idx_bins, test_idx_bins
+
+# General Model metrics
+def model_metrics(skem_ii, test_dict_ii, train_dict_ii, param_dict):
+    """
+    Determines the general metrics of a model.
+
+    Parameters
+    -----------
+    skem_ii : `str`
+        Key of the Regressor being used. Taken from `skem_dict` dictionary.
+
+    test_dict_ii : `dict`
+        Dictionary with the `training` data.
+
+    train_dict_ii : `dict`
+        Dictionary with the `testing` data.
+
+    param_dict : `dict`
+        Dictionary with input parameters and values related to this project.
+
+    Returns
+    --------
+    model_gen_dict : `dict`
+        Dictionary with the set of general model metrics, i.e.
+            - Model instance
+            - Model score
+            - Array of predicted values
+            - Array of `true` halo masses
+            - Fractional difference between `true` and `predicted`
+            - Feature importance when applicable
+    """
+    ## Constants
+    # Feature columns
+    feat_cols = num.array(param_dict['ml_args']._feature_cols())
+    # Predicted columns
+    pred_cols = num.array(param_dict['ml_args']._predicted_cols())
+    ##
+    ## Unpacking dictionariesx
+    # Training
+    X_train_ii = train_dict_ii['X_train']
+    Y_train_ii = train_dict_ii['Y_train']
+    # Testing
+    X_test_ii = test_dict_ii['X_test']
+    Y_test_ii = test_dict_ii['Y_test']
+    ##
+    ## Training model
+    #
+    # Initializing model
+    model_ii = sklearn.base.clone(param_dict['skem_dict'][skem_ii])
+    #
+    # Training model
+    model_ii.fit(X_train_ii, Y_train_ii)
+    #
+    # Overall Score
+    model_ii_score = cmlu.scoring_methods(Y_test_ii,
+                            feat_arr=X_test_ii,
+                            model=model_ii,
+                            score_method=param_dict['score_method'],
+                            threshold=param_dict['threshold'],
+                            perc=param_dict['perc_val'])
+    #
+    # Predicting outputs
+    pred_ii_arr = model_ii.predict(X_test_ii)
+    #
+    ## Fractional difference - Mass
+    # Array of `estimated` mass
+
+    if ((param_dict['n_predict'] == 1) and ('M_h' in pred_cols)):
+        # Array of `true` halo mass
+        mhalo_ii_arr      = Y_test_ii
+        mhalo_ii_pred_arr = pred_ii_arr
+    elif ((param_dict['n_predict'] > 1) and ('M_h' in pred_cols)):
+        # Halo mass index
+        mhalo_idx = num.where(pred_cols == 'M_h')[0]
+        # Array of `true` halo mass
+        mhalo_ii_arr = Y_test_ii.T[mhalo_idx].flatten()
+        # Array of `predicted` halo mass
+        mhalo_ii_pred_arr = pred_ii_arr.T[mhalo_idx].flatten()
+    # Calculation
+    frac_diff_ii = 100. * (mhalo_ii_pred_arr - mhalo_ii_arr) / mhalo_ii_arr
+    #
+    # Feature importance
+    if not (skem_ii == 'neural_network'):
+        # Importance
+        feat_importance_ii = model_ii.feature_importances_
+        # Rank
+    else:
+        # Importance
+        feat_importance_ii = num.ones(feat_cols.shape) * num.nan
+        # Rank
+    #
+    # Saving to dictionary
+    model_gen_dict = {  'model_ii'  : model_ii,
+                        'score'     : model_ii_score,
+                        'mhalo_pred': mhalo_ii_pred_arr,
+                        'mhalo_true': mhalo_ii_arr,
+                        'frac_diff' : frac_diff_ii,
+                        'feat_imp'  : feat_importance_ii}
+
+    return model_gen_dict
 
 # ML Models training wrapper
 def ml_models_training(models_dict, param_dict, proj_dict):
@@ -726,7 +939,7 @@ def ml_models_training(models_dict, param_dict, proj_dict):
     return models_dict
 
 # Main Analysis for fixed HOD and DV
-def ml_analysis(skem_ii, param_dict, proj_dict):
+def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
     """
     Main analysis for fixed `HOD` and velocity bias.
     This functions determines:
@@ -753,12 +966,150 @@ def ml_analysis(skem_ii, param_dict, proj_dict):
 
     Returns
     --------
-    model_dict : `dict`
+    ml_model_dict : `dict`
         Dictionary containing metrics for the ML model.
 
         Keys :
             - ''
     """
+    ## Constants
+    # Feature columns
+    feat_cols = num.array(param_dict['ml_args']._feature_cols())
+    #
+    ## Determining type of `sample_method`
+    # `Normal` sample Method
+    if (param_dict['sample_method'] == 'normal'):
+        ml_model_dict = model_metrics(skem_ii, test_dict, train_dict,
+                            param_dict)
+    # `Binning` sample method
+    if (param_dict['sample_method'] == 'binning'):
+        # Dictionaries with the indices from the `training` and `testing`
+        # datasets, at each halo mass bin.
+        train_idx_bins, test_idx_bins = binning_idx(train_dict, test_dict,
+                                            param_dict)
+        ##
+        ## Looping over bins, and training each independently
+        ml_model_dict = {}
+        # Looping over bins
+        for ii in tqdm(range(len(train_idx_bins))):
+            ## -- Constructing new dictionaries
+            # Training
+            train_idx_ii   = train_idx_bins[ii]
+            train_dict_bin = {k: train_dict[k][train_idx_ii]
+                                for k in train_dict.keys()}
+            # Testing
+            test_idx_ii   = test_idx_bins[ii]
+            test_dict_bin = {k: test_dict[k][test_idx_ii]
+                                for k in test_dict.keys()}
+            ##
+            ## -- Metrics
+            model_metrics_ii = model_metrics(   skem_ii,
+                                                test_dict_bin,
+                                                train_dict_bin,
+                                                param_dict)
+            ##
+            ## -- Concatenatng Arrays and expanding arrays
+            if (ii == 0):
+                # `mhalo_pred`
+                mhalo_pred_main = model_metrics_ii['mhalo_pred']
+                # `mhalo_true`
+                mhalo_true_main = model_metrics_ii['mhalo_true']
+                # `frac_diff`
+                frac_diff_main  = model_metrics_ii['frac_diff']
+                # `feat_imp`
+                feat_imp_main   = model_metrics_ii['feat_imp']
+                # `score`
+                score_main      = [model_metrics_ii['score']]
+                # `models
+                models_main     = [model_metrics_ii['model_ii']]
+            else:
+                # `mhalo_pred`
+                mhalo_pred_main = array_insert(mhalo_pred_main,
+                                    model_metrics_ii['mhalo_pred'],
+                                    axis=0)
+                # `mhalo_true`
+                mhalo_true_main = array_insert(mhalo_true_main,
+                                    model_metrics_ii['mhalo_true'],
+                                    axis=0)
+                # `frac_diff`
+                frac_diff_main  = array_insert(frac_diff_main,
+                                    model_metrics_ii['frac_diff'],
+                                    axis=0)
+                # `feat_imp`
+                feat_imp_temp   = model_metrics_ii['feat_imp']
+                feat_imp_main   = num.column_stack((feat_imp_main,
+                                    feat_imp_temp))
+                # `score`
+                score_main.append(model_metrics_ii['score'])
+                # `models`
+                models_main.append(model_metrics_ii['model_ii'])
+        ##
+        ## -- Overall score - Mean
+        mean_score = num.mean(score_main)
+        ##
+        ## -- Feature Importance - Mean
+        # feat_imp_mean = num.mean(feat_imp_main.T, axis=1)
+        feat_imp_mean = feat_imp_main[0]
+        ##
+        ## -- Adding values to main dictionary
+        ml_model_dict['model_ii'  ] = models_main
+        ml_model_dict['score'     ] = mean_score
+        ml_model_dict['mhalo_pred'] = mhalo_pred_main
+        ml_model_dict['mhalo_true'] = mhalo_true_main
+        ml_model_dict['frac_diff' ] = frac_diff_main
+        ml_model_dict['feat_imp'  ] = feat_imp_mean
+    ##
+    ## -- Feature importance ranking --
+    feat_imp_comb      = num.vstack(zip(feat_cols, ml_model_dict['feat_imp']))
+    feat_imp_comb_idx  = num.argsort(feat_imp_comb[:, 1])[::-1]
+    feat_imp_comb_sort = feat_imp_comb[feat_imp_comb_idx]
+    #
+    # Adding to dictionary
+    ml_model_dict['feat_imp_sort'] = feat_imp_comb_sort
+
+    return ml_model_dict
+
+## --------- Saving Data ------------##
+
+def saving_data(models_dict, param_dict, proj_dict, ext='p'):
+    """
+    Saves the final data file to directory.
+
+    Parameters
+    ------------
+    models_dict : `dict`
+        Dictionary containing the results from the ML analysis.
+
+    param_dict : `dict`
+        Dictionary with input parameters and values related to this project.
+
+    proj_dict: python dictionary
+        Dictionary with current and new paths to project directories
+
+    ext : `str`, optional
+        Extension of the file. This variable is set to `p` by default, i.e.
+        for `pickle file`.
+    """
+    file_msg = param_dict['Prog_msg']
+    # Filename
+    filepath_str_arr = [param_dict['ml_args']._catl_train_prefix_str(),
+                        ext]
+    filename_str = '{0}_model_dict.{1}'.format(*filepath_str_arr)
+    # Path to file
+    filepath = os.path.join(proj_dict['out_dir'], filename_str)
+    # Elements to be saved
+    obj_arr = [models_dict]
+    # Saving pickle file
+    with open(filepath, 'wb') as file_p:
+        pickle.dump(obj_arr, file_p)
+    # Checking the file exists
+    if not (os.path.exists(filepath)):
+        msg = '{0} `filepath` ({1}) was not found!!'.format(file_msg, filepath)
+        raise FileNotFoundError(msg)
+    #
+    # Output message
+    msg = '{0} Output file: `{1}`'.format(file_msg, filepath)
+    print(msg)
 
 ## --------- Main Function ------------##
 
@@ -803,14 +1154,12 @@ def main(args):
     #
     ## -------- Saving final results -------- ##
     # Saving `models_dict`
-
+    saving_data(models_dict, param_dict, proj_dict)
     ##
     ## End time for running the catalogues
     end_time = datetime.now()
     total_time = end_time - start_time
     print('{0} Total Time taken (Create): {1}'.format(prog_msg, total_time))
-
-
 
 # Main function
 if __name__ == '__main__':
