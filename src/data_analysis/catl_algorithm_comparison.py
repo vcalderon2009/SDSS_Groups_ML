@@ -257,7 +257,7 @@ def get_parser():
                         """,
                         type=str,
                         choices=['sample_frac', 'boxes_n', 'box_sample_frac'],
-                        default='boxes_n')
+                        default='sample_frac')
     ## Initial and final indices of the simulation boxes to use for the
     ## testing and training datasets.
     parser.add_argument('-box_idx',
@@ -292,7 +292,7 @@ def get_parser():
                         dest='sample_frac',
                         help='fraction of the total dataset to use',
                         type=float,
-                        default=0.01)
+                        default=0.1)
     ## Testing size for ML
     parser.add_argument('-test_size',
                         dest='test_size',
@@ -385,7 +385,7 @@ def get_parser():
                         dest='ml_analysis',
                         help='Type of analysis to perform.',
                         type=str,
-                        choices=['hod_fixed', 'dv_fixed', 'hod_dv_fixed'],
+                        choices=['hod_fixed'],
                         default='hod_dv_fixed')
     ## CPU Counts
     parser.add_argument('-cpu',
@@ -562,9 +562,9 @@ def add_to_dict(param_dict):
         dictionary with old and new values added
     """
     ### Sample - Int
-    sample_s = str(param_dict['sample'])
+    sample_s = param_dict['ml_args'].sample_s
     ### Sample - Mr
-    sample_Mr = 'Mr{0}'.format(param_dict['sample'])
+    sample_Mr = param_dict['ml_args'].sample_Mr
     ## Sample volume
     # Units (Mpc/h)**3
     volume_sample = {   '18': 37820 / 0.01396,
@@ -615,15 +615,10 @@ def directory_skeleton(param_dict, proj_dict):
     proj_dict: python dictionary
         Dictionary with current and new paths to project directories
     """
-    # Output directory for this analysis
-    main_catl_train_dir = param_dict['ml_args'].main_catl_train_dir(
-                            check_exist=False)
     #
     # Main output file for this script
-    out_dir = os.path.join(main_catl_train_dir, 'ml_alg_comparison')
-    #
-    # Creating paths
-    cfutils.Path_Folder(out_dir)
+    out_dir = param_dict['ml_args'].catl_train_alg_comp_dir(check_exist=False,
+                create_dir=False)
     #
     # Adding to `proj_dict`
     proj_dict['out_dir'] = out_dir
@@ -1092,11 +1087,8 @@ def saving_data(models_dict, param_dict, proj_dict, ext='p'):
     """
     file_msg = param_dict['Prog_msg']
     # Filename
-    filepath_str_arr = [param_dict['ml_args']._catl_train_prefix_str(),
-                        ext]
-    filename_str = '{0}_model_dict.{1}'.format(*filepath_str_arr)
-    # Path to file
-    filepath = os.path.join(proj_dict['out_dir'], filename_str)
+    filepath = param_dict['ml_args'].catl_train_alg_comp_file(
+                    check_exist=False)
     # Elements to be saved
     obj_arr = [models_dict]
     # Saving pickle file
@@ -1125,13 +1117,13 @@ def main(args):
     param_dict = vars(args)
     ## Checking for correct input
     param_vals_test(param_dict)
-    ## Program message
-    prog_msg = param_dict['Prog_msg']
-    # Adding additional parameters
-    param_dict['add_to_dict'] = add_to_dict(param_dict)
     #
     # Creating instance of `ReadML` with the input parameters
     param_dict['ml_args'] = ReadML(**param_dict)
+    ## Program message
+    prog_msg = param_dict['Prog_msg']
+    # Adding additional parameters
+    param_dict = add_to_dict(param_dict)
     ##
     ## Creating Folder Structure
     # proj_dict = cwpaths.cookiecutter_paths(__file__)
