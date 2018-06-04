@@ -660,8 +660,6 @@ def sklearns_models(param_dict, cpu_number):
     skem_dict : `dict`
         Dictionary with a set of regressors uninitialized
     """
-    # Constants
-    cpu_number = param_dict['cpu_number']
     # Dictionary with regressors
     skem_dict = {}
     # Random Forest
