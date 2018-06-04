@@ -52,6 +52,9 @@ from argparse import HelpFormatter
 from operator import attrgetter
 from tqdm import tqdm
 from multiprocessing import Pool, Process, cpu_count
+import astropy.constants as ac
+import astropy.units     as u
+import copy
 
 # ML modules
 import sklearn
@@ -768,6 +771,8 @@ def main(args):
     param_vals_test(param_dict)
     ## Program message
     prog_msg = param_dict['Prog_msg']
+    # Adding additional parameters
+    param_dict['add_to_dict'] = add_to_dict(param_dict)
     #
     # Creating instance of `ReadML` with the input parameters
     param_dict['ml_args'] = ReadML(**param_dict)
@@ -793,7 +798,7 @@ def main(args):
     #
     ## -------- Saving final results -------- ##
     # Saving `models_dict`
-    
+
 
 
 
