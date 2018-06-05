@@ -609,7 +609,7 @@ def add_to_dict(param_dict):
     param_dict['speed_c'     ] = speed_c
     param_dict['cpu_number'  ] = cpu_number
     param_dict['plot_dict'   ] = plot_dict
-    param_dict['catl_str_fig'] = fig_pre_str
+    param_dict['catl_str_fig'] = catl_str_fig
 
     return param_dict
 
