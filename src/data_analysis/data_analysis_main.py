@@ -368,6 +368,13 @@ def get_parser():
                         type=str,
                         choices=['hod_dv_fixed'],
                         default='hod_dv_fixed')
+    ## Which axes to plot
+    parser.add_argument('-plot_opt',
+                        dest='plot_opt',
+                        help='Option for which variable to plot on x-axis',
+                        type=str,
+                        choices=['mgroup', 'mhalo'],
+                        default='mhalo')
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -666,6 +673,7 @@ def get_analysis_params(param_dict):
                             ('sample_method' , '-sample_method' , 'binning'  ),
                             ('bin_val'       , '-bin_val'       , 'fixed'    ),
                             ('ml_analysis'   , '-ml_analysis'   , 'hod_dv_fixed'),
+                            ('plot_opt'      , '-plot_opt'      , 'mhalo'    ),
                             ('cpu_frac'      , '-cpu'           , 0.75       ),
                             ('remove_files'  , '-remove'        , False      ),
                             ('verbose'       , '-v'             , False      ),
@@ -768,6 +776,9 @@ def get_analysis_params(param_dict):
     ##
     ## Type of analysis to perform.
     alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'ml_analysis', param_dict)
+    ##
+    ## Option for which variable to plot on x-axis
+    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'plot_opt', param_dict)
     ##
     ## Percentage of CPU to use
     alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'cpu_frac', param_dict)

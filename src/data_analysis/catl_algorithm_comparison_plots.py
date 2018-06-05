@@ -396,6 +396,13 @@ def get_parser():
                         type=str,
                         choices=['hod_dv_fixed'],
                         default='hod_dv_fixed')
+    ## Which axes to plot
+    parser.add_argument('-plot_opt',
+                        dest='plot_opt',
+                        help='Option for which variable to plot on x-axis',
+                        type=str,
+                        choices=['mgroup', 'mhalo'],
+                        default='mhalo')
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -978,7 +985,8 @@ def main(args):
     param_dict['feat_cols_dict'] = param_dict['ml_args'].feat_cols_names_dict()
     ##
     ## Fractional difference of `predicted` and `truth`
-    frac_diff_model(models_dict, param_dict, proj_dict)
+    frac_diff_model(models_dict, param_dict, proj_dict,
+            plot_opt=param_dict['plot_opt'])
     ##
     ## End time for running the catalogues
     end_time = datetime.now()
