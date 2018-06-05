@@ -940,6 +940,160 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     plt.clf()
     plt.close()
 
+# Ranking of each galaxy property for each different algorithm
+def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
+    fig_fmt='pdf', figsize=(15, 12), fig_number=2, stacked_opt=True,
+    rank_opt='idx'):
+    """
+    Plots the `ranking` of each galaxy proeperty based on the different ML
+    algorithms used.
+
+    Parameters
+    ------------
+    models_dict : `dict`
+        Dictionary containing the results from the ML analysis.
+
+    param_dict : `dict`
+        Dictionary with input parameters and values related to this project.
+
+    proj_dict: python dictionary
+        Dictionary with current and new paths to project directories
+
+    fig_fmt : `str`, optional (default = 'pdf')
+        extension used to save the figure
+
+    figsize : `tuple`, optional
+        Size of the output figure. This variable is set to `(12,15.5)` by
+        default.
+
+    fig_number : `int`, optional
+        Number of figure in the workflow. This variable is set to `1`
+        by default.
+
+    stacked_opt : `bool`, optional
+        If True, it stacks the bar plots. This variable is set to `True`
+        by default.
+
+    rank_opt : {'idx', 'perc'} `str`, optional
+        Option for which type of `ranking` to show.
+
+        Options:
+            - 'idx' : Shows the ranking indices for each feature.
+            - ' perc' : Shows the ranking percentage for each feature.
+    """
+    file_msg = param_dict['Prog_msg']
+    # Figure name
+    ##
+    ## Figure name
+    fname = os.path.join(   proj_dict['figure_dir'],
+                            'Fig_{0}_{1}_feature_ranking.{2}'.format(
+                                fig_number,
+                                param_dict['catl_str_fig'],
+                                fig_fmt))
+    #
+    # Constants
+    feat_cols_dict = param_dict['ml_args'].feat_cols_names_dict()
+    plot_dict      = param_dict['plot_dict']
+    # List of algorithms used
+    skem_key_arr = num.sort(list(models_dict.keys()))
+    # Removing `neural network` from list if needed
+    if ('neural_network' in skem_key_arr):
+        skem_key_arr = num.array([i for i in skem_key_arr if i != 'neural_network'])
+    # Number of ML algorithms
+    n_ml_algs = len(skem_key_arr)
+    # Features used
+    feat_arr = num.array(param_dict['ml_args']._feature_cols())
+    # Numbre of features
+    n_feat = len(feat_arr)
+    # Initializing array
+    feat_rank_arr = num.zeros((n_feat, n_ml_algs))
+    ## Choosing which type of `ranking` to show
+    if (rank_opt == 'perc'):
+        rank_idx  = 1
+        rank_type = float
+    elif (rank_opt == 'idx'):
+        rank_idx  = 2
+        rank_type = int
+    # Looping over ML algorithms
+    for kk, skem_key in tqdm(enumerate(skem_key_arr)):
+        # Reading in Data
+        feat_imp_sort = models_dict[skem_key]['feat_imp_sort']
+        # Converting to DataFrame
+        feat_imp_sort_pd = pd.DataFrame(feat_imp_sort[:, rank_idx].astype(rank_type),
+                                index=feat_imp_sort[:, 0],
+                                columns=[skem_key])
+        if (kk == 0):
+            feat_rank_pd = feat_imp_sort_pd
+        else:
+            feat_rank_pd = pd.merge(feat_rank_pd,
+                                    feat_imp_sort_pd,
+                                    left_index=True,
+                                    right_index=True)
+    #
+    # Calculating total ranking
+    feat_rank_pd.loc[:,'rank_sum'] = feat_rank_pd.sum(axis=1)
+    ##
+    ## Ordering by rank
+    feat_rank_pd.sort_values('rank_sum', ascending=True, inplace=True)
+    ##
+    ## Renaming columns
+    feat_rank_pd.rename(index=feat_cols_dict, inplace=True)
+    ##
+    ## Excluding `rank_sum` column
+    feat_rank_col_exclude = feat_rank_pd.columns.difference(['rank_sum'])
+    feat_rank_pd_mod      = feat_rank_pd.loc[:,feat_rank_col_exclude].copy()
+    ## Renaming columns
+    feat_rank_pd_mod_cols     = feat_rank_pd_mod.columns.values
+    feat_rank_pd_mod_cols_mod = [xx.replace('_',' ').replace('_rank','').title() for xx in 
+                                feat_rank_pd_mod_cols]
+    feat_rank_pd_mod.rename(columns=dict(zip(   feat_rank_pd_mod_cols,
+                                                feat_rank_pd_mod_cols_mod)),
+                            inplace=True)
+    ##
+    ## Plotting details
+    plt.clf()
+    plt.close()
+    fig = plt.figure(figsize=figsize)
+    ax1 = fig.add_subplot(111, facecolor='white')
+    # Axis labels
+    xlabel = r'$\leftarrow \textrm{Importance ranking}$'
+    ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
+    # Plotting
+    # Width
+    if stacked_opt:
+        b = feat_rank_pd_mod.plot(  kind='barh',
+                                stacked=stacked_opt,
+                                ax=ax1,
+                                legend=True)
+    else:
+        b = feat_rank_pd_mod.plot(  kind='barh',
+                                stacked=stacked_opt,
+                                ax=ax1,
+                                legend=True,
+                                width=0.5)
+    b.tick_params(labelsize=25)
+    ## Legend
+    leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
+        prop={'size':20})
+    # leg.get_frame().set_facecolor('none')
+    ## Ticks
+    ax_data_major_loc  = ticker.MultipleLocator(10)
+    ax_data_minor_loc  = ticker.MultipleLocator(5.)
+    ax1.xaxis.set_major_locator(ax_data_major_loc)
+    ax1.xaxis.set_minor_locator(ax_data_minor_loc)
+    # Inverting axis
+    ax1.invert_yaxis()
+    ##
+    ## Saving figure
+    if fig_fmt=='pdf':
+        plt.savefig(fname, bbox_inches='tight')
+    else:
+        plt.savefig(fname, bbox_inches='tight', dpi=400)
+    print('{0} Figure saved as: {1}'.format(Prog_msg, fname))
+    plt.clf()
+    plt.close()
+    
+
 
 
 
