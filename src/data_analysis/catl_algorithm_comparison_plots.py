@@ -674,7 +674,7 @@ def array_insert(arr1, arr2, axis=1):
 
 
 # Fractional difference
-def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mgroup',
+def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     arr_len=10, bin_statval='left', fig_fmt='pdf', figsize=(10, 8),
     fig_number=1):
     """
@@ -682,6 +682,43 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mgroup',
     halo masses.
 
     Parameters
+    -----------
+    models_dict : `dict`
+        Dictionary containing the results from the ML analysis.
+
+    param_dict : `dict`
+        Dictionary with input parameters and values related to this project.
+
+    proj_dict: python dictionary
+        Dictionary with current and new paths to project directories
+
+    plot_opt : {'mgroup', 'mhalo'} `str`, optional  
+        Option to which property to plot on the x-axis. This variable is set
+        to `mhalo` by default.
+
+    arr_len : `int`, optional
+        Minimum number of elements in bins. This variable is set to `0`
+        by default.
+
+    bin_statval : `str`, optional
+        Option for where to plot the bin values. This variable is set
+        to `average` by default.
+
+        Options:
+        - 'average': Returns the x-points at the average x-value of the bin
+        - 'left'   : Returns the x-points at the left-edge of the x-axis bin
+        - 'right'  : Returns the x-points at the right-edge of the x-axis bin
+
+    fig_fmt : `str`, optional (default = 'pdf')
+        extension used to save the figure
+
+    figsize : `tuple`, optional
+        Size of the output figure. This variable is set to `(12,15.5)` by
+        default.
+
+    fig_number : `int`, optional
+        Number of figure in the workflow. This variable is set to `1`
+        by default.
     """
     file_msg = param_dict['Prog_msg']
     #
@@ -694,6 +731,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mgroup',
     zorder_mass  = 10
     zorder_shade = zorder_mass - 1
     zorder_ml    = zorder_mass + 1
+    bin_width    = param_dict['ml_args'].mass_bin_width
     ##
     ## Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
@@ -710,8 +748,13 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mgroup',
     for kk, model_kk in enumerate(ml_algs_names):
         # X and Y coordinates
         model_kk_data = models_dict[model_kk]
-        model_kk_x    = model_kk_data['mhalo_true']
-        # model_kk_x    = model_kk_data['mgroup_arr']
+        ## X- and Y-axis
+        # X-axis
+        if (plot_opt == 'mhalo'):
+            model_kk_x    = model_kk_data['mhalo_true']
+        elif (plot_opt == 'mgroup'):
+            model_kk_x    = model_kk_data['mgroup_arr']
+        # Y-axis
         model_kk_y    = model_kk_data['frac_diff']
         # Calculating error in bins
         (   x_stat_arr,
@@ -719,7 +762,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mgroup',
             y_std_arr,
             y_std_err) = cstats.Stats_one_arr(  model_kk_x,
                                                 model_kk_y,
-                                                base=param_dict['ml_args'].mass_bin_width,
+                                                base=bin_width,
                                                 arr_len=arr_len,
                                                 bin_statval=bin_statval)
         # Saving to dictionary
@@ -731,25 +774,39 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mgroup',
         frac_diff_dict[model_kk]['y_err' ] = y_std_arr
     ## Abundance matched mass
     # HAM
-    ham_pred, ham_true, ham_frac_diff = param_dict['ml_args'].extract_trad_masses(mass_opt='ham',
-                                            return_frac_diff=True)
+    (   ham_pred,
+        ham_true,
+        ham_frac_diff) = param_dict['ml_args'].extract_trad_masses(
+                                                mass_opt='ham',
+                                                return_frac_diff=True)
     # Dynamical
-    dyn_pred, dyn_true, dyn_frac_diff = param_dict['ml_args'].extract_trad_masses(mass_opt='dyn',
-                                            return_frac_diff=True)
+    (   dyn_pred,
+        dyn_true,
+        dyn_frac_diff) = param_dict['ml_args'].extract_trad_masses(
+                                                mass_opt='dyn',
+                                                return_frac_diff=True)
     # Only choosing non-zero values
     dyn_pred_mask = dyn_pred > 9
     dyn_pred      = dyn_pred[dyn_pred_mask]
     dyn_true      = dyn_true[dyn_pred_mask]
     dyn_frac_diff = dyn_frac_diff[dyn_pred_mask]
     ##
+    ## Choosing which mass to plot
+    if (plot_opt == 'mgroup'):
+        ham_x = ham_pred
+        dyn_x = dyn_pred
+    elif (plot_opt == 'mhalo'):
+        ham_x = ham_true
+        dyn_x = dyn_true
+    ##
     ## Binning data
     # HAM
     (   x_stat_ham   ,
         y_stat_ham   ,
         y_std_ham    ,
-        y_std_err_ham) = cstats.Stats_one_arr(  ham_true,
+        y_std_err_ham) = cstats.Stats_one_arr(  ham_x,
                                                 ham_frac_diff,
-                                                base=param_dict['ml_args'].mass_bin_width,
+                                                base=bin_width,
                                                 arr_len=arr_len,
                                                 bin_statval=bin_statval)
     y1_ham = y_stat_ham - y_std_ham
@@ -758,9 +815,9 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mgroup',
     (   x_stat_dyn   ,
         y_stat_dyn   ,
         y_std_dyn    ,
-        y_std_err_dyn) = cstats.Stats_one_arr(  dyn_true,
+        y_std_err_dyn) = cstats.Stats_one_arr(  dyn_x,
                                                 dyn_frac_diff,
-                                                base=param_dict['ml_args'].mass_bin_width,
+                                                base=bin_width,
                                                 arr_len=arr_len,
                                                 bin_statval=bin_statval)
     y1_dyn = y_stat_dyn - y_std_dyn
@@ -771,9 +828,13 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mgroup',
     ml_algs_names_mod  = [xx.replace('_',' ').title() for xx in ml_algs_names]
     ml_algs_names_dict = dict(zip(ml_algs_names, ml_algs_names_mod))
     # Labels
-    xlabel = r'\boldmath$\log M_{halo,\textrm{true}}\left[ h^{-1} M_{\odot}\right]$'
-    # xlabel = r'\boldmath$\log M_{group}\left[ h^{-1} M_{\odot}\right]$')
-    ylabel = r'Fractional Difference \boldmath$[\%]$'
+    # X-label
+    if (plot_opt == 'mgroup'):
+        xlabel = r'\boldmath$\log M_{group}\left[ h^{-1} M_{\odot}\right]$'
+    elif (plot_opt == 'mhalo'):
+        xlabel = r'\boldmath$\log M_{halo,\textrm{true}}\left[ h^{-1} M_{\odot}\right]$'
+    # Y-label
+    ylabel = r'Frac. Difference \boldmath$[\%]$'
     ##
     plt.clf()
     plt.close()
