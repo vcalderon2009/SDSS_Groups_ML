@@ -1132,6 +1132,50 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
 
 ## --------- Saving Data ------------##
 
+def test_alg_comp_file(param_dict, proj_dict):
+    """
+    Determines whether or not to run the calculations.
+
+    Parameters
+    ----------
+    param_dict : `dict`
+        Dictionary with `project` variables
+
+    proj_dict : `dict`
+        Dictionary with info of the project that uses the
+        `Data Science` Cookiecutter template.
+
+    Returns
+    ----------
+    run_opt : `bool`
+        If True, the whole analysis is run.
+
+    param_dict : `dict`
+        Dictionary with `project` variables
+    """
+    ## Filename, under which to save all of the information
+    ##
+    ## Path to output file
+    filepath = param_dict['ml_args'].catl_train_alg_comp_file(
+                    check_exist=False)
+    ## Saving
+    ##
+    ## Checking if to run or not
+    if os.path.exists(filepath):
+        if param_dict['remove_files']:
+            os.remove(filepath)
+            run_opt = True
+        else:
+            run_opt = False
+    else:
+        run_opt = True
+    ##
+    ## Saving name to dictionary
+    param_dict['filepath'    ] = filepath
+    param_dict['filename_str'] = filename_str
+
+    return run_opt, param_dict
+
 def saving_data(models_dict, param_dict, proj_dict, ext='p'):
     """
     Saves the final data file to directory.
@@ -1204,15 +1248,27 @@ def main(args):
     print('\n'+50*'='+'\n')
     ##
     ## -------- ML main analysis -------- ##
-    # Dictionary for storing outputs
-    models_dict = {}
-    #
-    # Analyzing data
-    models_dict = ml_models_training(models_dict, param_dict, proj_dict)
-    #
-    ## -------- Saving final results -------- ##
-    # Saving `models_dict`
-    saving_data(models_dict, param_dict, proj_dict)
+    ##
+    ## Testing of whether or not to run the analysis
+    (   run_opt   ,
+        param_dict) = test_feat_file(param_dict, proj_dict)
+    # Analysis
+    if run_opt:
+        # Dictionary for storing outputs
+        models_dict = {}
+        #
+        # Analyzing data
+        models_dict = ml_models_training(models_dict, param_dict, proj_dict)
+        #
+        ## -------- Saving final results -------- ##
+        # Saving `models_dict`
+        saving_data(models_dict, param_dict, proj_dict)
+    else:
+        ##
+        ## Output message
+        assert(os.path.exists(param_dict['filepath']))
+        msg = '{0} Output file: {1}'.format(prog_msg, param_dict['filepath'])
+        print(msg)
     ##
     ## End time for running the catalogues
     end_time = datetime.now()
