@@ -1005,3 +1005,61 @@ class ReadML(object):
             msg = '`obj` ({0}) must be of length `1`'.format(len(obj_arr))
 
         return models_dict
+
+    def feat_cols_names_dict(self):
+        """
+        Substitutes for the column names in the list of `features`.
+
+        Returns
+        ---------
+        feat_cols_dict : `dict`
+            Dictionary with column names for each of the `features` in 
+            `feat_cols`.
+        """
+        # Column names
+        feat_cols_names = { 'GG_r_tot':"Total Radius (G)",
+                            'GG_sigma_v': "Velocity Dispersion (G)",
+                            'GG_mr_brightest':"Lum. of Brightest Galaxy (G)",
+                            'g_galtype':"Group galaxy type",
+                            'GG_r_med':"Median radius (G)",
+                            'GG_mr_ratio': "Luminosity ratio (G)",
+                            'GG_logssfr': "log(sSFR) (G)",
+                            'GG_mdyn_rmed':"Dynamical mass at median radius (G)",
+                            'GG_dist_cluster':"Distance to closest cluster (G)",
+                            'GG_M_r':"Total Brightness (G)",
+                            'GG_rproj':"Total Rproj (G)",
+                            'GG_shape':"Group's shape (G)",
+                            'GG_mdyn_rproj':"Dynamical mass at Rproj (G)",
+                            'GG_dens_10.0':"Density at 10 Mpc/h (G)",
+                            'GG_dens_5.0':"Density at 5 Mpc/h (G)",
+                            'GG_dens_2.0':"Density at 2 Mpc/h (G)",
+                            'GG_M_group':"Group's Ab. Matched Mass (G)",
+                            'GG_sigma_v_rmed':"Velocity Dispersion at Rmed (G)",
+                            'GG_ngals':"Group richness (G)",
+                            'M_r':"Galaxy's luminosity",
+                            'g_r':"(g-r) galaxy color",
+                            'dist_centre_group':"Distance to Group's centre",
+                            'g_brightest':"If galaxy is group's brightest galaxy",
+                            'logssfr':"Log of Specific star formation rate ",
+                            'sersic': "Galaxy's morphology"}
+        #
+        # Cross matching with the list of `features` for the project
+        feat_cols = self._feature_cols()
+        #
+        # Intersection between column names
+        feat_cols_intersect = num.intersect1d(  list(feat_cols_names.keys()),
+                                                feat_cols)
+        #
+        # Creating new dictionary
+        feat_cols_dict = {key: feat_cols_names[key] for key in
+                            feat_cols_intersect}
+
+        return feat_cols_dict
+
+
+
+
+
+
+
+
