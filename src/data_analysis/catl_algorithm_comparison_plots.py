@@ -597,15 +597,19 @@ def add_to_dict(param_dict):
                     'color_ham' :'red',
                     'color_dyn' :'blue'}
     ##
+    ## Catalogue Prefix string
+    catl_str_fig = param_dict['ml_args'].catl_alg_comp_fig_str()
+    ##
     ## Saving to `param_dict`
-    param_dict['sample_s'  ] = sample_s
-    param_dict['sample_Mr' ] = sample_Mr
-    param_dict['vol_mr'    ] = vol_mr
-    param_dict['cens'      ] = cens
-    param_dict['sats'      ] = sats
-    param_dict['speed_c'   ] = speed_c
-    param_dict['cpu_number'] = cpu_number
-    param_dict['plot_dict' ] = plot_dict
+    param_dict['sample_s'    ] = sample_s
+    param_dict['sample_Mr'   ] = sample_Mr
+    param_dict['vol_mr'      ] = vol_mr
+    param_dict['cens'        ] = cens
+    param_dict['sats'        ] = sats
+    param_dict['speed_c'     ] = speed_c
+    param_dict['cpu_number'  ] = cpu_number
+    param_dict['plot_dict'   ] = plot_dict
+    param_dict['catl_str_fig'] = fig_pre_str
 
     return param_dict
 
@@ -631,6 +635,7 @@ def directory_skeleton(param_dict, proj_dict):
     catl_prefix_path = param_dict['ml_args'].catl_prefix_path()
     # Figure directory
     figure_dir = os.path.join(proj_dict['plot_dir'],
+                                'ml_alg_comparison',
                                 catl_prefix_path)
     # Creating folder
     cfutils.Path_Folder(figure_dir)
@@ -664,68 +669,14 @@ def array_insert(arr1, arr2, axis=1):
 
     return arr3
 
-def ml_file_data_cols(param_dict):
-    """
-    Substitutes for the column names in the `ml_file`
-
-    Parameters
-    ------------
-    param_dict: python dictionary
-        dictionary with `project` variables
-
-    Returns
-    ---------
-    ml_dict_cols_names: python dictionary
-        dictionary with column names for each column in the ML file
-    """
-    ml_dict_cols_names = {  'GG_r_tot':"Total Radius (G)",
-                            'GG_sigma_v': "Velocity Dispersion (G)",
-                            'GG_mr_brightest':"Lum. of Brightest Galaxy (G)",
-                            'g_galtype':"Group galaxy type",
-                            'GG_r_med':"Median radius (G)",
-                            'GG_mr_ratio': "Luminosity ratio (G)",
-                            'GG_logssfr': "log(sSFR) (G)",
-                            'GG_mdyn_rmed':"Dynamical mass at median radius (G)",
-                            'GG_dist_cluster':"Distance to closest cluster (G)",
-                            'GG_M_r':"Total Brightness (G)",
-                            'GG_rproj':"Total Rproj (G)",
-                            'GG_shape':"Group's shape (G)",
-                            'GG_mdyn_rproj':"Dynamical mass at Rproj (G)",
-                            'GG_dens_10.0':"Density at 10 Mpc/h (G)",
-                            'GG_dens_5.0':"Density at 5 Mpc/h (G)",
-                            'GG_dens_2.0':"Density at 2 Mpc/h (G)",
-                            'GG_M_group':"Group's Ab. Matched Mass (G)",
-                            'GG_sigma_v_rmed':"Velocity Dispersion at Rmed (G)",
-                            'GG_ngals':"Group richness (G)",
-                            'M_r':"Galaxy's luminosity",
-                            'g_r':"(g-r) galaxy color",
-                            'dist_centre_group':"Distance to Group's centre",
-                            'g_brightest':"If galaxy is group's brightest galaxy",
-                            'logssfr':"Log of Specific star formation rate ",
-                            'sersic': "Galaxy's morphology"}
-    ##
-    ## Feature labels
-    features_cols_ml = param_dict['ml_args']._feature_cols()
-    ##
-    ## Intersection between column names
-    feat_cols_intersect = num.intersect1d(  list(ml_dict_cols_names.keys()),
-                                            features_cols_ml)
-    ##
-    ## New dictionary
-    feat_cols_dict = {key:ml_dict_cols_names[key] for key in \
-                        feat_cols_intersect}
-    ##
-    ## Saving to `param_dict`
-    param_dict['feat_cols_dict'] = feat_cols_dict
-
-    return param_dict
-
-
 ## --------- Plotting Functions ------------##
 
+
+
 # Fractional difference
-def frac_diff_model(models_dict, param_dict, proj_dict, arr_len=10,
-    bin_statval='left', fig_fmt='pdf', figsize=(10,8), fig_number=1):
+def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mgroup',
+    arr_len=10, bin_statval='left', fig_fmt='pdf', figsize=(10, 8),
+    fig_number=1):
     """
     Plots the fractional difference between `predicted` and `true`
     halo masses.
@@ -745,7 +696,6 @@ def frac_diff_model(models_dict, param_dict, proj_dict, arr_len=10,
     zorder_ml    = zorder_mass + 1
     ##
     ## Figure name
-    param_dict['catl_str_fig'] = 'to_be_changed'
     fname = os.path.join(   proj_dict['figure_dir'],
                             'Fig_{0}_{1}_frac_diff_predicted.pdf'.format(
                                 fig_number,
@@ -963,7 +913,7 @@ def main(args):
     models_dict = param_dict['ml_args'].extract_catl_alg_comp_info()
     ##
     ## Feature keys
-    param_dict = ml_file_data_cols(param_dict)
+    param_dict['feat_cols_dict'] = param_dict['ml_args'].feat_cols_names_dict()
     ##
     ## Fractional difference of `predicted` and `truth`
     frac_diff_model(models_dict, param_dict, proj_dict)

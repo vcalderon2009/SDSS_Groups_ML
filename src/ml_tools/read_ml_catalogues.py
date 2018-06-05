@@ -1056,6 +1056,22 @@ class ReadML(object):
 
         return feat_cols_dict
 
+    def catl_alg_comp_fig_str(self):
+        """
+        Prefix string for the figure of `algorithm comparison` ML stage.
+
+        Returns
+        ---------
+        catl_alg_comp_fig_str : `str`
+            Prefix string for the figure of `algorithm comparison`.
+        """
+        # ML Training prefix
+        catl_train_prefix_str = self._catl_train_prefix_str()
+        # Adding to main string
+        catl_train_prefix_str += '_alg_comp'
+
+        return catl_train_prefix_str
+
 
 
 
