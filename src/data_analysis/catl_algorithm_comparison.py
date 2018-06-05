@@ -1251,7 +1251,7 @@ def main(args):
     ##
     ## Testing of whether or not to run the analysis
     (   run_opt   ,
-        param_dict) = test_feat_file(param_dict, proj_dict)
+        param_dict) = test_alg_comp_file(param_dict, proj_dict)
     # Analysis
     if run_opt:
         # Dictionary for storing outputs
