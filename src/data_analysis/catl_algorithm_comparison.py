@@ -1021,7 +1021,8 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
     """
     ## Constants
     # Feature columns
-    feat_cols = num.array(param_dict['ml_args']._feature_cols())
+    feat_cols     = num.array(param_dict['ml_args']._feature_cols())
+    feat_cols_idx = num.arange(len(feat_cols)) + 1
     #
     ## Determining type of `sample_method`
     # `Normal` sample Method
@@ -1124,6 +1125,9 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
     feat_imp_comb      = num.vstack(zip(feat_cols, ml_model_dict['feat_imp']))
     feat_imp_comb_idx  = num.argsort(feat_imp_comb[:, 1])[::-1]
     feat_imp_comb_sort = feat_imp_comb[feat_imp_comb_idx]
+    # Adding rank indices
+    feat_imp_comb_sort = num.column_stack((feat_imp_comb_sort,
+                            num.arange(len(feat_cols)) + 1))
     #
     # Adding to dictionary
     ml_model_dict['feat_imp_sort'] = feat_imp_comb_sort
