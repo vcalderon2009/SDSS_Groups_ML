@@ -1114,6 +1114,7 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
         ## -- Adding values to main dictionary
         ml_model_dict['model_ii'  ] = models_main
         ml_model_dict['score'     ] = mean_score
+        ml_model_dict['score_all' ] = score_main
         ml_model_dict['mhalo_pred'] = mhalo_pred_main
         ml_model_dict['mhalo_true'] = mhalo_true_main
         ml_model_dict['frac_diff' ] = frac_diff_main
