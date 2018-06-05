@@ -1171,8 +1171,7 @@ def test_alg_comp_file(param_dict, proj_dict):
         run_opt = True
     ##
     ## Saving name to dictionary
-    param_dict['filepath'    ] = filepath
-    param_dict['filename_str'] = filename_str
+    param_dict['filepath'] = filepath
 
     return run_opt, param_dict
 
