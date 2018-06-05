@@ -643,7 +643,9 @@ def directory_skeleton(param_dict, proj_dict):
     # Figure directory
     figure_dir = os.path.join(proj_dict['plot_dir'],
                                 'ml_alg_comparison',
-                                catl_prefix_path)
+                                catl_prefix_path,
+                                'sf_{0}'.format(param_dict['sample_frac']),
+                                param_dict['pre_opt'])
     # Creating folder
     cfutils.Path_Folder(figure_dir)
     #
