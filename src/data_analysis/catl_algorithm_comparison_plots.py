@@ -735,9 +735,10 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     ##
     ## Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
-                            'Fig_{0}_{1}_frac_diff_predicted.pdf'.format(
+                            'Fig_{0}_{1}_{2}_frac_diff_predicted.pdf'.format(
                                 fig_number,
-                                param_dict['catl_str_fig']))
+                                param_dict['catl_str_fig'],
+                                plot_opt))
     ## Algorithm names - Thought as indices for the plot
     ml_algs_names = num.sort(list(models_dict.keys()))
     n_ml_algs     = len(ml_algs_names)
