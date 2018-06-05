@@ -993,9 +993,10 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
     ##
     ## Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
-                            'Fig_{0}_{1}_feature_ranking.{2}'.format(
+                            'Fig_{0}_{1}_feature_ranking_{2}.{3}'.format(
                                 fig_number,
                                 param_dict['catl_str_fig'],
+                                rank_opt,
                                 fig_fmt))
     #
     # Constants
