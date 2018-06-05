@@ -1097,7 +1097,7 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
         plt.savefig(fname, bbox_inches='tight')
     else:
         plt.savefig(fname, bbox_inches='tight', dpi=400)
-    print('{0} Figure saved as: {1}'.format(Prog_msg, fname))
+    print('{0} Figure saved as: {1}'.format(file_msg, fname))
     plt.clf()
     plt.close()
 
