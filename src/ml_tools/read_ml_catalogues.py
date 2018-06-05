@@ -1004,7 +1004,10 @@ class ReadML(object):
         else:
             msg = '`obj` ({0}) must be of length `1`'.format(len(obj_arr))
 
-        return models_dict
+        if return_path:
+            return models_dict, catl_alg_comp_path
+        else:
+            return models_dict
 
     def feat_cols_names_dict(self):
         """
