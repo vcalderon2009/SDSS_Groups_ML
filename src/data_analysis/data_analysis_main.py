@@ -375,6 +375,13 @@ def get_parser():
                         type=str,
                         choices=['mgroup', 'mhalo'],
                         default='mhalo')
+    ## Which axes to plot
+    parser.add_argument('-rank_opt',
+                        dest='rank_opt',
+                        help='Option for which type of ranking to plot',
+                        type=str,
+                        choices=['perc', 'idx'],
+                        default='idx')
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -674,6 +681,7 @@ def get_analysis_params(param_dict):
                             ('bin_val'       , '-bin_val'       , 'fixed'    ),
                             ('ml_analysis'   , '-ml_analysis'   , 'hod_dv_fixed'),
                             ('plot_opt'      , '-plot_opt'      , 'mhalo'    ),
+                            ('rank_opt'      , '-rank_opt'      , 'idx'      ),
                             ('cpu_frac'      , '-cpu'           , 0.75       ),
                             ('remove_files'  , '-remove'        , False      ),
                             ('verbose'       , '-v'             , False      ),
@@ -779,6 +787,9 @@ def get_analysis_params(param_dict):
     ##
     ## Option for which variable to plot on x-axis
     alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'plot_opt', param_dict)
+    ##
+    ## Option for which type of ranking to plot
+    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'rank_opt', param_dict)
     ##
     ## Percentage of CPU to use
     alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'cpu_frac', param_dict)

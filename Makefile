@@ -64,6 +64,7 @@ ML_ANALYSIS  = 'hod_dv_fixed'
 KF_SPLITS    = 3
 ## -- Algorithm Comparison --
 PLOT_OPT     = 'mgroup'
+RANK_OPT     = 'idx'
 
 # Checking for Anaconda
 ifeq (,$(shell which conda))
@@ -208,8 +209,9 @@ ml_analysis:
 	-unit_layer $(UNIT_LAYER) -score_method $(SCORE_METHOD) \
 	-threshold $(THRESHOLD) -perc_val $(PERC_VAL) \
 	-sample_method $(SAMPLE_METHOD) -bin_val $(BIN_VAL) \
-	-ml_analysis $(ML_ANALYSIS) -plot_opt $(PLOT_OPT) -cpu $(CPU_FRAC) \
-	-remove $(REMOVE_FILES) -v $(VERBOSE) -perf $(PERF_OPT) -seed $(SEED)
+	-ml_analysis $(ML_ANALYSIS) -plot_opt $(PLOT_OPT) -rank_opt $(RANK_OPT) \
+	-cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -v $(VERBOSE) -perf $(PERF_OPT) \
+	-seed $(SEED)
 
 ## Create set of `merged` catalogues, i.e. galaxy + group information
 catl_props:

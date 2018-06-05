@@ -403,6 +403,13 @@ def get_parser():
                         type=str,
                         choices=['mgroup', 'mhalo'],
                         default='mhalo')
+    ## Which axes to plot
+    parser.add_argument('-rank_opt',
+                        dest='rank_opt',
+                        help='Option for which type of ranking to plot',
+                        type=str,
+                        choices=['perc', 'idx'],
+                        default='idx')
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -1009,17 +1016,17 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
     feat_rank_arr = num.zeros((n_feat, n_ml_algs))
     ## Choosing which type of `ranking` to show
     if (rank_opt == 'perc'):
-        rank_idx  = 1
+        rank_opt  = 1
         rank_type = float
     elif (rank_opt == 'idx'):
-        rank_idx  = 2
+        rank_opt  = 2
         rank_type = int
     # Looping over ML algorithms
     for kk, skem_key in tqdm(enumerate(skem_key_arr)):
         # Reading in Data
         feat_imp_sort = models_dict[skem_key]['feat_imp_sort']
         # Converting to DataFrame
-        feat_imp_sort_pd = pd.DataFrame(feat_imp_sort[:, rank_idx].astype(rank_type),
+        feat_imp_sort_pd = pd.DataFrame(feat_imp_sort[:, rank_opt].astype(rank_type),
                                 index=feat_imp_sort[:, 0],
                                 columns=[skem_key])
         if (kk == 0):
@@ -1092,7 +1099,7 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
     print('{0} Figure saved as: {1}'.format(Prog_msg, fname))
     plt.clf()
     plt.close()
-    
+
 
 
 
@@ -1143,6 +1150,10 @@ def main(args):
     ## Fractional difference of `predicted` and `truth`
     frac_diff_model(models_dict, param_dict, proj_dict,
             plot_opt=param_dict['plot_opt'])
+    #
+    # Feature ranking
+    feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
+        rank_opt=param_dict['rank_opt'])
     ##
     ## End time for running the catalogues
     end_time = datetime.now()
