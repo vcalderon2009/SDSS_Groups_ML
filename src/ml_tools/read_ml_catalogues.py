@@ -241,6 +241,7 @@ class ReadML(object):
         self.sample_method  = kwargs.get('sample_method', 'binning')
         self.bin_val        = kwargs.get('bin_val', 'fixed')
         self.ml_analysis    = kwargs.get('ml_analysis', 'hod_dv_fixed')
+        self.resample_opt   = kwargs.get('resample_opt', 'under')
         #
         # Extra variables
         self.sample_Mr      = 'Mr{0}'.format(self.sample)
@@ -1051,6 +1052,8 @@ class ReadML(object):
             sm_str = '{0}'.format(self.sample_method)
         elif (self.sample_method == 'binning'):
             sm_str = 'sm_{0}_{1}'.format(self.sample_method, self.bin_val)
+        elif (self.sample_method == 'subsample'):
+            sm_str = 'sm_{0}_{1}'.format(self.sample_method, self.resample_opt)
         #
         # File Prefix - ML Analysis
         catl_train_str_arr = [  feat_proc_pre_str,

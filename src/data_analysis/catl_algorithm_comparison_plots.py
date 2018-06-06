@@ -396,6 +396,13 @@ def get_parser():
                         type=str,
                         choices=['hod_dv_fixed'],
                         default='hod_dv_fixed')
+    ## Type of resampling to use if necessary
+    parser.add_argument('-resample_opt',
+                        dest='resample_opt',
+                        help='Type of resampling to use if necessary',
+                        type=str,
+                        choices=['over', 'under'],
+                        default='under')
     ## Which axes to plot
     parser.add_argument('-plot_opt',
                         dest='plot_opt',

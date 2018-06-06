@@ -382,6 +382,13 @@ def get_parser():
                         type=str,
                         choices=['perc', 'idx'],
                         default='idx')
+    ## Type of resampling to use if necessary
+    parser.add_argument('-resample_opt',
+                        dest='resample_opt',
+                        help='Type of resampling to use if necessary',
+                        type=str,
+                        choices=['over', 'under'],
+                        default='under')
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -528,6 +535,7 @@ def get_analysis_params(param_dict):
                             ('sample_method' , '-sample_method' , 'binning'  ),
                             ('bin_val'       , '-bin_val'       , 'fixed'    ),
                             ('ml_analysis'   , '-ml_analysis'   , 'hod_dv_fixed'),
+                            ('resample_opt'  , '-resample_opt'  , 'under'    ),
                             ('cpu_frac'      , '-cpu'           , 0.75       ),
                             ('remove_files'  , '-remove'        , False      ),
                             ('verbose'       , '-v'             , False      ),
@@ -631,6 +639,9 @@ def get_analysis_params(param_dict):
     ## Type of analysis to perform.
     alg_comp_df = df_value_modifier(alg_comp_df, 'ml_analysis', param_dict)
     ##
+    ## Type of resampling to use if necessary
+    alg_comp_df = df_value_modifier(alg_comp_df, 'resample_opt', param_dict)
+    ##
     ## Percentage of CPU to use
     alg_comp_df = df_value_modifier(alg_comp_df, 'cpu_frac', param_dict)
     ##
@@ -680,6 +691,7 @@ def get_analysis_params(param_dict):
                             ('sample_method' , '-sample_method' , 'binning'  ),
                             ('bin_val'       , '-bin_val'       , 'fixed'    ),
                             ('ml_analysis'   , '-ml_analysis'   , 'hod_dv_fixed'),
+                            ('resample_opt'  , '-resample_opt'  , 'under'    ),
                             ('plot_opt'      , '-plot_opt'      , 'mhalo'    ),
                             ('rank_opt'      , '-rank_opt'      , 'idx'      ),
                             ('cpu_frac'      , '-cpu'           , 0.75       ),
@@ -790,6 +802,9 @@ def get_analysis_params(param_dict):
     ##
     ## Option for which type of ranking to plot
     alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'rank_opt', param_dict)
+    ##
+    ## Type of resampling to use if necessary
+    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'resample_opt', param_dict)
     ##
     ## Percentage of CPU to use
     alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'cpu_frac', param_dict)

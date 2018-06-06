@@ -56,6 +56,7 @@ import sklearn
 import sklearn.ensemble         as skem
 import sklearn.neural_network   as skneuro
 import sklearn.metrics           as skmetrics
+from sklearn.utils import resample
 import xgboost
 
 ## Functions
@@ -388,6 +389,13 @@ def get_parser():
                         type=str,
                         choices=['hod_dv_fixed'],
                         default='hod_dv_fixed')
+    ## Type of resampling to use if necessary
+    parser.add_argument('-resample_opt',
+                        dest='resample_opt',
+                        help='Type of resampling to use if necessary',
+                        type=str,
+                        choices=['over', 'under'],
+                        default='under')
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -693,6 +701,184 @@ def array_insert(arr1, arr2, axis=1):
     return arr3
 
 ## --------- Main Analysis of the data ------------##
+
+## Finding indices for when `sample_method` is `subsample`
+def subsample_idx(train_dict, test_dict, param_dict, mass_opt='group',
+    resample_opt='under'):
+    """
+        Finds the indices for the different sets of dictionaries, based on
+    the parameter `score_method == 'subsample'`
+
+    Parameters
+    ------------
+    test_dict_ii : `dict`
+        Dictionary with the `training` data.
+
+    train_dict_ii : `dict`
+        Dictionary with the `testing` data.
+
+    param_dict : `dict`
+        Dictionary with input parameters and values related to this project.
+
+    mass_opt : {'group', 'halo'} `bool`, optional
+        Option for which mass to use when binning.
+
+    resample_opt : {'under', 'over'}, `str`, optional
+        Option for which type of resample to use. This variable is set to
+        `under` by default.
+
+        Options:
+            - 'under': Undersamples the arrays to the minimum number of counts.
+            - 'over': Oversamples the arrays to the minimum number of counts.
+
+    Returns
+    ---------
+    train_dict_rs : `dict`
+        Dictionary with the under/over-sampled version of the `training`
+        dictionary
+
+    test_dict_rs : `dict`
+        Dictionary with the under/over-sampled version of the `testing`
+        dictionary
+    """
+    # Predicted columns
+    pred_cols = num.array(param_dict['ml_args']._predicted_cols())
+    # Feature columns
+    feat_cols = num.array(param_dict['ml_args']._feature_cols())
+    # Unpacking dictionaries
+    X_train_ns = train_dict['X_train_ns']
+    Y_train    = train_dict['Y_train']
+    X_test_ns  = test_dict ['X_test_ns']
+    Y_test     = test_dict ['Y_test']
+    ### --- Group mass --- ###
+    # Unpacking `estimated` group mass
+    if ((len(feat_cols) == 1) and ('GG_M_group' in feat_cols)):
+        mgroup_train = X_train_ns
+        mgroup_test  = X_test_ns
+    elif ((len(feat_cols) > 1) and ('GG_M_group' in feat_cols)):
+        # Group mass index
+        mgroup_idx = num.where(feat_cols == 'GG_M_group')[0]
+        # Training and testing arrays
+        mgroup_train = X_train_ns.T[mgroup_idx].flatten()
+        mgroup_test  = X_test_ns.T[mgroup_idx].flatten()
+    ### --- Halo mass --- ###
+    # Unpacking `true` halo mass array
+    if ((param_dict['n_predict'] == 1) and ('M_h' in pred_cols)):
+        mhalo_train = Y_train
+        mhalo_test  = Y_test
+    elif ((param_dict['n_predict'] > 1) and ('M_h' in pred_cols)):
+        # Halo mass index
+        mhalo_idx = num.where(pred_cols == 'M_h')[0]
+        # Training and testing arrays
+        mhalo_train = Y_train.T[mhalo_idx].flatten()
+        mhalo_test  = Y_test.t[mhalo_idx].flatten()
+    #
+    # Indices for `mass`
+    if (mass_opt == 'group'):
+        mass_train = mgroup_train
+        mass_test  = mgroup_test
+    elif (mass_opt == 'halo'):
+        mass_train = mhalo_train
+        mass_test  = mhalo_test
+    ##
+    ## Indices for `training` and `testing`
+    train_idx = num.arange(len(mass_train))
+    test_idx  = num.arange(len(mass_test))
+    ## Binning data
+    # Evenly-spaced bins
+    # Bin width for `mhalo`
+    bin_width = param_dict['ml_args'].mass_bin_width
+    # Selecting boundaries
+    mass_min  = num.max([mass_train.min(), mass_test.min()])
+    mass_max  = num.min([mass_train.max(), mass_test.max()])
+    mass_bins = num.array([mass_min, mass_max])
+    ## - Training
+    # Creating bins
+    train_bins = cstats.Bins_array_create(mass_bins, base=bin_width)
+    # Digitizing array
+    train_digits = num.digitize(mass_train, train_bins)
+    # Total number of bins indices
+    train_digits_idx = num.arange(1, len(train_bins))
+    # Indices in each bin
+    train_idx_bins = num.array([train_idx[train_digits == ii]
+                        for ii in train_digits_idx])
+    ##
+    ## - Testing
+    # Creating bins
+    test_bins = cstats.Bins_array_create(mass_bins, base=bin_width)
+    # Digitizing array
+    test_digits = num.digitize(mass_test, test_bins)
+    # Total number of bins indices
+    test_digits_idx = num.arange(1, len(test_bins))
+    # Indices in each bin
+    test_idx_bins = num.array([test_idx[test_digits == ii]
+                        for ii in test_digits_idx])
+    #
+    # Creating new arrays for `train_idx` and `test_idx`
+    train_idx_resample = [[] for x in range(len(train_idx_bins))]
+    test_idx_resample  = [[] for x in range(len(test_idx_bins))]
+    ##
+    ## Subsampling or Oversampling
+    if (resample_opt == 'over'):
+        # Obtaining maximum number of counts
+        n_train_max = num.max([len(x) for x in train_idx_bins])
+        n_test_max  = num.max([len(x) for x in test_idx_bins])
+        # - Resampling
+        # Training
+        for ii, train_rs_ii in enumerate(train_idx_bins):
+            if (len(train_rs_ii) != n_train_max):
+                train_idx_resample[ii] = resample(train_rs_ii,
+                                            replace=True,
+                                            n_samples=n_train_max,
+                                            random_state=param_dict['seed'])
+            else:
+                train_idx_resample[ii] = train_rs_ii
+        # Testing
+        for ii, test_rs_ii in enumerate(test_idx_bins):
+            if (len(test_rs_ii) != n_test_max):
+                test_idx_resample[ii] = resample(test_rs_ii,
+                                            replace=True,
+                                            n_samples=n_test_max,
+                                            random_state=param_dict['seed'])
+            else:
+                test_idx_resample[ii] = test_rs_ii
+    elif (resample_opt == 'under'):
+        # Obtaining maximum number of counts
+        n_train_min = num.min([len(x) for x in train_idx_bins])
+        n_test_min  = num.min([len(x) for x in test_idx_bins])
+        # - Resampling
+        # Training
+        for ii, train_rs_ii in enumerate(train_idx_bins):
+            if (len(train_rs_ii) != n_train_min):
+                train_idx_resample[ii] = resample(train_rs_ii,
+                                            replace=False,
+                                            n_samples=n_train_min,
+                                            random_state=param_dict['seed'])
+            else:
+                train_idx_resample[ii] = train_rs_ii
+        # Testing
+        for ii, test_rs_ii in enumerate(test_idx_bins):
+            if (len(test_rs_ii) != n_test_min):
+                test_idx_resample[ii] = resample(test_rs_ii,
+                                            replace=False,
+                                            n_samples=n_test_min,
+                                            random_state=param_dict['seed'])
+            else:
+                test_idx_resample[ii] = test_rs_ii
+    #
+    # Converting numpy arrays
+    train_idx_resample = num.array(train_idx_resample)
+    test_idx_resample  = num.array(test_idx_resample)
+    #
+    # Creating new set of dictionaries
+    train_dict_rs = {key: train_dict[key][train_idx_resample]
+                        for key in train_dict}
+    test_dict_rs  = {key: test_dict [key][test_idx_resample]
+                        for key in test_dict}
+
+    return train_dict_rs, test_dict_rs
+
+
 
 # Finding indices of bins
 def binning_idx(train_dict, test_dict, param_dict, mass_opt='group'):
@@ -1039,6 +1225,45 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
     # `Normal` sample Method
     if (param_dict['sample_method'] == 'normal'):
         ml_model_dict = model_metrics(skem_ii, test_dict, train_dict,
+                            param_dict)
+        #
+        # Expected and `predicted` values
+        exp_vals_main  = ml_model_dict['pred_vals']
+        pred_vals_main = ml_model_dict['true_vals']
+        #
+        # Calculating Score all types
+        score_types_arr = ['perc', 'threshold', 'r2']
+        # Looping over scores
+        for score_ii in score_types_arr:
+            if (score_ii == 'model_score'):
+                total_score_ii = cmlu.scoring_methods(exp_vals_main,
+                                    pred_arr=pred_vals_main,
+                                    score_method='r2',
+                                    threshold=param_dict['threshold'],
+                                    perc=param_dict['perc_val'])
+            else:
+                total_score_ii = cmlu.scoring_methods(exp_vals_main,
+                                    pred_arr=pred_vals_main,
+                                    score_method=score_ii,
+                                    threshold=param_dict['threshold'],
+                                    perc=param_dict['perc_val'])
+            # Assigning to dictionary
+            ml_model_dict['score_{0}'.format(score_ii)] = total_score_ii
+        #
+        # Deleting `keys`
+        for key_zz in ['pred_vals', 'true_vals']:
+            try:
+                del ml_model_dict[key_zz]
+            except KeyError:
+                pass
+    # `Normal` sample Method
+    if (param_dict['sample_method'] == 'subsample'):
+        # New set of dictionaries
+        train_dict_rs, test_dict_rs = subsample_idx(train_dict, test_dict,
+                                        param_dict, 
+                                        resample_opt=param_dict['resample_opt'])
+        # Running main analysis
+        ml_model_dict = model_metrics(skem_ii, test_dict_rs, train_dict_rs,
                             param_dict)
         #
         # Expected and `predicted` values
