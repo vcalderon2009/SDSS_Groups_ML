@@ -856,9 +856,6 @@ def frac_diff_model(param_dict, proj_dict, plot_opt='mhalo',
     plt.close()
     fig = plt.figure(figsize=figsize)
     ax1 = fig.add_subplot(111, facecolor='white')
-    ## Color
-    cm  = plt.cm.get_cmap('viridis')
-    cm_arr = [cm(kk/float(n_ml_algs)) for kk in range(n_ml_algs)]
     ## Horizontal line
     ax1.axhline(y=0, color='black', linestyle='--', zorder=10)
     ##
