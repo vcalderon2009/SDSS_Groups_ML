@@ -936,6 +936,12 @@ def model_metrics(skem_ii, test_dict_ii, train_dict_ii, param_dict):
     else:
         mdyn_arr = num.ones(len(X_test_ns_ii)) * num.nan
     #
+    # Reshaping array
+    if (len(feat_cols) == 1):
+        pred_ii_arr_sh = pred_ii_arr.reshape((1, len(pred_ii_arr)))
+    else:
+        pred_ii_arr_sh = pred_ii_arr
+    #
     # Saving to dictionary
     model_gen_dict = {  'model_ii'  : model_ii,
                         'score'     : model_ii_score,
@@ -944,7 +950,8 @@ def model_metrics(skem_ii, test_dict_ii, train_dict_ii, param_dict):
                         'frac_diff' : frac_diff_ii,
                         'feat_imp'  : feat_importance_ii,
                         'mgroup_arr': mgroup_arr,
-                        'mdyn_arr'  : mdyn_arr}
+                        'mdyn_arr'  : mdyn_arr,
+                        'pred_vals' : pred_ii_arr_sh}
 
     return model_gen_dict
 
@@ -1074,6 +1081,8 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
                 score_main      = [model_metrics_ii['score']]
                 # `models
                 models_main     = [model_metrics_ii['model_ii']]
+                # `pred_vals`
+                pred_vals_main  = model_metrics_ii['pred_vals']
             else:
                 # `mhalo_pred`
                 mhalo_pred_main = array_insert(mhalo_pred_main,
@@ -1103,9 +1112,16 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
                 score_main.append(model_metrics_ii['score'])
                 # `models`
                 models_main.append(model_metrics_ii['model_ii'])
+                # Concatenating arrays
+                pred_vals_main = num.concatenate((
+                                        pred_vals_main,
+                                        model_metrics_ii['pred_vals']))
+
         ##
         ## -- Overall score - Mean
         mean_score = num.mean(score_main)
+        ###
+        ### Calculating TOTAL score for `predicted` and `expected`
         ##
         ## -- Feature Importance - Mean
         # feat_imp_mean = num.mean(feat_imp_main.T, axis=1)
