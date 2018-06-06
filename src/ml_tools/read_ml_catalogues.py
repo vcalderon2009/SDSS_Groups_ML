@@ -1020,9 +1020,15 @@ class ReadML(object):
         else:
             return models_dict
 
-    def feat_cols_names_dict(self):
+    def feat_cols_names_dict(self, return_all=False):
         """
         Substitutes for the column names in the list of `features`.
+
+        Parameters
+        ------------
+        return_all : `bool`, optional
+            If `True`, it returns the entire dictionary of galaxy properties.
+            This variable is set to `False` by default.
 
         Returns
         ---------
