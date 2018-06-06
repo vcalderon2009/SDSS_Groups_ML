@@ -795,13 +795,13 @@ def frac_diff_model(param_dict, proj_dict, plot_opt='mhalo',
     # HAM
     (   ham_pred,
         ham_true,
-        ham_frac_diff) = param_dict['ml_args'].extract_trad_masses(
+        ham_frac_diff) = param_dict['ml_args'].extract_trad_masses_alt(
                                                 mass_opt='ham',
                                                 return_frac_diff=True)
     # Dynamical
     (   dyn_pred,
         dyn_true,
-        dyn_frac_diff) = param_dict['ml_args'].extract_trad_masses(
+        dyn_frac_diff) = param_dict['ml_args'].extract_trad_masses_alt(
                                                 mass_opt='dyn',
                                                 return_frac_diff=True)
     # Only choosing non-zero values
