@@ -55,6 +55,7 @@ import astropy.units     as u
 import sklearn
 import sklearn.ensemble         as skem
 import sklearn.neural_network   as skneuro
+import sklearn.metrics           as skmetrics
 import xgboost
 
 ## Functions
@@ -937,10 +938,12 @@ def model_metrics(skem_ii, test_dict_ii, train_dict_ii, param_dict):
         mdyn_arr = num.ones(len(X_test_ns_ii)) * num.nan
     #
     # Reshaping array
-    if (len(feat_cols) == 1):
-        pred_ii_arr_sh = pred_ii_arr.reshape((1, len(pred_ii_arr)))
-    else:
-        pred_ii_arr_sh = pred_ii_arr
+    # if (len(pred_cols) == 1):
+    #     pred_ii_arr_sh = pred_ii_arr.reshape((1, len(pred_ii_arr)))
+    #     true_vals_sh   = Y_test_ii.reshape((1, len(Y_test_ii)))
+    # else:
+    pred_ii_arr_sh = pred_ii_arr
+    true_vals_sh   = Y_test_ii
     #
     # Saving to dictionary
     model_gen_dict = {  'model_ii'  : model_ii,
@@ -951,7 +954,8 @@ def model_metrics(skem_ii, test_dict_ii, train_dict_ii, param_dict):
                         'feat_imp'  : feat_importance_ii,
                         'mgroup_arr': mgroup_arr,
                         'mdyn_arr'  : mdyn_arr,
-                        'pred_vals' : pred_ii_arr_sh}
+                        'pred_vals' : pred_ii_arr_sh,
+                        'true_vals' : true_vals_sh}
 
     return model_gen_dict
 
@@ -1083,6 +1087,8 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
                 models_main     = [model_metrics_ii['model_ii']]
                 # `pred_vals`
                 pred_vals_main  = model_metrics_ii['pred_vals']
+                # `Expected values`
+                exp_vals_main   = model_metrics_ii['true_vals']
             else:
                 # `mhalo_pred`
                 mhalo_pred_main = array_insert(mhalo_pred_main,
@@ -1112,24 +1118,37 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
                 score_main.append(model_metrics_ii['score'])
                 # `models`
                 models_main.append(model_metrics_ii['model_ii'])
-                # Concatenating arrays
+                # `pred_vals`
+                
                 pred_vals_main = num.concatenate((
                                         pred_vals_main,
                                         model_metrics_ii['pred_vals']))
+                # `Expected values`
+                exp_vals_main = num.concatenate((
+                                        exp_vals_main,
+                                        model_metrics_ii['true_vals']))
 
-        ##
-        ## -- Overall score - Mean
-        mean_score = num.mean(score_main)
         ###
         ### Calculating TOTAL score for `predicted` and `expected`
+        if (param_dict['score_method'] == 'model_score'):
+            score_type = 'r2'
+        else:
+            score_type = param_dict['score_method']
+        # Total score
+        total_score = cmlu.scoring_methods(exp_vals_main,
+                        pred_arr=pred_vals_main,
+                        score_method=score_type,
+                        threshold=param_dict['threshold'],
+                        perc=param_dict['perc_val'])
         ##
         ## -- Feature Importance - Mean
         # feat_imp_mean = num.mean(feat_imp_main.T, axis=1)
-        feat_imp_mean = feat_imp_main[0]
+        feat_imp_mean = num.average(feat_imp_main, axis=1,
+                            weights=[len(x) for x in train_idx_bins])
         ##
         ## -- Adding values to main dictionary
         ml_model_dict['model_ii'  ] = models_main
-        ml_model_dict['score'     ] = mean_score
+        ml_model_dict['score'     ] = total_score
         ml_model_dict['score_all' ] = score_main
         ml_model_dict['mhalo_pred'] = mhalo_pred_main
         ml_model_dict['mhalo_true'] = mhalo_true_main
