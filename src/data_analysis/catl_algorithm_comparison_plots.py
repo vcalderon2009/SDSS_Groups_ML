@@ -1017,17 +1017,17 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
     feat_rank_arr = num.zeros((n_feat, n_ml_algs))
     ## Choosing which type of `ranking` to show
     if (rank_opt == 'perc'):
-        rank_opt  = 1
+        rank_col  = 1
         rank_type = float
     elif (rank_opt == 'idx'):
-        rank_opt  = 2
+        rank_col  = 2
         rank_type = int
     # Looping over ML algorithms
     for kk, skem_key in tqdm(enumerate(skem_key_arr)):
         # Reading in Data
         feat_imp_sort = models_dict[skem_key]['feat_imp_sort']
         # Converting to DataFrame
-        feat_imp_sort_pd = pd.DataFrame(feat_imp_sort[:, rank_opt].astype(rank_type),
+        feat_imp_sort_pd = pd.DataFrame(feat_imp_sort[:, rank_col].astype(rank_type),
                                 index=feat_imp_sort[:, 0],
                                 columns=[skem_key])
         if (kk == 0):
@@ -1088,8 +1088,14 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
         prop={'size':20})
     # leg.get_frame().set_facecolor('none')
     ## Ticks
-    ax_data_major_loc  = ticker.MultipleLocator(10)
-    ax_data_minor_loc  = ticker.MultipleLocator(5.)
+    if (rank_opt == 'idx'):
+        major_loc_val = 10
+        minor_loc_val = 5
+    elif (rank_opt == 'perc'):
+        major_loc_val = 0.2
+        minor_loc_val = 0.1
+    ax_data_major_loc  = ticker.MultipleLocator(major_loc_val)
+    ax_data_minor_loc  = ticker.MultipleLocator(minor_loc_val)
     ax1.xaxis.set_major_locator(ax_data_major_loc)
     ax1.xaxis.set_minor_locator(ax_data_minor_loc)
     # Inverting axis
@@ -1220,7 +1226,7 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     ax1.xaxis.set_major_locator(ax_data_major_loc)
     ##
     ## Axis label
-    if param_dict['score_method'] == 'perc':
+    if (score_type == 'perc'):
         xlabel = r'$1\sigma$ error in $\Delta \log M_{halo} [\mathrm{dex}]$'
     else:
         xlabel = 'Score'
@@ -1292,7 +1298,9 @@ def main(args):
     #
     # Feature ranking
     feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
-        rank_opt=param_dict['rank_opt'])
+        rank_opt='perc')
+    feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
+        rank_opt='idx')
     #
     # Model Score - Different algorithms - Bar Chart
     model_score_chart_1d(models_dict, param_dict, proj_dict)
