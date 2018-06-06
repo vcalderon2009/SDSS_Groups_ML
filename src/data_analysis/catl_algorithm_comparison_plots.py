@@ -61,6 +61,7 @@ import astropy.constants as ac
 import astropy.units     as u
 
 # ML modules
+from sklearn.utils import resample
 import sklearn
 import sklearn.ensemble         as skem
 import sklearn.neural_network   as skneuro
@@ -1376,6 +1377,14 @@ def pred_masses_vs_halo_mass(models_dict, param_dict, proj_dict, plot_opt='mhalo
     dyn_true      = dyn_true[dyn_pred_mask]
     dyn_frac_diff = dyn_frac_diff[dyn_pred_mask]
     ##
+    ## Subsampling HAM and IDX
+    ##
+    # HAM
+    ham_pred = resample(ham_pred, n_samples=100000)
+    ham_true = resample(ham_true, n_samples=100000)
+    dyn_pred = resample(dyn_pred, n_samples=100000)
+    dyn_true = resample(dyn_true, n_samples=100000)
+    # DYN
     ## Choosing which mass to plot
     # if (plot_opt == 'mgroup'):
     #     ham_x = ham_pred
