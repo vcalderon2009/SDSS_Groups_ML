@@ -867,9 +867,8 @@ def subsample_idx(train_dict, test_dict, param_dict, mass_opt='group',
                 test_idx_resample[ii] = test_rs_ii
     #
     # Converting numpy arrays
-    train_idx_resample = num.array(train_idx_resample)
-    test_idx_resample  = num.array(test_idx_resample)
-    #
+    train_idx_resample = num.array(train_idx_resample).flatten()
+    test_idx_resample  = num.array(test_idx_resample).flatten()
     # Creating new set of dictionaries
     train_dict_rs = {key: train_dict[key][train_idx_resample]
                         for key in train_dict}
