@@ -662,6 +662,126 @@ class ReadML(object):
 
         return features_cols
 
+    def extract_trad_masses_alt(self, mass_opt='ham', score_method='perc',
+        threshold=None, perc=None, return_score=False, return_frac_diff=False):
+        """
+        Extracts the `training` and `testing` datasets for the
+        traditional methods of estimating masses.
+
+        Parameters
+        -----------
+        mass_opt : {'ham', 'dyn'} `str`, optional
+            Option for which kind of `estimated` mass to render the
+            `training` and `testing` dictionary.
+
+        score_method : {'perc', 'threshold', 'r2'} `str`, optional
+            Type of scoring to use when determining how well an algorithm
+            is performing. This variable is set to `perc` by default.
+
+            Options:
+                - 'perc' : Use percentage and rank-ordering of the values
+                - 'threshold' : Score based on diffs of `threshold` or less from true value.
+                - 'r2': R-squared statistic for error calcuation.
+
+        threshold : `float`, optional
+            Value to use when calculating error within some `threshold` value
+            from the truth. This variable is set to `0.1` by default.
+
+        perc : `float`, optional
+            Value used when determining score within some `perc`
+            percentile. The range for `perc` is [0, 1]. This variable
+            is set to `0.9` by default.
+
+        return_score : `bool`, optional
+            If True, the function returns a `score` for the given
+            `predicted` array. This variable is set to `False` by default.
+
+        return_frac_diff : `bool`, optional
+            If True, the function returns an array of the fractional
+            differences between the `predicted` array and the `true`
+            array. This variable is set to `False` by default.
+
+        Returns
+        ---------
+        pred_mass_arr : `numpy.ndarray`
+            Array with the estimated `mass_opt` mass.
+
+        true_mhalo_arr : `numpy.ndarray`
+            Array with the `true` halo mass.
+
+        frac_diff_arr : `numpy.ndarray`
+            Array of the fractional difference between `predicted` and
+            `true` arrays. This array is only returned when
+            ``return_score == True``.
+
+        score : `numpy.ndarray`, optional
+            Array with the overall score. This value is returned only
+            when ``return_score == True``.
+        """
+        # Check for inputs
+        # `perc`
+        if (perc is None):
+            perc = self.perc_val
+        # `threshold`
+        if (threshold is None):
+            threshold = self.threshold
+        #
+        # Loading datafile
+        catl_pd_tot = self.extract_merged_catl_info(opt='combined')
+        ##
+        ## Temporarily fixing `GG_mdyn_rproj`
+        catl_pd_tot.loc[:, 'GG_mdyn_rproj'] /= 0.96
+        ##
+        ## List of column names
+        catl_cols = catl_pd_tot.columns.values
+        ##
+        ## Dropping NaN's
+        catl_pd_tot.dropna(how='any', inplace=True)
+        ##
+        ## Fraction of elements
+        catl_pd = catl_pd_tot.sample(   frac=self.sample_frac,
+                                        random_state=self.seed)
+        catl_pd_cols = catl_pd.columns.values
+        #
+        # Choosing which type array to compute
+        if (mass_opt == 'ham') and ('GG_M_group' in catl_pd_cols):
+            mass_idx = 'GG_M_group'
+        if (mass_opt == 'dyn') and ('GG_mdyn_rproj' in catl_pd_cols):
+            mass_idx = 'GG_mdyn_rproj'
+        #
+        # Predicted and expected arrays
+        pred_mass_arr  = catl_pd[mass_idx].values
+        true_mhalo_arr = catl_pd['M_h'].values
+        #
+        # Cleaning up `dynamical mass`
+        if (mass_opt == 'dyn'):
+            pred_mass_arr_clean = num.where(pred_mass_arr != 0.)[0]
+            pred_mass_arr       = pred_mass_arr[pred_mass_arr_clean]
+            true_mhalo_arr      = true_mhalo_arr[pred_mass_arr_clean]
+        # Return object list
+        return_obj_list = [pred_mass_arr, true_mhalo_arr]
+        ##
+        ## Fractional Difference
+        if return_frac_diff:
+            # Calculating fractional difference
+            frac_diff_arr  = 100 * (pred_mass_arr - true_mhalo_arr)
+            frac_diff_arr /= true_mhalo_arr
+            # Appending to return_obj_list`
+            return_obj_list.append(frac_diff_arr)
+        ##
+        ## Score
+        if return_score:
+            # Computing general score
+            score = cmlu.scoring_methods(true_mhalo_arr,
+                                        pred_arr=pred_mass_arr,
+                                        score_method=score_method,
+                                        threshold=threshold,
+                                        perc=perc)
+            # Appending to return_obj_list`
+            return_obj_list.append(score)
+
+        return return_obj_list
+    
     def extract_trad_masses(self, mass_opt='ham', score_method='perc',
         threshold=None, perc=None, return_score=False, return_frac_diff=False):
         """
