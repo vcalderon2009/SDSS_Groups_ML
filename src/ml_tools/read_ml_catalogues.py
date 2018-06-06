@@ -1074,7 +1074,10 @@ class ReadML(object):
         feat_cols_dict = {key: feat_cols_names[key] for key in
                             feat_cols_intersect}
 
-        return feat_cols_dict
+        if return_all:
+            return feat_cols_names
+        else:
+            return feat_cols_dict
 
     def catl_alg_comp_fig_str(self):
         """
