@@ -18,7 +18,7 @@ tmux resize-pane -L 10
 # Sending commands
 tmux send -t $SESSION:0.0 "cd $PWD; source activate $ENVNAME; clear;" C-m
 tmux send -t $SESSION:0.1 "cd $PWD; source activate $ENVNAME; clear; htop" C-m
-tmux send -t $SESSION:0.2 "cd $PWD; source activate $ENVNAME; clear; cd ./data" C-m
+tmux send -t $SESSION:0.2 "cd $PWD; source activate $ENVNAME; cd ./data; clear" C-m
 #
 # Creating new windows
 tmux new-window -t $SESSION:1 -n 'misc'
