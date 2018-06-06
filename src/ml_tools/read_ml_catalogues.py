@@ -226,7 +226,7 @@ class ReadML(object):
         self.test_train_opt = kwargs.get('test_train_opt', 'boxes_n')
         self.box_idx        = kwargs.get('box_idx', '0_4_5')
         self.box_test       = kwargs.get('box_test', 0)
-        self.sample_frac    = kwargs.get('sample_frac', 0.01)
+        self.sample_frac    = kwargs.get('sample_frac', 0.1)
         self.test_size      = kwargs.get('test_size', 0.25)
         self.n_feat_use     = kwargs.get('n_feat_use', 'sub')
         self.dens_calc      = kwargs.get('dens_calc', False)
