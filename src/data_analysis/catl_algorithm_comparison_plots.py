@@ -1448,7 +1448,7 @@ def pred_masses_vs_halo_mass(models_dict, param_dict, proj_dict, plot_opt='mhalo
         ## Plotting relation
         # Plotting actual points
         axes[kk].plot(pred, true, color=cm_arr[kk], marker='o',
-            markersize=1.5, linestyle='')
+            markersize=1, linestyle='', alpha=0.5)
         # Relations
         axes[kk].plot(   x_stat,
                     y_stat,
@@ -1467,7 +1467,7 @@ def pred_masses_vs_halo_mass(models_dict, param_dict, proj_dict, plot_opt='mhalo
                     color=plot_dict['color_ham'],
                     linestyle='',
                     marker='o',
-                    markersize=1.5,
+                    markersize=1,
                     zorder=zorder_mass)
     axes[3].fill_between(   x_stat_ham,
                         y1_ham,
@@ -1485,7 +1485,7 @@ def pred_masses_vs_halo_mass(models_dict, param_dict, proj_dict, plot_opt='mhalo
                 color=plot_dict['color_dyn'],
                 linestyle='',
                 marker='o',
-                markersize=1.5,
+                markersize=1,
                 zorder=zorder_mass)
     axes[4].plot(   x_stat_dyn,
                 y_stat_dyn,
