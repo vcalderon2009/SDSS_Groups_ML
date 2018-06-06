@@ -843,9 +843,6 @@ def frac_diff_model(param_dict, proj_dict, plot_opt='mhalo',
     y2_dyn = y_stat_dyn + y_std_dyn
     ##
     ## Figure details
-    # ML algorithms - names
-    ml_algs_names_mod  = [xx.replace('_',' ').title() for xx in ml_algs_names]
-    ml_algs_names_dict = dict(zip(ml_algs_names, ml_algs_names_mod))
     # Labels
     # X-label
     if (plot_opt == 'mgroup'):
