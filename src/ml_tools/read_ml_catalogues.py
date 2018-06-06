@@ -762,6 +762,12 @@ class ReadML(object):
             msg += 'The predicted values were: ({1})'
             msg = msg.format(pred_cols)
             raise ValueError(msg)
+        #
+        # Cleaning up `dynamical mass`
+        if (mass_opt == 'dyn'):
+            pred_mass_arr_clean = num.where(pred_mass_arr != 0.)[0]
+            pred_mass_arr       = pred_mass_arr[pred_mass_arr_clean]
+            true_mhalo_arr      = true_mhalo_arr[pred_mass_arr_clean]
         # Return object list
         return_obj_list = [pred_mass_arr, true_mhalo_arr]
         ##
