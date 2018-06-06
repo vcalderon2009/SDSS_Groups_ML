@@ -1130,19 +1130,19 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
         ##
         #
         # Calculating Score all types
-        score_types_arr = ['perc', 'threshold', 'model_score', 'r2']
+        score_types_arr = ['perc', 'threshold', 'r2']
         # Looping over scores
         for score_ii in score_types_arr:
             if (score_ii == 'model_score'):
                 total_score_ii = cmlu.scoring_methods(exp_vals_main,
                                     pred_arr=pred_vals_main,
-                                    score_method=score_ii,
+                                    score_method='r2',
                                     threshold=param_dict['threshold'],
                                     perc=param_dict['perc_val'])
             else:
                 total_score_ii = cmlu.scoring_methods(exp_vals_main,
                                     pred_arr=pred_vals_main,
-                                    score_method='r2',
+                                    score_method=score_ii,
                                     threshold=param_dict['threshold'],
                                     perc=param_dict['perc_val'])
             # Assigning to dictionary
