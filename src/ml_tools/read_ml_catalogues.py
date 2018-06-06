@@ -237,7 +237,7 @@ class ReadML(object):
         self.unit_layer     = kwargs.get('unit_layer', 100)
         self.score_method   = kwargs.get('score_method', 'threshold')
         self.threshold      = kwargs.get('threshold', 0.1)
-        self.perc           = kwargs.get('perc', 0.9)
+        self.perc_val       = kwargs.get('perc_val', 0.68)
         self.sample_method  = kwargs.get('sample_method', 'binning')
         self.bin_val        = kwargs.get('bin_val', 'fixed')
         self.ml_analysis    = kwargs.get('ml_analysis', 'hod_dv_fixed')
@@ -721,7 +721,7 @@ class ReadML(object):
         # Check for inputs
         # `perc`
         if (perc is None):
-            perc = self.perc
+            perc = self.perc_val
         # `threshold`
         if (threshold is None):
             threshold = self.threshold
@@ -914,16 +914,16 @@ class ReadML(object):
         # Score Method
         # `perc`
         if (self.score_method == 'perc'):
-            score_str = '_p_{0}'.format(self.perc)
+            score_str = 'p_{0}'.format(self.perc_val)
         # `threshold`
         if (self.score_method == 'threshold'):
-            score_str = '_t_{0}'.format(self.threshold)
+            score_str = 't_{0}'.format(self.threshold)
         # `model_score`
         if (self.score_method == 'model_score'):
-            score_str = '_ms'
+            score_str = 'ms'
         # `r2`
         if (self.score_method == 'r2'):
-            score_str = '_r2'
+            score_str = 'r2'
         #
         # Sample Method
         #
