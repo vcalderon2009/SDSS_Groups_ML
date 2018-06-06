@@ -865,27 +865,6 @@ def frac_diff_model(param_dict, proj_dict, plot_opt='mhalo',
     ## Horizontal line
     ax1.axhline(y=0, color='black', linestyle='--', zorder=10)
     ##
-    ## Plotttin ML relations
-    for kk, model_kk in enumerate(ml_algs_names):
-        ## ML algorithm name
-        ml_alg_kk_name = model_kk.replace('_',' ').title()
-        ## Stats
-        x_stat = frac_diff_dict[model_kk]['x_stat']
-        y_stat = frac_diff_dict[model_kk]['y_stat']
-        y_err  = frac_diff_dict[model_kk]['y_err' ]
-        ## Fill-between variables
-        y1 = y_stat - y_err
-        y2 = y_stat + y_err
-
-        ## Plotting relation
-        ax1.plot(   x_stat,
-                    y_stat,
-                    color=cm_arr[kk],
-                    linestyle='-',
-                    marker='o',
-                    zorder=zorder_ml)
-        ax1.fill_between(x_stat, y1, y2, color=cm_arr[kk], alpha=alpha,
-                        label=ml_alg_kk_name, zorder=zorder_ml)
     ## HAM Masses
     ax1.plot(   x_stat_ham,
                 y_stat_ham,
