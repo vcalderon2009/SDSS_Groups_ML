@@ -1502,11 +1502,11 @@ def pred_masses_vs_halo_mass(models_dict, param_dict, proj_dict, plot_opt='mhalo
                         zorder=zorder_shade)
     leg = axes[4].legend(loc='upper right', numpoints=1, frameon=False,
         prop={'size':14})
-    axes[4].get_frame().set_facecolor('none')
+    # axes[4].get_frame().set_facecolor('none')
     # Legend
-    leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
-        prop={'size':14})
-    leg.get_frame().set_facecolor('none')
+    # leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
+    #     prop={'size':14})
+    # leg.get_frame().set_facecolor('none')
     ## Ticks
     # Y-axis
     xaxis_major_ticker = 1
