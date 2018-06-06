@@ -663,7 +663,7 @@ class ReadML(object):
         return features_cols
 
     def extract_trad_masses(self, mass_opt='ham', score_method='perc',
-        threshold=0.1, perc=0.9, return_score=False, return_frac_diff=False):
+        threshold=None, perc=None, return_score=False, return_frac_diff=False):
         """
         Extracts the `training` and `testing` datasets for the
         traditional methods of estimating masses.
@@ -719,7 +719,12 @@ class ReadML(object):
             when ``return_score == True``.
         """
         # Check for inputs
-
+        # `perc`
+        if (perc is None):
+            perc = 0.68
+        # `threshold`
+        if (threshold is None):
+            threshold = 0.1
         # List of features
         feat_cols = num.array(self._feature_cols())
         pred_cols = num.array(self._predicted_cols())
@@ -785,8 +790,8 @@ class ReadML(object):
             score = cmlu.scoring_methods(true_mhalo_arr,
                                         pred_arr=pred_mass_arr,
                                         score_method=score_method,
-                                        threshold=threshold,
-                                        perc=perc)
+                                        threshold=self.threshold,
+                                        perc=self.perc)
             # Appending to return_obj_list`
             return_obj_list.append(score)
 
