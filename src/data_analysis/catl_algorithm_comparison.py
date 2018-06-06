@@ -1127,19 +1127,26 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
                 exp_vals_main = num.concatenate((
                                         exp_vals_main,
                                         model_metrics_ii['true_vals']))
-
-        ###
-        ### Calculating TOTAL score for `predicted` and `expected`
-        if (param_dict['score_method'] == 'model_score'):
-            score_type = 'r2'
-        else:
-            score_type = param_dict['score_method']
-        # Total score
-        total_score = cmlu.scoring_methods(exp_vals_main,
-                        pred_arr=pred_vals_main,
-                        score_method=score_type,
-                        threshold=param_dict['threshold'],
-                        perc=param_dict['perc_val'])
+        ##
+        #
+        # Calculating Score all types
+        score_types_arr = ['perc', 'threshold', 'model_score', 'r2']
+        # Looping over scores
+        for score_ii in score_types_arr:
+            if (score_ii == 'model_score'):
+                total_score_ii = cmlu.scoring_methods(exp_vals_main,
+                                    pred_arr=pred_vals_main,
+                                    score_method=score_ii,
+                                    threshold=param_dict['threshold'],
+                                    perc=param_dict['perc_val'])
+            else:
+                total_score_ii = cmlu.scoring_methods(exp_vals_main,
+                                    pred_arr=pred_vals_main,
+                                    score_method='r2',
+                                    threshold=param_dict['threshold'],
+                                    perc=param_dict['perc_val'])
+            # Assigning to dictionary
+            ml_model_dict['score_{0}'.format(score_ii)] = total_score_ii
         ##
         ## -- Feature Importance - Mean
         # feat_imp_mean = num.mean(feat_imp_main.T, axis=1)
@@ -1147,15 +1154,16 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
                             weights=[len(x) for x in train_idx_bins])
         ##
         ## -- Adding values to main dictionary
-        ml_model_dict['model_ii'  ] = models_main
-        ml_model_dict['score'     ] = total_score
-        ml_model_dict['score_all' ] = score_main
-        ml_model_dict['mhalo_pred'] = mhalo_pred_main
-        ml_model_dict['mhalo_true'] = mhalo_true_main
-        ml_model_dict['frac_diff' ] = frac_diff_main
-        ml_model_dict['mgroup_arr'] = mgroup_main
-        ml_model_dict['mdyn_arr'  ] = mdyn_main
-        ml_model_dict['feat_imp'  ] = feat_imp_mean
+        ml_model_dict['model_ii'      ] = models_main
+        ml_model_dict['score_all'     ] = score_main
+        ml_model_dict['mhalo_pred'    ] = mhalo_pred_main
+        ml_model_dict['mhalo_true'    ] = mhalo_true_main
+        ml_model_dict['frac_diff'     ] = frac_diff_main
+        ml_model_dict['mgroup_arr'    ] = mgroup_main
+        ml_model_dict['mdyn_arr'      ] = mdyn_main
+        ml_model_dict['feat_imp'      ] = feat_imp_mean
+        ml_model_dict['exp_vals'      ] = exp_vals_main
+        ml_model_dict['pred_vals_main'] = pred_vals_main
     ##
     ## -- Feature importance ranking --
     feat_imp_comb      = num.vstack(zip(feat_cols, ml_model_dict['feat_imp']))
