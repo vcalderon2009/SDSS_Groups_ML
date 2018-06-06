@@ -1258,6 +1258,287 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     plt.clf()
     plt.close()
 
+# HAM, Dynamical, and ML masses vs `True` halo mass
+def pred_masses_vs_halo_mass(models_dict, param_dict, proj_dict, plot_opt='mhalo',
+    arr_len=10, bin_statval='left', fig_fmt='png', figsize=(25, 10),
+    fig_number=4):
+    """
+    Plots the fractional difference between `predicted` and `true`
+    halo masses.
+
+    Parameters
+    -----------
+    models_dict : `dict`
+        Dictionary containing the results from the ML analysis.
+
+    param_dict : `dict`
+        Dictionary with input parameters and values related to this project.
+
+    proj_dict: python dictionary
+        Dictionary with current and new paths to project directories
+
+    plot_opt : {'mgroup', 'mhalo'} `str`, optional  
+        Option to which property to plot on the x-axis. This variable is set
+        to `mhalo` by default.
+
+    arr_len : `int`, optional
+        Minimum number of elements in bins. This variable is set to `0`
+        by default.
+
+    bin_statval : `str`, optional
+        Option for where to plot the bin values. This variable is set
+        to `average` by default.
+
+        Options:
+        - 'average': Returns the x-points at the average x-value of the bin
+        - 'left'   : Returns the x-points at the left-edge of the x-axis bin
+        - 'right'  : Returns the x-points at the right-edge of the x-axis bin
+
+    fig_fmt : `str`, optional (default = 'pdf')
+        extension used to save the figure
+
+    figsize : `tuple`, optional
+        Size of the output figure. This variable is set to `(12,15.5)` by
+        default.
+
+    fig_number : `int`, optional
+        Number of figure in the workflow. This variable is set to `1`
+        by default.
+    """
+    file_msg = param_dict['Prog_msg']
+    #
+    # Constants
+    cm           = plt.cm.get_cmap('viridis')
+    plot_dict    = param_dict['plot_dict']
+    ham_color    = 'red'
+    alpha        = 0.6
+    alpha_mass   = 0.2
+    zorder_mass  = 10
+    zorder_shade = zorder_mass - 1
+    zorder_ml    = zorder_mass + 1
+    bin_width    = param_dict['ml_args'].mass_bin_width
+    ##
+    ## Figure name
+    fname = os.path.join(   proj_dict['figure_dir'],
+                            'Fig_{0}_{1}_{2}_pred_true_masses.png'.format(
+                                fig_number,
+                                param_dict['catl_str_fig'],
+                                plot_opt))
+    ## Algorithm names - Thought as indices for the plot
+    ml_algs_names = num.sort(list(models_dict.keys()))
+    n_ml_algs     = len(ml_algs_names)
+    # Initializing dictionary that will contain the necessary information
+    # on each model
+    pred_true_dict = {}
+    ## Reading in arrays for different models
+    for kk, model_kk in enumerate(ml_algs_names):
+        # X and Y coordinates
+        model_kk_data = models_dict[model_kk]
+        ## X- and Y-axis
+        # New X-axis
+        model_kk_x = model_kk_data['mhalo_pred']
+        # Y-axis
+        model_kk_y = model_kk_data['mhalo_true']
+        # Calculating error in bins
+        (   x_stat_arr,
+            y_stat_arr,
+            y_std_arr,
+            y_std_err) = cstats.Stats_one_arr(  model_kk_x,
+                                                model_kk_y,
+                                                base=bin_width,
+                                                arr_len=arr_len,
+                                                bin_statval=bin_statval)
+        # Saving to dictionary
+        pred_true_dict[model_kk]      = {}
+        pred_true_dict[model_kk]['x_val' ] = model_kk_x
+        pred_true_dict[model_kk]['y_val' ] = model_kk_y
+        pred_true_dict[model_kk]['x_stat'] = x_stat_arr
+        pred_true_dict[model_kk]['y_stat'] = y_stat_arr
+        pred_true_dict[model_kk]['y_err' ] = y_std_arr
+        pred_true_dict[model_kk]['pred'  ] = model_kk_x
+        pred_true_dict[model_kk]['true'  ] = model_kk_y
+    ## Abundance matched mass
+    # HAM
+    (   ham_pred,
+        ham_true,
+        ham_frac_diff) = param_dict['ml_args'].extract_trad_masses(
+                                                mass_opt='ham',
+                                                return_frac_diff=True)
+    # Dynamical
+    (   dyn_pred,
+        dyn_true,
+        dyn_frac_diff) = param_dict['ml_args'].extract_trad_masses(
+                                                mass_opt='dyn',
+                                                return_frac_diff=True)
+    # Only choosing non-zero values
+    dyn_pred_mask = dyn_pred > 9
+    dyn_pred      = dyn_pred[dyn_pred_mask]
+    dyn_true      = dyn_true[dyn_pred_mask]
+    dyn_frac_diff = dyn_frac_diff[dyn_pred_mask]
+    ##
+    ## Choosing which mass to plot
+    # if (plot_opt == 'mgroup'):
+    #     ham_x = ham_pred
+    #     dyn_x = dyn_pred
+    # elif (plot_opt == 'mhalo'):
+    #     ham_x = ham_true
+    #     dyn_x = dyn_true
+    ham_x = ham_pred
+    dyn_x = dyn_pred
+    ##
+    ## Binning data
+    # HAM
+    (   x_stat_ham   ,
+        y_stat_ham   ,
+        y_std_ham    ,
+        y_std_err_ham) = cstats.Stats_one_arr(  ham_x,
+                                                ham_true,
+                                                base=bin_width,
+                                                arr_len=arr_len,
+                                                bin_statval=bin_statval)
+    y1_ham = y_stat_ham - y_std_ham
+    y2_ham = y_stat_ham + y_std_ham
+    # Dynamical
+    (   x_stat_dyn   ,
+        y_stat_dyn   ,
+        y_std_dyn    ,
+        y_std_err_dyn) = cstats.Stats_one_arr(  dyn_x,
+                                                dyn_true,
+                                                base=bin_width,
+                                                arr_len=arr_len,
+                                                bin_statval=bin_statval)
+    y1_dyn = y_stat_dyn - y_std_dyn
+    y2_dyn = y_stat_dyn + y_std_dyn
+    ##
+    ## Figure details
+    # ML algorithms - names
+    ml_algs_names_mod  = [xx.replace('_',' ').title() for xx in ml_algs_names]
+    ml_algs_names_dict = dict(zip(ml_algs_names, ml_algs_names_mod))
+    # Labels
+    # X-label
+    # if (plot_opt == 'mgroup'):
+    #     xlabel = r'\boldmath$\log M_{group}\left[ h^{-1} M_{\odot}\right]$'
+    # elif (plot_opt == 'mhalo'):
+    #     xlabel = r'\boldmath$\log M_{halo,\textrm{true}}\left[ h^{-1} M_{\odot}\right]$'
+    xlabel = r'\boldmath$\log M_{predicted}\left[ h^{-1} M_{\odot}\right]$'
+    # Y-label
+    ylabel = r'Frac. Difference \boldmath$[\%]$'
+    ##
+    plt.clf()
+    plt.close()
+    # fig = plt.figure(figsize=figsize)
+    fig, axes = plt.subplots(1, n_ml_algs + 2, sharey=True, sharex=True,
+        facecolor='white')
+    ## Color
+    cm  = plt.cm.get_cmap('viridis')
+    cm_arr = [cm(kk/float(n_ml_algs)) for kk in range(n_ml_algs)]
+    # Looping over ML algorithms
+    for kk, model_kk in enumerate(ml_algs_names):
+        ## ML algorithm name
+        ml_alg_kk_name = model_kk.replace('_',' ').title()
+        ## Stats
+        x_stat = pred_true_dict[model_kk]['x_stat']
+        y_stat = pred_true_dict[model_kk]['y_stat']
+        y_err  = pred_true_dict[model_kk]['y_err' ]
+        pred   = pred_true_dict[model_kk]['pred' ]
+        true   = pred_true_dict[model_kk]['true' ]
+        ## Fill-between variables
+        y1 = y_stat - y_err
+        y2 = y_stat + y_err
+        ## Plotting relation
+        # Plotting actual points
+        axes[kk].plot(pred, true, color=cm_arr[kk], marker='o',
+            markersize=1.5)
+        # Relations
+        axes[kk].plot(   x_stat,
+                    y_stat,
+                    color=cm_arr[kk],
+                    linestyle='-',
+                    marker='o',
+                    zorder=zorder_ml)
+        axes[kk].fill_between(x_stat, y1, y2, color=cm_arr[kk], alpha=alpha,
+                        label=ml_alg_kk_name, zorder=zorder_ml)
+        leg = axes[kk].legend(loc='upper right', numpoints=1, frameon=False,
+            prop={'size':14})
+        # axes[kk].get_frame().set_facecolor('none')
+    ## HAM Masses
+    # axes[3].plot(  ham_x,
+    #                 ham_true,
+    #                 color=plot_dict['color_ham'],
+    #                 linestyle='',
+    #                 marker='o',
+    #                 markersize=1.5,
+    #                 zorder=zorder_mass)
+    # axes[3].fill_between(   x_stat_ham,
+    #                     y1_ham,
+    #                     y2_ham, 
+    #                     color=plot_dict['color_ham'],
+    #                     alpha=alpha_mass,
+    #                     label='HAM',
+    #                     zorder=zorder_shade)
+    # leg = axes[3].legend(loc='upper right', numpoints=1, frameon=False,
+    #     prop={'size':14})
+    # # axes[3].get_frame().set_facecolor('none')
+    # ## Dynamical Masses
+    # axes[4].plot(   dyn_x,
+    #             dyn_true,
+    #             color=plot_dict['color_dyn'],
+    #             linestyle='',
+    #             marker='o',
+    #             markersize=1.5,
+    #             zorder=zorder_mass)
+    # axes[4].plot(   x_stat_dyn,
+    #             y_stat_dyn,
+    #             color=plot_dict['color_dyn'],
+    #             linestyle='-',
+    #             marker='o',
+    #             zorder=zorder_mass)
+    # axes[4].fill_between(   x_stat_dyn,
+    #                     y1_dyn,
+    #                     y2_dyn, 
+    #                     color=plot_dict['color_dyn'],
+    #                     alpha=alpha_mass,
+    #                     label='Dynamical',
+    #                     zorder=zorder_shade)
+    # leg = axes[4].legend(loc='upper right', numpoints=1, frameon=False,
+    #     prop={'size':14})
+    # axes[4].get_frame().set_facecolor('none')
+    ## Legend
+    # leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
+    #     prop={'size':14})
+    # leg.get_frame().set_facecolor('none')
+    ## Ticks
+    # Y-axis
+    xaxis_major_ticker = 1
+    xaxis_minor_ticker = 0.2
+    ax_xaxis_major_loc = ticker.MultipleLocator(xaxis_major_ticker)
+    ax_xaxis_minor_loc = ticker.MultipleLocator(xaxis_minor_ticker)
+    axes[0].xaxis.set_major_locator(ax_xaxis_major_loc)
+    axes[0].xaxis.set_minor_locator(ax_xaxis_minor_loc)
+    # Y-axis
+    yaxis_major_ticker = 5
+    yaxis_minor_ticker = 2
+    ax_yaxis_major_loc = ticker.MultipleLocator(yaxis_major_ticker)
+    ax_yaxis_minor_loc = ticker.MultipleLocator(yaxis_minor_ticker)
+    axes[0].yaxis.set_major_locator(ax_yaxis_major_loc)
+    axes[0].yaxis.set_minor_locator(ax_yaxis_minor_loc)
+    ## Labels
+    axes[0].set_xlabel(xlabel, fontsize=plot_dict['size_label'])
+    axes[0].set_ylabel(ylabel, fontsize=plot_dict['size_label'])
+    ##
+    ## Limits
+    axes[0].set_xlim(10, 15)
+    axes[0].set_ylim(10, 15)
+    ##
+    ## Saving figure
+    if fig_fmt=='pdf':
+        plt.savefig(fname, bbox_inches='tight')
+    else:
+        plt.savefig(fname, bbox_inches='tight', dpi=400)
+    print('{0} Figure saved as: {1}'.format(file_msg, fname))
+    plt.clf()
+    plt.close()
+
 
 
 
@@ -1317,6 +1598,9 @@ def main(args):
     #
     # Model Score - Different algorithms - Bar Chart
     model_score_chart_1d(models_dict, param_dict, proj_dict)
+    #
+    # HAM, Dynamical, and ML masses vs `True` halo mass
+    pred_masses_vs_halo_mass(models_dict, param_dict, proj_dict)
     ##
     ## End time for running the catalogues
     end_time = datetime.now()
