@@ -1040,6 +1040,36 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
     if (param_dict['sample_method'] == 'normal'):
         ml_model_dict = model_metrics(skem_ii, test_dict, train_dict,
                             param_dict)
+        #
+        # Expected and `predicted` values
+        exp_vals_main  = ml_model_dict['pred_vals']
+        pred_vals_main = ml_model_dict['true_vals']
+        #
+        # Calculating Score all types
+        score_types_arr = ['perc', 'threshold', 'r2']
+        # Looping over scores
+        for score_ii in score_types_arr:
+            if (score_ii == 'model_score'):
+                total_score_ii = cmlu.scoring_methods(exp_vals_main,
+                                    pred_arr=pred_vals_main,
+                                    score_method='r2',
+                                    threshold=param_dict['threshold'],
+                                    perc=param_dict['perc_val'])
+            else:
+                total_score_ii = cmlu.scoring_methods(exp_vals_main,
+                                    pred_arr=pred_vals_main,
+                                    score_method=score_ii,
+                                    threshold=param_dict['threshold'],
+                                    perc=param_dict['perc_val'])
+            # Assigning to dictionary
+            ml_model_dict['score_{0}'.format(score_ii)] = total_score_ii
+        #
+        # Deleting `keys`
+        for key_zz in ['pred_vals', 'true_vals']:
+            try:
+                del ml_model_dict[key_zz]
+            except KeyError:
+                pass
     # `Binning` sample method
     if (param_dict['sample_method'] == 'binning'):
         # Dictionaries with the indices from the `training` and `testing`
@@ -1162,8 +1192,6 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
         ml_model_dict['mgroup_arr'    ] = mgroup_main
         ml_model_dict['mdyn_arr'      ] = mdyn_main
         ml_model_dict['feat_imp'      ] = feat_imp_mean
-        ml_model_dict['exp_vals'      ] = exp_vals_main
-        ml_model_dict['pred_vals_main'] = pred_vals_main
     ##
     ## -- Feature importance ranking --
     feat_imp_comb      = num.vstack(zip(feat_cols, ml_model_dict['feat_imp']))
