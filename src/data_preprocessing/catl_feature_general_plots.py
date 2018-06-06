@@ -721,7 +721,7 @@ def catl_file_read_clean(param_dict, proj_dict, dropna_opt=True):
     catl_pd.loc[:,'GG_mdyn_rproj'] /= 0.96
     ##
     ## Dropping certain columns
-    catl_drop_arr = ['groupid', 'halo_rvir', 'galtype', 'halo_ngal']
+    catl_drop_arr = ['groupid', 'halo_rvir', 'galtype', 'halo_ngal', 'box_n']
     catl_pd       = catl_pd.drop(catl_drop_arr, axis=1)
 
     return catl_pd
@@ -1035,7 +1035,8 @@ def main(args):
     print('\n'+50*'='+'\n')
     ##
     ## Feature keys
-    param_dict['feat_cols_dict'] = param_dict['ml_args'].feat_cols_names_dict()
+    param_dict['feat_cols_dict'] = param_dict['ml_args'].feat_cols_names_dict(
+                                        return_all=True)
     ##
     ## Reading in the main catalogue
     catl_pd = catl_file_read_clean(param_dict, proj_dict)

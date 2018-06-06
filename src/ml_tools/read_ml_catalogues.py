@@ -1061,7 +1061,8 @@ class ReadML(object):
                             'dist_centre_group':"Distance to Group's centre",
                             'g_brightest':"If galaxy is group's brightest galaxy",
                             'logssfr':"Log of Specific star formation rate ",
-                            'sersic': "Galaxy's morphology"}
+                            'sersic': "Galaxy's morphology",
+                            'M_h':"Galaxy's Halo mass"}
         #
         # Cross matching with the list of `features` for the project
         feat_cols = self._feature_cols()
