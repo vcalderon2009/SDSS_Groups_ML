@@ -721,10 +721,10 @@ class ReadML(object):
         # Check for inputs
         # `perc`
         if (perc is None):
-            perc = 0.68
+            perc = self.perc
         # `threshold`
         if (threshold is None):
-            threshold = 0.1
+            threshold = self.threshold
         # List of features
         feat_cols = num.array(self._feature_cols())
         pred_cols = num.array(self._predicted_cols())
@@ -790,8 +790,8 @@ class ReadML(object):
             score = cmlu.scoring_methods(true_mhalo_arr,
                                         pred_arr=pred_mass_arr,
                                         score_method=score_method,
-                                        threshold=self.threshold,
-                                        perc=self.perc)
+                                        threshold=threshold,
+                                        perc=perc)
             # Appending to return_obj_list`
             return_obj_list.append(score)
 
