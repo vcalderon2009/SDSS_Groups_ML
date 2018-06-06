@@ -1428,7 +1428,7 @@ def pred_masses_vs_halo_mass(models_dict, param_dict, proj_dict, plot_opt='mhalo
     plt.close()
     # fig = plt.figure(figsize=figsize)
     fig, axes = plt.subplots(1, n_ml_algs + 2, sharey=True, sharex=True,
-        facecolor='white')
+        facecolor='white', figsize=figsize)
     ## Color
     cm  = plt.cm.get_cmap('viridis')
     cm_arr = [cm(kk/float(n_ml_algs)) for kk in range(n_ml_algs)]
@@ -1448,7 +1448,7 @@ def pred_masses_vs_halo_mass(models_dict, param_dict, proj_dict, plot_opt='mhalo
         ## Plotting relation
         # Plotting actual points
         axes[kk].plot(pred, true, color=cm_arr[kk], marker='o',
-            markersize=1.5)
+            markersize=1.5, linestyle='')
         # Relations
         axes[kk].plot(   x_stat,
                     y_stat,
@@ -1462,51 +1462,51 @@ def pred_masses_vs_halo_mass(models_dict, param_dict, proj_dict, plot_opt='mhalo
             prop={'size':14})
         # axes[kk].get_frame().set_facecolor('none')
     ## HAM Masses
-    # axes[3].plot(  ham_x,
-    #                 ham_true,
-    #                 color=plot_dict['color_ham'],
-    #                 linestyle='',
-    #                 marker='o',
-    #                 markersize=1.5,
-    #                 zorder=zorder_mass)
-    # axes[3].fill_between(   x_stat_ham,
-    #                     y1_ham,
-    #                     y2_ham, 
-    #                     color=plot_dict['color_ham'],
-    #                     alpha=alpha_mass,
-    #                     label='HAM',
-    #                     zorder=zorder_shade)
-    # leg = axes[3].legend(loc='upper right', numpoints=1, frameon=False,
-    #     prop={'size':14})
-    # # axes[3].get_frame().set_facecolor('none')
-    # ## Dynamical Masses
-    # axes[4].plot(   dyn_x,
-    #             dyn_true,
-    #             color=plot_dict['color_dyn'],
-    #             linestyle='',
-    #             marker='o',
-    #             markersize=1.5,
-    #             zorder=zorder_mass)
-    # axes[4].plot(   x_stat_dyn,
-    #             y_stat_dyn,
-    #             color=plot_dict['color_dyn'],
-    #             linestyle='-',
-    #             marker='o',
-    #             zorder=zorder_mass)
-    # axes[4].fill_between(   x_stat_dyn,
-    #                     y1_dyn,
-    #                     y2_dyn, 
-    #                     color=plot_dict['color_dyn'],
-    #                     alpha=alpha_mass,
-    #                     label='Dynamical',
-    #                     zorder=zorder_shade)
-    # leg = axes[4].legend(loc='upper right', numpoints=1, frameon=False,
-    #     prop={'size':14})
-    # axes[4].get_frame().set_facecolor('none')
-    ## Legend
-    # leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
-    #     prop={'size':14})
-    # leg.get_frame().set_facecolor('none')
+    axes[3].plot(  ham_x,
+                    ham_true,
+                    color=plot_dict['color_ham'],
+                    linestyle='',
+                    marker='o',
+                    markersize=1.5,
+                    zorder=zorder_mass)
+    axes[3].fill_between(   x_stat_ham,
+                        y1_ham,
+                        y2_ham, 
+                        color=plot_dict['color_ham'],
+                        alpha=alpha_mass,
+                        label='HAM',
+                        zorder=zorder_shade)
+    leg = axes[3].legend(loc='upper right', numpoints=1, frameon=False,
+        prop={'size':14})
+    # axes[3].get_frame().set_facecolor('none')
+    ## Dynamical Masses
+    axes[4].plot(   dyn_x,
+                dyn_true,
+                color=plot_dict['color_dyn'],
+                linestyle='',
+                marker='o',
+                markersize=1.5,
+                zorder=zorder_mass)
+    axes[4].plot(   x_stat_dyn,
+                y_stat_dyn,
+                color=plot_dict['color_dyn'],
+                linestyle='-',
+                marker='o',
+                zorder=zorder_mass)
+    axes[4].fill_between(   x_stat_dyn,
+                        y1_dyn,
+                        y2_dyn, 
+                        color=plot_dict['color_dyn'],
+                        alpha=alpha_mass,
+                        label='Dynamical',
+                        zorder=zorder_shade)
+    leg = axes[4].legend(loc='upper right', numpoints=1, frameon=False,
+        prop={'size':14})
+    axes[4].get_frame().set_facecolor('none')
+    # Legend
+    leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
+        prop={'size':14})
+    leg.get_frame().set_facecolor('none')
     ## Ticks
     # Y-axis
     xaxis_major_ticker = 1
