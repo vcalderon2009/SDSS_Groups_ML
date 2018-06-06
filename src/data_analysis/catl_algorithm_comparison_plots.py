@@ -1064,7 +1064,10 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
     fig = plt.figure(figsize=figsize)
     ax1 = fig.add_subplot(111, facecolor='white')
     # Axis labels
-    xlabel = r'$\leftarrow \textrm{Importance ranking}$'
+    if (rank_opt == 'idx'):
+        xlabel = r'$\leftarrow \textrm{Importance ranking}$'
+    elif (rank_opt == 'perc'):
+        xlabel = r'$\rightarrow \textrm{Importance ranking}$'
     ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
     # Plotting
     # Width
@@ -1094,6 +1097,141 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
     ##
     ## Saving figure
     if fig_fmt=='pdf':
+        plt.savefig(fname, bbox_inches='tight')
+    else:
+        plt.savefig(fname, bbox_inches='tight', dpi=400)
+    print('{0} Figure saved as: {1}'.format(file_msg, fname))
+    plt.clf()
+    plt.close()
+
+# Model Score - Different algorithms - Bar Chart
+def model_score_chart_1d(models_dict, param_dict, proj_dict,
+    fig_fmt='pdf', figsize=(10,8), fig_number=3, score_type='perc'):
+    """
+    Plots the overall `score` for each algorithm, and compares them to
+    the more traditional group mass estimation techniques, i.e. HAM and 
+    dynamical mass.
+
+    Parameters
+    ------------
+    models_dict : `dict`
+        Dictionary containing the results from the ML analysis.
+
+    param_dict : `dict`
+        Dictionary with input parameters and values related to this project.
+
+    proj_dict: python dictionary
+        Dictionary with current and new paths to project directories
+
+    fig_fmt : `str`, optional (default = 'pdf')
+        extension used to save the figure
+
+    figsize : `tuple`, optional
+        Size of the output figure. This variable is set to `(12,15.5)` by
+        default.
+
+    fig_number : `int`, optional
+        Number of figure in the workflow. This variable is set to `1`
+        by default.
+
+    score_type : {'perc', 'threshold', 'r2'}, `str`, optional
+        Type of scoring to plot. This variable is set to `perc` by default.
+
+        Options:
+            - 'perc' : Use percentage and rank-ordering of the values
+            - 'threshold' : Score based on diffs of `threshold` or less from true value.
+            - 'r2': R-squared statistic for error calcuation.
+    """
+    file_msg  = param_dict['Prog_msg']
+    plot_dict = param_dict['plot_dict']
+    # Score
+    if (param_dict['score_method'] == 'model_score'):
+        score_type = 'r2'
+    #
+    # Figure name
+    fname = os.path.join(   proj_dict['figure_dir'],
+                            'Fig_{0}_{1}_ml_algorithms_scores_{2}.{3}'.format(
+                                fig_number,
+                                param_dict['catl_str_fig'],
+                                score_type,
+                                fig_fmt))
+    #
+    # Algorithms names - Thought as indices for this plot
+    ml_algs_names = num.sort(list(models_dict))
+    #
+    # Initializing DataFrame
+    zero_arr = num.zeros(len(ml_algs_names))
+    col_names = ['ML']
+    ml_algs_pd = pd.DataFrame(dict(zip(col_names, [zero_arr.copy()
+                        for x in range(len(col_names))])))
+    #
+    # Reading in data
+    for kk, ml_kk in enumerate(ml_algs_names):
+        # Reading data
+        # Model dictionary
+        ml_model_kk_dict = models_dict[ml_kk]
+        # Score
+        model_score = ml_model_kk_dict['score_{0}'.format(score_type)]
+        # Assigning to DataFrame
+        ml_algs_pd.loc[kk, 'ML'] = model_score
+    #
+    # -- Traditonal mehods
+    # HAM
+    (   ham_pred,
+        ham_true,
+        ham_score) = param_dict['ml_args'].extract_trad_masses(
+                                                    mass_opt='ham',
+                                                    return_score=True,
+                                                    score_method=score_type)
+    # DYNAMICAL
+    (   dyn_pred,
+        dyn_true,
+        dyn_score) = param_dict['ml_args'].extract_trad_masses(
+                                                    mass_opt='dyn',
+                                                    return_score=True,
+                                                    score_method=score_type)
+    #
+    # rename indices
+    ml_algs_indices = [xx.replace('_', ' ').title() for xx in ml_algs_names]
+    ml_algs_pd.rename(index=dict(zip(range(len(ml_algs_names)),
+                            ml_algs_indices)),
+                            inplace=True)
+    ## Plotting
+    plt.clf()
+    plt.close()
+    fig = plt.figure(figsize=figsize)
+    ax1 = fig.add_subplot(111, facecolor='white')
+    # Constants
+    ml_algs_pd.plot(kind='barh',
+                    stacked=False,
+                    ax=ax1,
+                    legend=True)
+    # HAM and Dynamical masses - Lines
+    ax1.axvline(    x=ham_score,
+                    color=plot_dict['color_ham'],
+                    label='HAM Mass')
+    ax1.axvline(    x=dyn_score,
+                    color=plot_dict['color_dyn'],
+                    label='Dynamical mass')
+    ## Ticks
+    ax_data_minor_loc  = ticker.MultipleLocator(0.05)
+    ax_data_major_loc  = ticker.MultipleLocator(0.1)
+    ax1.xaxis.set_minor_locator(ax_data_minor_loc)
+    ax1.xaxis.set_major_locator(ax_data_major_loc)
+    ##
+    ## Axis label
+    if param_dict['score_method'] == 'perc':
+        xlabel = r'$1\sigma$ error in $\Delta \log M_{halo} [\mathrm{dex}]$'
+    else:
+        xlabel = 'Score'
+    ax1.set_xlabel(xlabel)
+    ## Legend
+    leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
+        prop={'size': 14})
+    leg.get_frame().set_facecolor('none')
+    ##
+    ## Saving figure
+    if fig_fmt == 'pdf':
         plt.savefig(fname, bbox_inches='tight')
     else:
         plt.savefig(fname, bbox_inches='tight', dpi=400)
@@ -1155,6 +1293,9 @@ def main(args):
     # Feature ranking
     feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
         rank_opt=param_dict['rank_opt'])
+    #
+    # Model Score - Different algorithms - Bar Chart
+    model_score_chart_1d(models_dict, param_dict, proj_dict)
     ##
     ## End time for running the catalogues
     end_time = datetime.now()
