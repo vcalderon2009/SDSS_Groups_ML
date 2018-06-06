@@ -1502,7 +1502,7 @@ def pred_masses_vs_halo_mass(models_dict, param_dict, proj_dict, plot_opt='mhalo
                 color=plot_dict['color_dyn'],
                 linestyle='-',
                 marker='o',
-                zorder=1)
+                zorder=2)
     axes[4].fill_between(   x_stat_dyn,
                         y1_dyn,
                         y2_dyn, 
