@@ -1006,7 +1006,7 @@ def main(args):
     """
     Script that uses a set of ML algorithms to try to predict galaxy and
     group properties by using a set of calculated `features` from synthetic
-    galaxy/group catalogues.
+    galaxy/group catalogues .
     """
     ## Starting time
     start_time = datetime.now()
