@@ -1314,6 +1314,7 @@ def pred_masses_vs_halo_mass(models_dict, param_dict, proj_dict, plot_opt='mhalo
     ham_color    = 'red'
     alpha        = 0.6
     alpha_mass   = 0.2
+    zorder_lines = 5
     zorder_mass  = 10
     zorder_shade = zorder_mass - 1
     zorder_ml    = zorder_mass + 1
@@ -1380,10 +1381,10 @@ def pred_masses_vs_halo_mass(models_dict, param_dict, proj_dict, plot_opt='mhalo
     ## Subsampling HAM and IDX
     ##
     # HAM
-    ham_pred = resample(ham_pred, n_samples=100000)
-    ham_true = resample(ham_true, n_samples=100000)
-    dyn_pred = resample(dyn_pred, n_samples=100000)
-    dyn_true = resample(dyn_true, n_samples=100000)
+    # ham_pred = resample(ham_pred, n_samples=100000)
+    # ham_true = resample(ham_true, n_samples=100000)
+    # dyn_pred = resample(dyn_pred, n_samples=100000)
+    # dyn_true = resample(dyn_true, n_samples=100000)
     # DYN
     ## Choosing which mass to plot
     # if (plot_opt == 'mgroup'):
@@ -1457,7 +1458,7 @@ def pred_masses_vs_halo_mass(models_dict, param_dict, proj_dict, plot_opt='mhalo
         ## Plotting relation
         # Plotting actual points
         axes[kk].plot(pred, true, color=cm_arr[kk], marker='o',
-            markersize=1, linestyle='', alpha=0.5)
+            markersize=1, linestyle='', alpha=0.5, zorder=zorder_lines)
         # Relations
         axes[kk].plot(   x_stat,
                     y_stat,
@@ -1477,7 +1478,7 @@ def pred_masses_vs_halo_mass(models_dict, param_dict, proj_dict, plot_opt='mhalo
                     linestyle='',
                     marker='o',
                     markersize=1,
-                    zorder=zorder_mass)
+                    zorder=zorder_lines)
     axes[3].fill_between(   x_stat_ham,
                         y1_ham,
                         y2_ham, 
@@ -1495,7 +1496,7 @@ def pred_masses_vs_halo_mass(models_dict, param_dict, proj_dict, plot_opt='mhalo
                 linestyle='',
                 marker='o',
                 markersize=1,
-                zorder=zorder_mass)
+                zorder=zorder_lines)
     axes[4].plot(   x_stat_dyn,
                 y_stat_dyn,
                 color=plot_dict['color_dyn'],
