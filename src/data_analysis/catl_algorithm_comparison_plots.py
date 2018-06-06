@@ -774,10 +774,13 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
         model_kk_data = models_dict[model_kk]
         ## X- and Y-axis
         # X-axis
-        if (plot_opt == 'mhalo'):
-            model_kk_x    = model_kk_data['mhalo_true']
-        elif (plot_opt == 'mgroup'):
-            model_kk_x    = model_kk_data['mgroup_arr']
+        # if (plot_opt == 'mhalo'):
+        #     model_kk_x    = model_kk_data['mhalo_true']
+        # elif (plot_opt == 'mgroup'):
+        #     model_kk_x    = model_kk_data['mgroup_arr']
+        #
+        # New X-axis
+        model_kk_x = model_kk_data['mhalo_pred']
         # Y-axis
         model_kk_y    = model_kk_data['frac_diff']
         # Calculating error in bins
@@ -816,12 +819,14 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     dyn_frac_diff = dyn_frac_diff[dyn_pred_mask]
     ##
     ## Choosing which mass to plot
-    if (plot_opt == 'mgroup'):
-        ham_x = ham_pred
-        dyn_x = dyn_pred
-    elif (plot_opt == 'mhalo'):
-        ham_x = ham_true
-        dyn_x = dyn_true
+    # if (plot_opt == 'mgroup'):
+    #     ham_x = ham_pred
+    #     dyn_x = dyn_pred
+    # elif (plot_opt == 'mhalo'):
+    #     ham_x = ham_true
+    #     dyn_x = dyn_true
+    ham_x = ham_pred
+    dyn_x = dyn_pred
     ##
     ## Binning data
     # HAM
@@ -853,10 +858,11 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     ml_algs_names_dict = dict(zip(ml_algs_names, ml_algs_names_mod))
     # Labels
     # X-label
-    if (plot_opt == 'mgroup'):
-        xlabel = r'\boldmath$\log M_{group}\left[ h^{-1} M_{\odot}\right]$'
-    elif (plot_opt == 'mhalo'):
-        xlabel = r'\boldmath$\log M_{halo,\textrm{true}}\left[ h^{-1} M_{\odot}\right]$'
+    # if (plot_opt == 'mgroup'):
+    #     xlabel = r'\boldmath$\log M_{group}\left[ h^{-1} M_{\odot}\right]$'
+    # elif (plot_opt == 'mhalo'):
+    #     xlabel = r'\boldmath$\log M_{halo,\textrm{true}}\left[ h^{-1} M_{\odot}\right]$'
+    xlabel = r'\boldmath$\log M_{predicted}\left[ h^{-1} M_{\odot}\right]$'
     # Y-label
     ylabel = r'Frac. Difference \boldmath$[\%]$'
     ##
