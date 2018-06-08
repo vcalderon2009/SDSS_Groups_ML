@@ -1408,13 +1408,15 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
     plt.clf()
     plt.close()
     fig, axes = plt.subplots(nrows=1, ncols=2 + n_ml_algs, sharex=True,
-                    sharey=True, figsize)
+                    sharey=True, figsize=figsize)
     # Flattening out the axes
     axes = axes.flatten()
     # Looping over ML algorithms
     for kk, ml_kk in enumerate(ml_algs_names):
         # Axes being used
         ax = axes[kk]
+        # Background
+        ax.set_facecolor('white')
         # Model name
         ml_kk_name = ml_algs_names_dict[ml_kk]
         # Plotting x- and y-arrays
