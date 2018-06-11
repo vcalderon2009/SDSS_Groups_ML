@@ -1289,7 +1289,7 @@ class ReadML(object):
 
         Returns
         ---------
-        catl_alg_comp_path : `str`
+        catl_train_hod_diff_path : `str`
             Path to the file with the outputs from the `HOD comparison`
             stage of the ML analysis.
         """
@@ -1297,19 +1297,19 @@ class ReadML(object):
         catl_train_hod_diff_dir = self.catl_train_hod_diff_dir(
                                     check_exist=True,
                                     create_dir=False)
-        # `Alg. Compr` Prefix string
+        # `HOD Comparison` Prefix string
         filename_str = '{0}_md.{1}'.format(self._catl_train_prefix_str(), ext)
-        # `catl_alg_comp_path`
-        catl_alg_comp_path = os.path.join(catl_train_hod_diff_dir,
+        # `catl_train_hod_diff_path`
+        catl_train_hod_diff_path = os.path.join(catl_train_hod_diff_dir,
                                 filename_str)
         # Checking if file exists
         if check_exist:
-            if not (os.path.exists(catl_alg_comp_path)):
-                msg = '`catl_alg_comp_path` ({0}) was not found!'.format(
-                    catl_alg_comp_path)
+            if not (os.path.exists(catl_train_hod_diff_path)):
+                msg = '`catl_train_hod_diff_path` ({0}) was not found!'.format(
+                    catl_train_hod_diff_path)
                 raise FileNotFoundError(msg)
 
-        return catl_alg_comp_path
+        return catl_train_hod_diff_path
 
 
 

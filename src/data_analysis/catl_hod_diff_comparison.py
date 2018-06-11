@@ -1468,7 +1468,7 @@ def test_alg_comp_file(param_dict, proj_dict):
     ## Filename, under which to save all of the information
     ##
     ## Path to output file
-    filepath = param_dict['ml_args'].catl_train_alg_comp_file(
+    filepath = param_dict['ml_args'].catl_train_hod_diff_file(
                     check_exist=False)
     ## Saving
     ##
