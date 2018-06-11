@@ -596,14 +596,18 @@ def add_to_dict(param_dict):
     #
     # Dictionary with the models from the different HOD's
     hod_n_dict = {}
+    # Array of distinct HOD models used
+    hod_n_arr = param_dict['hod_models_n'].split('_')
     # Instances for the different HOD models
-    for kk, model_kk in enumerate(param_dict['hod_models_n'].split('_')):
+    for kk, model_kk in enumerate(hod_n_arr):
         # Integer for the model
         model_kk = int(model_kk)
         # Copy of main `param_dict`
         param_dict_copy = copy.deepcopy(param_dict)
+        # Modifying HOD model number
+        param_dict_copy['hod_n'] = model_kk
         # Saving as part of dictionary
-        hod_n_dict[kk] = ReadML(**param_dict_copy)
+        hod_n_dict[model_kk] = ReadML(**param_dict_copy)
     ##
     ## Saving to `param_dict`
     param_dict['sample_s'  ] = sample_s
@@ -614,7 +618,9 @@ def add_to_dict(param_dict):
     param_dict['speed_c'   ] = speed_c
     param_dict['cpu_number'] = cpu_number
     param_dict['skem_dict' ] = skem_dict
+    param_dict['hod_n_arr' ] = hod_n_arr
     param_dict['hod_n_dict'] = hod_n_dict
+
 
     return param_dict
 
@@ -1181,7 +1187,7 @@ def ml_models_training(models_dict, param_dict, proj_dict):
     file_msg = param_dict['Prog_msg']
     ##
     ## Preparing the data
-    train_dict, test_dict = param_dict['ml_args'].extract_feat_file_info()
+    train_test_dict = train_test_hod_diff_dict_processing(param_dict)
     # List of the different ML models
     skem_keys_arr = num.sort(list(param_dict['skem_dict'].keys()))
     # Looping over each ML algorithm
@@ -1192,6 +1198,44 @@ def ml_models_training(models_dict, param_dict, proj_dict):
                                     param_dict, proj_dict)
 
     return models_dict
+
+def train_test_hod_diff_dict_processing(param_dict):
+    """
+    Extracts the information from each of the different `HOD` models, i.e.
+    `training` and `testing` datasets, and saves them into a common
+    dictionary.
+
+    Parameters
+    -----------
+    param_dict : `dict`
+        Dictionary with input parameters and values related to this project.
+
+    Returns
+    ----------
+    train_test_hod_diff_dict : `dict`
+        Dictionary with the different `training` and `testing` dictionaries
+        from each of the different HOD models.
+    """
+    # Initializing main dictionary
+    train_test_hod_diff_dict = {'train': {}, 'test': {}}
+    # Looping over the different HOD models
+    for kk, hod_n_key in enumerate(param_dict['hod_n_arr']):
+        # Loading parameters for this model
+        model_kk = param_dict['hod_n_dict'][hod_n_key]
+        # Reading in `training` and `testing` datasets.
+        train_dict_kk, test_dict_kk = model_kk.extract_feat_file_info()
+        # Saving them as part of the main dictionary
+        if (hod_n_key == param_dict['hod_n']):
+            train_test_hod_diff_dict['train']['train_dict'] = train_dict_kk
+        else:
+            train_test_hod_diff_dict['test'][hod_n_key] = test_dict_kk
+
+    return train_test_hod_diff_dict
+
+
+
+
+
 
 # Main Analysis for fixed HOD and DV
 def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
