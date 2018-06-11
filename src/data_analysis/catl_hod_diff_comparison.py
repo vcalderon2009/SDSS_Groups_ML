@@ -1256,7 +1256,7 @@ def train_test_hod_diff_dict_processing(param_dict):
         # Loading parameters for this model
         model_kk = param_dict['hod_n_dict'][hod_n_key]
         # Reading in `training` and `testing` datasets.
-        train_dict_kk, test_dict_kk, path = model_kk.extract_feat_file_info()
+        train_dict_kk, test_dict_kk = model_kk.extract_feat_file_info()
         # Saving them as part of the main dictionary
         train_test_hod_diff_dict['test'][hod_n_key] = test_dict_kk
 
