@@ -1385,7 +1385,7 @@ def main(args):
     param_dict = add_to_dict(param_dict)
     ##
     ## Parameters for the analysis
-    if (param_dict['ml_analysis'] == 'hod_dv_fixed')
+    if (param_dict['ml_analysis'] == 'hod_dv_fixed'):
         df_arr = get_analysis_alg_comp_params(param_dict)
     elif (param_dict['ml_analysis'] == 'dv_fixed'):
         df_arr = get_analysis_hod_diff_params(param_dict)
