@@ -135,6 +135,15 @@ def get_parser():
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
     ## Number of HOD's to create. Dictates how many different types of
     ##      mock catalogues to create
+    parser.add_argument('-hod_model_n',
+                        dest='hod_n',
+                        help="HOD Model to use as training.",
+                        type=int,
+                        choices=range(0, 10),
+                        metavar='[0-10]',
+                        default=0)
+    ## Number of HOD's to create. Dictates how many different types of
+    ##      mock catalogues to create
     parser.add_argument('-hod_models_n',
                         dest='hod_models_n',
                         help="""
@@ -145,7 +154,7 @@ def get_parser():
                         `training` of the ML algorithm.
                         """,
                         type=str,
-                        default='0_1_2_3_4_5_6_7_8')
+                        default='1_2_3_4_5_6_7_8')
     ## Type of dark matter halo to use in the simulation
     parser.add_argument('-halotype',
                         dest='halotype',
@@ -406,6 +415,14 @@ def get_parser():
                         type=str,
                         choices=['over', 'under'],
                         default='under')
+    ## Option to include results from Neural Network or Not include_nn
+    parser.add_argument('-include_nn',
+                        dest='include_nn',
+                        help="""
+                        Option to include results from Neural network or not.
+                        """,
+                        type=_str2bool,
+                        default=False)
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -682,18 +699,20 @@ def sklearns_models(param_dict, cpu_number):
     skem_dict['XGBoost'] = xgboost.XGBRegressor(
                             n_jobs=cpu_number,
                             random_state=param_dict['seed'])
-    # Neural Network
-    if (param_dict['hidden_layers'] == 1):
-        hidden_layer_obj = (param_dict['unit_layer'],)
-    elif (param_dict['hidden_layers'] > 1):
-        hidden_layers = param_dict['hidden_layers']
-        unit_layer    = param_dict['unit_layer']
-        hidden_layer_obj = tuple([unit_layer for x in range(hidden_layers)])
-    skem_dict['neural_network'] = skneuro.MLPRegressor(
-                                    random_state=param_dict['seed'],
-                                    solver='adam',
-                                    hidden_layer_sizes=hidden_layer_obj,
-                                    warm_start=True)
+    # Choosing to include NN or not:
+    if param_dict['include_nn']:
+        # Neural Network
+        if (param_dict['hidden_layers'] == 1):
+            hidden_layer_obj = (param_dict['unit_layer'],)
+        elif (param_dict['hidden_layers'] > 1):
+            hidden_layers = param_dict['hidden_layers']
+            unit_layer    = param_dict['unit_layer']
+            hidden_layer_obj = tuple([unit_layer for x in range(hidden_layers)])
+        skem_dict['neural_network'] = skneuro.MLPRegressor(
+                                        random_state=param_dict['seed'],
+                                        solver='adam',
+                                        hidden_layer_sizes=hidden_layer_obj,
+                                        warm_start=True)
 
     return skem_dict
 
@@ -1204,7 +1223,7 @@ def ml_models_training(models_dict, param_dict, proj_dict):
                                             train_test_dict['test'][hod_kk],
                                             param_dict,
                                             proj_dict)
-    
+
     return models_dict
 
 def train_test_hod_diff_dict_processing(param_dict):
@@ -1226,18 +1245,20 @@ def train_test_hod_diff_dict_processing(param_dict):
     """
     # Initializing main dictionary
     train_test_hod_diff_dict = {'train': {}, 'test': {}}
+    # Training
+    (   train_dict_main,
+        test_dict_main) = param_dict['ml_args'].extract_feat_file_info()
+    # Assigning as main `training` dataset
+    train_test_hod_diff_dict['train']['train_dict'] = train_dict_main
+    # Testing
     # Looping over the different HOD models
     for kk, hod_n_key in enumerate(param_dict['hod_n_arr']):
         # Loading parameters for this model
         model_kk = param_dict['hod_n_dict'][hod_n_key]
         # Reading in `training` and `testing` datasets.
-        train_dict_kk, test_dict_kk, path = model_kk.extract_feat_file_info(return_path=True)
-        print(path)
+        train_dict_kk, test_dict_kk, path = model_kk.extract_feat_file_info()
         # Saving them as part of the main dictionary
-        if (hod_n_key == param_dict['hod_n']):
-            train_test_hod_diff_dict['train']['train_dict'] = train_dict_kk
-        else:
-            train_test_hod_diff_dict['test'][hod_n_key] = test_dict_kk
+        train_test_hod_diff_dict['test'][hod_n_key] = test_dict_kk
 
     return train_test_hod_diff_dict
 
@@ -1586,9 +1607,6 @@ def main(args):
     param_dict = vars(args)
     ## Checking for correct input
     param_vals_test(param_dict)
-    #
-    # Reading up HOD
-    param_dict['hod_n'] = int(param_dict['hod_models_n'].split('_')[0])
     #
     # Creating instance of `ReadML` with the input parameters
     param_dict['ml_args'] = ReadML(**param_dict)

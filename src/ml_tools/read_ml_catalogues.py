@@ -243,6 +243,7 @@ class ReadML(object):
         self.ml_analysis    = kwargs.get('ml_analysis', 'hod_dv_fixed')
         self.resample_opt   = kwargs.get('resample_opt', 'under')
         self.hod_models_n   = kwargs.get('hod_models_n', '0_1_2_3_4_5_6_7_8')
+        self.include_nn     = kwargs.get('include_nn', False)
         #
         # Extra variables
         self.sample_Mr      = 'Mr{0}'.format(self.sample)
@@ -1298,7 +1299,10 @@ class ReadML(object):
                                     check_exist=True,
                                     create_dir=False)
         # `HOD Comparison` Prefix string
-        filename_str = '{0}_md.{1}'.format(self._catl_train_prefix_str(), ext)
+        filename_str = '{0}_nn_{1}_md.{2}'.format(
+                            self._catl_train_prefix_str(),
+                            self.include_nn,
+                            ext)
         # `catl_train_hod_diff_path`
         catl_train_hod_diff_path = os.path.join(catl_train_hod_diff_dir,
                                 filename_str)
@@ -1310,6 +1314,45 @@ class ReadML(object):
                 raise FileNotFoundError(msg)
 
         return catl_train_hod_diff_path
+
+    def extract_catl_hod_diff_info(self, ext='p', return_path=False):
+        """
+        Extracts the information from the `algorithm comparison`, and
+        returns a set of dictionaries.
+
+        Parameters
+        -----------
+        ext : `str`, optional
+            Extension of the file being analyzed. This variable is set to
+            `p` by default.
+
+        return_path : `bool`, optional
+            If True, the function also returns the path to the file being read.
+
+        Returns
+        ---------
+        models_dict : `dict`
+            Dictionary with the output results from the `algorithm comparison`
+            stage of the ML analysis.
+        """
+        # File containing the dictionaries
+        catl_hod_diff_path = self.catl_train_hod_diff_file(ext=ext,
+                                check_exist=True)
+        # Extracting information
+        with open(catl_hod_diff_path, 'rb') as file_p:
+            obj_arr = pickle.load(file_p)
+        # Unpacking objects
+        if (len(obj_arr) == 1):
+            models_dict = obj_arr[0]
+        else:
+            msg = '`obj` ({0}) must be of length `1`'.format(len(obj_arr))
+
+        if return_path:
+            return models_dict, catl_hod_diff_path
+        else:
+            return models_dict
+
+
 
 
 

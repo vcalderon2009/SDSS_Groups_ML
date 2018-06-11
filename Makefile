@@ -66,6 +66,10 @@ KF_SPLITS    = 3
 PLOT_OPT     = 'mgroup'
 RANK_OPT     = 'idx'
 RESAMPLE_OPT = 'under'
+## -- Comparing HODs
+HOD_MODELS_N = '0_1_2_3_4_5_6_7_8'
+INCLUDE_NN   = 'False'
+
 
 # Checking for Anaconda
 ifeq (,$(shell which conda))
