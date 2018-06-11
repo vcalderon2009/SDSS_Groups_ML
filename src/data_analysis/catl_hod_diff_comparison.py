@@ -269,7 +269,7 @@ def get_parser():
                         """,
                         type=str,
                         choices=['sample_frac', 'boxes_n', 'box_sample_frac'],
-                        default='sample_frac')
+                        default='boxes_n')
     ## Initial and final indices of the simulation boxes to use for the
     ## testing and training datasets.
     parser.add_argument('-box_idx',
@@ -1194,9 +1194,17 @@ def ml_models_training(models_dict, param_dict, proj_dict):
     for zz, skem_ii in tqdm(enumerate(skem_keys_arr)):
         print('{0} Analyzing: `{1}`'.format(file_msg, skem_ii))
         # Training datset
-        models_dict[skem_ii] = ml_analysis(skem_ii, train_dict, test_dict,
-                                    param_dict, proj_dict)
-
+        models_dict[skem_ii] = {}
+        # Looping over different HOD models
+        for hod_kk in list(train_test_dict['test'].keys()):
+            # Running analysis
+            models_dict[skem_ii][hod_kk] = ml_analysis(
+                                            skem_ii,
+                                            train_test_dict['train']['train_dict'],
+                                            train_test_dict['test'][hod_kk],
+                                            param_dict,
+                                            proj_dict)
+    
     return models_dict
 
 def train_test_hod_diff_dict_processing(param_dict):
@@ -1223,7 +1231,8 @@ def train_test_hod_diff_dict_processing(param_dict):
         # Loading parameters for this model
         model_kk = param_dict['hod_n_dict'][hod_n_key]
         # Reading in `training` and `testing` datasets.
-        train_dict_kk, test_dict_kk = model_kk.extract_feat_file_info()
+        train_dict_kk, test_dict_kk, path = model_kk.extract_feat_file_info(return_path=True)
+        print(path)
         # Saving them as part of the main dictionary
         if (hod_n_key == param_dict['hod_n']):
             train_test_hod_diff_dict['train']['train_dict'] = train_dict_kk
@@ -1231,11 +1240,6 @@ def train_test_hod_diff_dict_processing(param_dict):
             train_test_hod_diff_dict['test'][hod_n_key] = test_dict_kk
 
     return train_test_hod_diff_dict
-
-
-
-
-
 
 # Main Analysis for fixed HOD and DV
 def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
@@ -1552,7 +1556,7 @@ def saving_data(models_dict, param_dict, proj_dict, ext='p'):
     """
     file_msg = param_dict['Prog_msg']
     # Filename
-    filepath = param_dict['ml_args'].catl_train_alg_comp_file(
+    filepath = param_dict['ml_args'].catl_train_hod_diff_file(
                     check_exist=False)
     # Elements to be saved
     obj_arr = [models_dict]
