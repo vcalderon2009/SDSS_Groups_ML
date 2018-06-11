@@ -597,7 +597,7 @@ def add_to_dict(param_dict):
     # Dictionary with the models from the different HOD's
     hod_n_dict = {}
     # Array of distinct HOD models used
-    hod_n_arr = param_dict['hod_models_n'].split('_')
+    hod_n_arr = num.array(param_dict['hod_models_n'].split('_')).astype(int)
     # Instances for the different HOD models
     for kk, model_kk in enumerate(hod_n_arr):
         # Integer for the model
