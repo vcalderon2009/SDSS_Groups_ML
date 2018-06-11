@@ -242,6 +242,7 @@ class ReadML(object):
         self.bin_val        = kwargs.get('bin_val', 'fixed')
         self.ml_analysis    = kwargs.get('ml_analysis', 'hod_dv_fixed')
         self.resample_opt   = kwargs.get('resample_opt', 'under')
+        self.hod_models_n   = kwargs.get('hod_models_n', '0_1_2_3_4_5_6_7_8')
         #
         # Extra variables
         self.sample_Mr      = 'Mr{0}'.format(self.sample)
@@ -1219,7 +1220,102 @@ class ReadML(object):
 
         return catl_train_prefix_str
 
+    def catl_train_hod_diff_dir(self, check_exist=True,
+        create_dir=False):
+        """
+        Directory for the `HOD comparison` section of the ML analysis.
 
+        Parameters
+        -----------
+        check_exist : `bool`, optional
+            If `True`, it checks for whether or not the file exists.
+            This variable is set to `True` by default.
+
+        create_dir : `bool`, optional
+            If `True`, it creates the directory if it does not exist.
+
+        Returns
+        --------
+        catl_train_hod_diff_dir : `str`
+            Output directory for the `HOD comparison` ML analysis.
+        """
+        # Check input parameters
+        # `check_exist`
+        if not (isinstance(check_exist, bool)):
+            msg = '`check_exist` ({0}) must be of `boolean` type!'.format(
+                type(check_exist))
+            raise TypeError(msg)
+        #
+        # `create_dir`
+        if not (isinstance(create_dir, bool)):
+            msg = '`create_dir` ({0}) must be of `boolean` type!'.format(
+                type(create_dir))
+            raise TypeError(msg)
+        #
+        # Output directory
+        main_catl_train_dir = self.main_catl_train_dir(check_exist=False,
+            create_dir=False)
+        # Appending to main directory
+        catl_train_alg_comp_dir = os.path.join(main_catl_train_dir,
+                                    'ml_hod_diff',
+                                    self.hod_models_n)
+        # Creating directory if necessary
+        if create_dir:
+            cfutils.Path_Folder(catl_train_alg_comp_dir)
+        # Check that folder exists
+        if check_exist:
+            if not (os.path.exists(catl_train_alg_comp_dir)):
+                msg = '`catl_train_alg_comp_dir` ({0}) was not found! '
+                msg += 'Check your path!'
+                msg = msg.format(catl_train_alg_comp_dir)
+                raise FileNotFoundError(msg)
+
+        return catl_train_alg_comp_dir
+
+    def catl_train_hod_diff_file(self, ext='p', check_exist=True):
+        """
+        Path to the file that contains the outputs from the
+        `HOD comparison` stage.
+
+        Parameters
+        -----------
+        ext : `str`, optional
+            Extension of the file being analyzed. This variable is set to
+            `p` by default.
+
+        check_exist : `bool`, optional
+            If `True`, it checks for whether or not the file exists.
+            This variable is set to `True` by default.
+
+        Returns
+        ---------
+        catl_alg_comp_path : `str`
+            Path to the file with the outputs from the `HOD comparison`
+            stage of the ML analysis.
+        """
+        # `Algorithm comparison` directory
+        catl_train_hod_diff_dir = self.catl_train_hod_diff_dir(
+                                    check_exist=True,
+                                    create_dir=False)
+        # `Alg. Compr` Prefix string
+        filename_str = '{0}_md.{1}'.format(self._catl_train_prefix_str(), ext)
+        # `catl_alg_comp_path`
+        catl_alg_comp_path = os.path.join(catl_train_alg_comp_dir,
+                                filename_str)
+        # Checking if file exists
+        if check_exist:
+            if not (os.path.exists(catl_alg_comp_path)):
+                msg = '`catl_alg_comp_path` ({0}) was not found!'.format(
+                    catl_alg_comp_path)
+                raise FileNotFoundError(msg)
+
+        return catl_alg_comp_path
+
+
+
+
+
+#
 
 
 
