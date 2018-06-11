@@ -1300,7 +1300,7 @@ class ReadML(object):
         # `Alg. Compr` Prefix string
         filename_str = '{0}_md.{1}'.format(self._catl_train_prefix_str(), ext)
         # `catl_alg_comp_path`
-        catl_alg_comp_path = os.path.join(catl_train_alg_comp_dir,
+        catl_alg_comp_path = os.path.join(catl_train_hod_diff_dir,
                                 filename_str)
         # Checking if file exists
         if check_exist:
