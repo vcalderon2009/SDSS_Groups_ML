@@ -856,7 +856,7 @@ def get_analysis_alg_comp_params(param_dict):
     ## Random seed for the analysis
     main_plot_df = df_value_modifier(main_plot_df, 'seed', param_dict)
 
-    return [alg_comp_df, alg_comp_plot_df]
+    return [main_df, main_plot_df]
 
 def get_analysis_hod_diff_params(param_dict):
     """
@@ -1208,7 +1208,7 @@ def get_analysis_hod_diff_params(param_dict):
     ## Random seed for the analysis
     main_plot_df = df_value_modifier(main_plot_df, 'seed', param_dict)
 
-    return [alg_comp_df, alg_comp_plot_df]
+    return [main_df, main_plot_df]
 
 def get_analysis_dv_diff_params(param_dict):
     """
@@ -1563,7 +1563,7 @@ def get_analysis_dv_diff_params(param_dict):
     ## Random seed for the analysis
     main_plot_df = df_value_modifier(main_plot_df, 'seed', param_dict)
 
-    return [alg_comp_df, alg_comp_plot_df]
+    return [main_df, main_plot_df]
 
 ### --------------- Executing script --------------- ###
 
