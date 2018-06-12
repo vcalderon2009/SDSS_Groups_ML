@@ -635,10 +635,11 @@ def add_to_dict(param_dict):
     cpu_number = int(cpu_count() * param_dict['cpu_frac'])
     ##
     ## Plotting constants
-    plot_dict = {   'size_label':23,
-                    'size_title':25,
-                    'color_ham' :'red',
-                    'color_dyn' :'blue'}
+    plot_dict = {   'size_label': 23,
+                    'size_title': 25,
+                    'size_text' : 16,
+                    'color_ham' : 'red',
+                    'color_dyn' : 'blue'}
     ##
     ## Catalogue Prefix string
     catl_str_fig = param_dict['ml_args'].catl_alg_comp_fig_str()
@@ -780,7 +781,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     ##
     ## Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
-                            'Fig_{0}_{1}_{2}_frac_diff_predicted.pdf'.format(
+                            'Fig_{0}_{1}_{2}_frac_diff_predicted_HOD.pdf'.format(
                                 fig_number,
                                 param_dict['catl_str_fig'],
                                 plot_opt))
@@ -794,33 +795,30 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     for kk, model_kk in enumerate(ml_algs_names):
         # X and Y coordinates
         model_kk_data = models_dict[model_kk]
-        ## X- and Y-axis
-        # X-axis
-        # if (plot_opt == 'mhalo'):
-        #     model_kk_x    = model_kk_data['mhalo_true']
-        # elif (plot_opt == 'mgroup'):
-        #     model_kk_x    = model_kk_data['mgroup_arr']
-        #
-        # New X-axis
-        model_kk_x = model_kk_data['mhalo_pred']
-        # Y-axis
-        model_kk_y    = model_kk_data['frac_diff']
-        # Calculating error in bins
-        (   x_stat_arr,
-            y_stat_arr,
-            y_std_arr,
-            y_std_err) = cstats.Stats_one_arr(  model_kk_x,
-                                                model_kk_y,
-                                                base=bin_width,
-                                                arr_len=arr_len,
-                                                bin_statval=bin_statval)
-        # Saving to dictionary
-        frac_diff_dict[model_kk]      = {}
-        frac_diff_dict[model_kk]['x_val' ] = model_kk_x
-        frac_diff_dict[model_kk]['y_val' ] = model_kk_y
-        frac_diff_dict[model_kk]['x_stat'] = x_stat_arr
-        frac_diff_dict[model_kk]['y_stat'] = y_stat_arr
-        frac_diff_dict[model_kk]['y_err' ] = y_std_arr
+        # Dictionary to save results
+        frac_diff_dict[model_kk] = {}
+        # Looping over different HOD models
+        for ii, hod_ii in enumerate(model_kk_data.keys()):
+            # New X-axis
+            model_kk_x = model_kk_data[hod_ii]['mhalo_pred']
+            # Y-axis
+            model_kk_y = model_kk_data[hod_ii]['frac_diff']
+            # Calculating error in bins
+            (   x_stat_arr,
+                y_stat_arr,
+                y_std_arr,
+                y_std_err) = cstats.Stats_one_arr(  model_kk_x,
+                                                    model_kk_y,
+                                                    base=bin_width,
+                                                    arr_len=arr_len,
+                                                    bin_statval=bin_statval)
+            # Saving to dictionary
+            frac_diff_dict[model_kk][hod_ii] = {}
+            frac_diff_dict[model_kk][hod_ii]['x_val' ] = model_kk_x
+            frac_diff_dict[model_kk][hod_ii]['y_val' ] = model_kk_y
+            frac_diff_dict[model_kk][hod_ii]['x_stat'] = x_stat_arr
+            frac_diff_dict[model_kk][hod_ii]['y_stat'] = y_stat_arr
+            frac_diff_dict[model_kk][hod_ii]['y_err' ] = y_std_arr
     ## Abundance matched mass
     # HAM
     (   ham_pred,
@@ -841,12 +839,6 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     dyn_frac_diff = dyn_frac_diff[dyn_pred_mask]
     ##
     ## Choosing which mass to plot
-    # if (plot_opt == 'mgroup'):
-    #     ham_x = ham_pred
-    #     dyn_x = dyn_pred
-    # elif (plot_opt == 'mhalo'):
-    #     ham_x = ham_true
-    #     dyn_x = dyn_true
     ham_x = ham_pred
     dyn_x = dyn_pred
     ##
@@ -878,6 +870,11 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     # ML algorithms - names
     ml_algs_names_mod  = [xx.replace('_',' ').title() for xx in ml_algs_names]
     ml_algs_names_dict = dict(zip(ml_algs_names, ml_algs_names_mod))
+    # Number of algorithms
+    n_ml_algs = len(ml_algs_names)
+    # Number of HOD
+    hod_arr = list(models_dict[list(models_dict.keys())[0]].keys())
+    n_hod   = len(hod_arr)
     # Labels
     # X-label
     # if (plot_opt == 'mgroup'):
@@ -890,92 +887,128 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     ##
     plt.clf()
     plt.close()
-    fig = plt.figure(figsize=figsize)
-    ax1 = fig.add_subplot(111, facecolor='white')
-    ## Color
-    cm  = plt.cm.get_cmap('viridis')
-    cm_arr = [cm(kk/float(n_ml_algs)) for kk in range(n_ml_algs)]
-    ## Horizontal line
-    ax1.axhline(y=0, color='black', linestyle='--', zorder=10)
+    fig, axes = plt.subplots(nrows=1, ncols=n_ml_algs, sharey=True,
+                    sharex=True, figsize=figsize, facecolor='white',
+                    wspace)
+    if len(axes) > 1:
+        axes = axes.flatten()
+    # Color
+    cm       = plt.cm.get_cmap('viridis')
+    cm_arr   = [cm(kk/float(n_hod)) for kk in range(n_hod)]
+    propssfr = dict(boxstyle='round', facecolor='white', alpha=0.7)
     ##
-    ## Plotttin ML relations
-    for kk, model_kk in enumerate(ml_algs_names):
-        ## ML algorithm name
-        ml_alg_kk_name = model_kk.replace('_',' ').title()
-        ## Stats
-        x_stat = frac_diff_dict[model_kk]['x_stat']
-        y_stat = frac_diff_dict[model_kk]['y_stat']
-        y_err  = frac_diff_dict[model_kk]['y_err' ]
-        ## Fill-between variables
-        y1 = y_stat - y_err
-        y2 = y_stat + y_err
-
-        ## Plotting relation
-        ax1.plot(   x_stat,
+    ## Constants
+    xlim = (10, 15)
+    ylim = (-20, 20)
+    # Major and minor locators
+    xaxis_major = 1
+    xaxis_minor = 0.2
+    yaxis_major = 5
+    yaxis_minor = 1
+    xaxis_major_loc = ticker.MultipleLocator(xaxis_major)
+    xaxis_minor_loc = ticker.MultipleLocator(xaxis_minor)
+    yaxis_major_loc = ticker.MultipleLocator(yaxis_major)
+    yaxis_minor_loc = ticker.MultipleLocator(yaxis_minor)
+    # Looping over axes
+    for kk, ml_kk in enumerate(n_ml_algs):
+        # Axes being used
+        ax = axes[kk]
+        # Background
+        ax.set_facecolor('white')
+        # Model Name
+        ml_kk_name = ml_algs_names_dict[ml_kk]
+        #
+        # ML name - Text
+        ax.text(0.05, 0.80, ml_kk_name, transform=ax.transAxes,
+            verticalalignment='top', color='black',
+            bbox=propssfr, weight='bold', fontsize=plot_dict['size_text'])
+        ## Horizontal line
+        ax.axhline(y=0, color='black', linestyle='--', zorder=10)
+        # Looping over HOD models
+        for zz, hod_zz in enumerate(hod_arr):
+            # Plotting x- and y-arrays
+            x_stat = frac_diff_dict[model_kk][hod_zz]['x_stat']
+            y_stat = frac_diff_dict[model_kk][hod_zz]['y_stat']
+            y_err  = frac_diff_dict[model_kk][hod_zz]['y_err' ]
+            # Fill-between variables
+            y1 = y_stat - y_err
+            y2 = y_stat + y_err
+            #
+            # - Plotting
+            # Relation
+            ax.plot(x_stat,
                     y_stat,
-                    color=cm_arr[kk],
+                    color=cm_arr[zz],
                     linestyle='-',
                     marker='o',
                     zorder=zorder_ml)
-        ax1.fill_between(x_stat, y1, y2, color=cm_arr[kk], alpha=alpha,
-                        label=ml_alg_kk_name, zorder=zorder_ml)
-    ## HAM Masses
-    ax1.plot(   x_stat_ham,
+            # Fill-between
+            ax.fill_between(x_stat,
+                            y1, y2,
+                            color=cm_arr[zz],
+                            alpha=alpha,
+                            label=zz,
+                            zorder=zorder_ml)
+        ##
+        ## HAM and Dynamical Masses
+        # - HAM Mass
+        # Relation
+        ax.plot(x_stat_ham,
                 y_stat_ham,
                 color=plot_dict['color_ham'],
                 linestyle='-',
                 marker='o',
                 zorder=zorder_mass)
-    ax1.fill_between(   x_stat_ham,
+        # Fill-between
+        ax.fill_between(x_stat_ham,
                         y1_ham,
-                        y2_ham, 
+                        y2_ham,
                         color=plot_dict['color_ham'],
-                        alpha=alpha_mass,
+                        alpha=alpha,
                         label='HAM',
                         zorder=zorder_shade)
-    ## Dynamical Masses
-    ax1.plot(   x_stat_dyn,
-                y_stat_dyn,
+        # - Dynamical mass
+        # Relation
+        ax.plot(x_stat_dyn,
+                y_stat_ham,
                 color=plot_dict['color_dyn'],
                 linestyle='-',
                 marker='o',
                 zorder=zorder_mass)
-    ax1.fill_between(   x_stat_dyn,
+        # Fill-between
+        ax.fill_between(x_stat_dyn,
                         y1_dyn,
-                        y2_dyn, 
+                        y2_dyn,
                         color=plot_dict['color_dyn'],
-                        alpha=alpha_mass,
+                        alpha=alpha,
                         label='Dynamical',
                         zorder=zorder_shade)
-    ## Legend
-    leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
-        prop={'size':14})
-    leg.get_frame().set_facecolor('none')
-    ## Ticks
-    # Y-axis
-    xaxis_major_ticker = 1
-    xaxis_minor_ticker = 0.2
-    ax_xaxis_major_loc = ticker.MultipleLocator(xaxis_major_ticker)
-    ax_xaxis_minor_loc = ticker.MultipleLocator(xaxis_minor_ticker)
-    ax1.xaxis.set_major_locator(ax_xaxis_major_loc)
-    ax1.xaxis.set_minor_locator(ax_xaxis_minor_loc)
-    # Y-axis
-    yaxis_major_ticker = 5
-    yaxis_minor_ticker = 2
-    ax_yaxis_major_loc = ticker.MultipleLocator(yaxis_major_ticker)
-    ax_yaxis_minor_loc = ticker.MultipleLocator(yaxis_minor_ticker)
-    ax1.yaxis.set_major_locator(ax_yaxis_major_loc)
-    ax1.yaxis.set_minor_locator(ax_yaxis_minor_loc)
-    ## Labels
-    ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
-    ax1.set_ylabel(ylabel, fontsize=plot_dict['size_label'])
-    ##
-    ## Limits
-    ax1.set_ylim(-20, 25)
+        ##
+        ## Axes limits
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        # labels
+        ax.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
+        if (kk == 0):
+            ax.set_ylabel(ylabel, fontsize=plot_dict['size_label'])
+        #
+        # Major and minor locators
+        ax.xaxis.set_major_locator(xaxis_major_loc)
+        ax.xaxis.set_minor_locator(xaxis_minor_loc)
+        ax.yaxis.set_major_locator(yaxis_major_loc)
+        ax.yaxis.set_minor_locator(yaxis_minor_loc)
+        # Axis legend
+        ax.legend(loc='upper left', numpoints=1, frameon=False,
+            prop={'size': 14})
+    #
+    # Spacing
+    pt.subplots_adjust(wspace=0.05)
+    #
+    # Saving figure
     ##
     ## Saving figure
-    if fig_fmt=='pdf':
-        plt.savefig(fname, bbox_inches='tight')
+    if (fig_fmt == 'pdf'):
+        plt.savefig(fname, bbox_inches='tight', rasterize=True)
     else:
         plt.savefig(fname, bbox_inches='tight', dpi=400)
     print('{0} Figure saved as: {1}'.format(file_msg, fname))
@@ -1614,7 +1647,7 @@ def main(args):
     print('\n'+50*'='+'\n')
     ##
     ## Reading in catalogue
-    models_dict = param_dict['ml_args'].extract_catl_alg_comp_info()
+    models_dict = param_dict['ml_args'].extract_catl_hod_diff_info()
     ##
     ## Feature keys
     param_dict['feat_cols_dict'] = param_dict['ml_args'].feat_cols_names_dict()
