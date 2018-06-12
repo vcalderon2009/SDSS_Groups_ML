@@ -827,7 +827,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
                                                 mass_opt='dyn',
                                                 return_frac_diff=True,
                                                 nlim_threshold=True,
-                                                nlim_min=6)
+                                                nlim_min=5)
     # Only choosing non-zero values
     # dyn_pred_mask = dyn_pred >= 12.0
     # dyn_pred      = dyn_pred[dyn_pred_mask]
