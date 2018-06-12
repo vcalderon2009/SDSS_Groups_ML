@@ -948,13 +948,13 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
                             linestyle='-',
                             marker='o',
                             zorder=zorder_ml)
-                    # Fill-between
-                    ax.fill_between(x_stat,
-                                    y1, y2,
-                                    color=cm_arr[zz],
-                                    alpha=alpha,
-                                    label='DV: {0}'.format(dv_zz),
-                                    zorder=zorder_ml)
+                # Fill-between
+                ax.fill_between(x_stat,
+                                y1, y2,
+                                color=cm_arr[zz],
+                                alpha=alpha,
+                                label='DV: {0}'.format(dv_zz),
+                                zorder=zorder_ml)
         ##
         ## HAM and Dynamical Masses
         # - HAM Mass
