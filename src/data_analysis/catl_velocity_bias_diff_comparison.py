@@ -616,7 +616,7 @@ def add_to_dict(param_dict):
     # Instances for the different HOD models
     for kk, model_kk in enumerate(dv_n_arr):
         # Integer for the model
-        model_kk = int(model_kk)
+        model_kk = float(model_kk)
         # Copy of main `param_dict`
         param_dict_copy = copy.deepcopy(param_dict)
         # Modifying HOD model number
