@@ -804,13 +804,13 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     # HAM
     (   ham_pred,
         ham_true,
-        ham_frac_diff) = param_dict['ml_args'].extract_trad_masses(
+        ham_frac_diff) = param_dict['ml_args'].extract_trad_masses_alt(
                                                 mass_opt='ham',
                                                 return_frac_diff=True)
     # Dynamical
     (   dyn_pred,
         dyn_true,
-        dyn_frac_diff) = param_dict['ml_args'].extract_trad_masses(
+        dyn_frac_diff) = param_dict['ml_args'].extract_trad_masses_alt(
                                                 mass_opt='dyn',
                                                 return_frac_diff=True)
     # Only choosing non-zero values
@@ -1353,17 +1353,18 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
     # - HAM
     (   ham_pred,
         ham_true,
-        ham_frac_diff) = param_dict['ml_args'].extract_trad_masses(
+        ham_frac_diff) = param_dict['ml_args'].extract_trad_masses_alt(
                             mass_opt='ham', return_frac_diff=True)
     #
     # - Dynamical
     (   dyn_pred,
         dyn_true,
-        dyn_frac_diff) = param_dict['ml_args'].extract_trad_masses(
-                            mass_opt='dyn', return_frac_diff=True)
+        dyn_frac_diff) = param_dict['ml_args'].extract_trad_masses_alt(
+                            mass_opt='dyn', return_frac_diff=True,
+                            nlim_threshold=True, nlim_min=5)
     #
     # Only choosing non-zero values and those larger than `10`
-    dyn_pred_mask = dyn_pred > 10.
+    dyn_pred_mask = dyn_pred > 11.
     dyn_pred      = dyn_pred[dyn_pred_mask]
     dyn_true      = dyn_true[dyn_pred_mask]
     dyn_frac_diff = dyn_frac_diff[dyn_pred_mask]
