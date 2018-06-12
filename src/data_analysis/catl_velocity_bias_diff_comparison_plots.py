@@ -867,8 +867,8 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
     # Number of algorithms
     n_ml_algs = len(ml_algs_names)
     # Number of HOD
-    hod_arr = list(models_dict[list(models_dict.keys())[0]].keys())
-    n_hod   = len(hod_arr)
+    dv_arr = list(models_dict[list(models_dict.keys())[0]].keys())
+    n_hod   = len(dv_arr)
     # Labels
     xlabel = r'\boldmath$\log M_{predicted}\left[ h^{-1} M_{\odot}\right]$'
     # Y-label
@@ -913,7 +913,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
         ## Horizontal line
         ax.axhline(y=0, color='black', linestyle='--', zorder=10)
         # Looping over HOD models
-        for zz, dv_zz in enumerate(hod_arr):
+        for zz, dv_zz in enumerate(dv_arr):
             # Plotting x- and y-arrays
             x_stat = frac_diff_dict[ml_kk][dv_zz]['x_stat']
             y_stat = frac_diff_dict[ml_kk][dv_zz]['y_stat']
@@ -1059,7 +1059,7 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     ml_algs_names = num.sort(list(models_dict))
     # Number of HOD
     dv_arr = list(models_dict[list(models_dict.keys())[0]].keys())
-    n_dv   = len(hod_arr)
+    n_dv   = len(dv_arr)
     #
     # Initializing DataFrame
     zero_arr = num.zeros(len(ml_algs_names))
