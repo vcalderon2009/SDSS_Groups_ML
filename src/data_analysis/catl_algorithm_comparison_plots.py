@@ -1520,7 +1520,7 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
     yaxis_minor_loc = ticker.MultipleLocator(yaxis_minor)
     # Looping over axes
     for kk, ax in enumerate(axes):
-        ax.plot(one_arr, one_arr, linestyle='--', color='black')
+        ax.plot(one_arr, one_arr, linestyle='--', color='black', zorder=10)
         # Axis labels
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
