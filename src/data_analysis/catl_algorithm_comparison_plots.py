@@ -1306,7 +1306,7 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
     # Constants
     cm           = plt.cm.get_cmap('viridis')
     plot_dict    = param_dict['plot_dict']
-    alpha        = 0.4
+    alpha        = 0.2
     alpha_mass   = 0.2
     zorder_lines = 5
     zorder_points= 5
