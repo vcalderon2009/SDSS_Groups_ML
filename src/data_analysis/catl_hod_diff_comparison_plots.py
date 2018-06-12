@@ -720,8 +720,8 @@ def array_insert(arr1, arr2, axis=1):
 
 
 # Fractional difference
-def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
-    arr_len=10, bin_statval='left', fig_fmt='pdf', figsize=(10, 8),
+def frac_diff_model(models_dict, param_dict, proj_dict,
+    arr_len=10, bin_statval='left', fig_fmt='pdf', figsize=(15, 10),
     fig_number=1):
     """
     Plots the fractional difference between `predicted` and `true`
@@ -737,10 +737,6 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
 
     proj_dict: python dictionary
         Dictionary with current and new paths to project directories
-
-    plot_opt : {'mgroup', 'mhalo'} `str`, optional  
-        Option to which property to plot on the x-axis. This variable is set
-        to `mhalo` by default.
 
     arr_len : `int`, optional
         Minimum number of elements in bins. This variable is set to `0`
@@ -772,7 +768,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     cm           = plt.cm.get_cmap('viridis')
     plot_dict    = param_dict['plot_dict']
     ham_color    = 'red'
-    alpha        = 0.6
+    alpha        = 0.2
     alpha_mass   = 0.2
     zorder_mass  = 10
     zorder_shade = zorder_mass - 1
@@ -781,10 +777,9 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     ##
     ## Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
-                            'Fig_{0}_{1}_{2}_frac_diff_predicted_HOD.pdf'.format(
+                            'Fig_{0}_{1}_frac_diff_predicted_HOD.pdf'.format(
                                 fig_number,
-                                param_dict['catl_str_fig'],
-                                plot_opt))
+                                param_dict['catl_str_fig']))
     ## Algorithm names - Thought as indices for the plot
     ml_algs_names = num.sort(list(models_dict.keys()))
     n_ml_algs     = len(ml_algs_names)
@@ -876,11 +871,6 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     hod_arr = list(models_dict[list(models_dict.keys())[0]].keys())
     n_hod   = len(hod_arr)
     # Labels
-    # X-label
-    # if (plot_opt == 'mgroup'):
-    #     xlabel = r'\boldmath$\log M_{group}\left[ h^{-1} M_{\odot}\right]$'
-    # elif (plot_opt == 'mhalo'):
-    #     xlabel = r'\boldmath$\log M_{halo,\textrm{true}}\left[ h^{-1} M_{\odot}\right]$'
     xlabel = r'\boldmath$\log M_{predicted}\left[ h^{-1} M_{\odot}\right]$'
     # Y-label
     ylabel = r'Frac. Difference \boldmath$[\%]$'
@@ -888,8 +878,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     plt.clf()
     plt.close()
     fig, axes = plt.subplots(nrows=1, ncols=n_ml_algs, sharey=True,
-                    sharex=True, figsize=figsize, facecolor='white',
-                    wspace)
+                    sharex=True, figsize=figsize, facecolor='white')
     if len(axes) > 1:
         axes = axes.flatten()
     # Color
@@ -910,7 +899,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     yaxis_major_loc = ticker.MultipleLocator(yaxis_major)
     yaxis_minor_loc = ticker.MultipleLocator(yaxis_minor)
     # Looping over axes
-    for kk, ml_kk in enumerate(n_ml_algs):
+    for kk, ml_kk in enumerate(ml_algs_names):
         # Axes being used
         ax = axes[kk]
         # Background
@@ -919,7 +908,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
         ml_kk_name = ml_algs_names_dict[ml_kk]
         #
         # ML name - Text
-        ax.text(0.05, 0.80, ml_kk_name, transform=ax.transAxes,
+        ax.text(0.60, 0.10, ml_kk_name, transform=ax.transAxes,
             verticalalignment='top', color='black',
             bbox=propssfr, weight='bold', fontsize=plot_dict['size_text'])
         ## Horizontal line
@@ -927,9 +916,9 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
         # Looping over HOD models
         for zz, hod_zz in enumerate(hod_arr):
             # Plotting x- and y-arrays
-            x_stat = frac_diff_dict[model_kk][hod_zz]['x_stat']
-            y_stat = frac_diff_dict[model_kk][hod_zz]['y_stat']
-            y_err  = frac_diff_dict[model_kk][hod_zz]['y_err' ]
+            x_stat = frac_diff_dict[ml_kk][hod_zz]['x_stat']
+            y_stat = frac_diff_dict[ml_kk][hod_zz]['y_stat']
+            y_err  = frac_diff_dict[ml_kk][hod_zz]['y_err' ]
             # Fill-between variables
             y1 = y_stat - y_err
             y2 = y_stat + y_err
@@ -947,7 +936,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
                             y1, y2,
                             color=cm_arr[zz],
                             alpha=alpha,
-                            label=zz,
+                            label='Model {0}'.format(hod_zz),
                             zorder=zorder_ml)
         ##
         ## HAM and Dynamical Masses
@@ -958,7 +947,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
                 color=plot_dict['color_ham'],
                 linestyle='-',
                 marker='o',
-                zorder=zorder_mass)
+                zorder=zorder_ml)
         # Fill-between
         ax.fill_between(x_stat_ham,
                         y1_ham,
@@ -966,15 +955,15 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
                         color=plot_dict['color_ham'],
                         alpha=alpha,
                         label='HAM',
-                        zorder=zorder_shade)
+                        zorder=zorder_ml)
         # - Dynamical mass
         # Relation
         ax.plot(x_stat_dyn,
-                y_stat_ham,
+                y_stat_dyn,
                 color=plot_dict['color_dyn'],
                 linestyle='-',
                 marker='o',
-                zorder=zorder_mass)
+                zorder=zorder_ml)
         # Fill-between
         ax.fill_between(x_stat_dyn,
                         y1_dyn,
@@ -982,7 +971,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
                         color=plot_dict['color_dyn'],
                         alpha=alpha,
                         label='Dynamical',
-                        zorder=zorder_shade)
+                        zorder=zorder_ml)
         ##
         ## Axes limits
         ax.set_xlim(xlim)
@@ -998,11 +987,11 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
         ax.yaxis.set_major_locator(yaxis_major_loc)
         ax.yaxis.set_minor_locator(yaxis_minor_loc)
         # Axis legend
-        ax.legend(loc='upper left', numpoints=1, frameon=False,
+        ax.legend(loc='upper left', ncol=2, numpoints=1, frameon=False,
             prop={'size': 14})
     #
     # Spacing
-    pt.subplots_adjust(wspace=0.05)
+    plt.subplots_adjust(wspace=0.05)
     #
     # Saving figure
     ##
@@ -1015,172 +1004,9 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     plt.clf()
     plt.close()
 
-# Ranking of each galaxy property for each different algorithm
-def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
-    fig_fmt='pdf', figsize=(15, 12), fig_number=2, stacked_opt=True,
-    rank_opt='idx'):
-    """
-    Plots the `ranking` of each galaxy proeperty based on the different ML
-    algorithms used.
-
-    Parameters
-    ------------
-    models_dict : `dict`
-        Dictionary containing the results from the ML analysis.
-
-    param_dict : `dict`
-        Dictionary with input parameters and values related to this project.
-
-    proj_dict: python dictionary
-        Dictionary with current and new paths to project directories
-
-    fig_fmt : `str`, optional (default = 'pdf')
-        extension used to save the figure
-
-    figsize : `tuple`, optional
-        Size of the output figure. This variable is set to `(12,15.5)` by
-        default.
-
-    fig_number : `int`, optional
-        Number of figure in the workflow. This variable is set to `1`
-        by default.
-
-    stacked_opt : `bool`, optional
-        If True, it stacks the bar plots. This variable is set to `True`
-        by default.
-
-    rank_opt : {'idx', 'perc'} `str`, optional
-        Option for which type of `ranking` to show.
-
-        Options:
-            - 'idx' : Shows the ranking indices for each feature.
-            - ' perc' : Shows the ranking percentage for each feature.
-    """
-    file_msg = param_dict['Prog_msg']
-    # Figure name
-    ##
-    ## Figure name
-    fname = os.path.join(   proj_dict['figure_dir'],
-                            'Fig_{0}_{1}_feature_ranking_{2}.{3}'.format(
-                                fig_number,
-                                param_dict['catl_str_fig'],
-                                rank_opt,
-                                fig_fmt))
-    #
-    # Constants
-    feat_cols_dict = param_dict['ml_args'].feat_cols_names_dict()
-    plot_dict      = param_dict['plot_dict']
-    # List of algorithms used
-    skem_key_arr = num.sort(list(models_dict.keys()))
-    # Removing `neural network` from list if needed
-    if ('neural_network' in skem_key_arr):
-        skem_key_arr = num.array([i for i in skem_key_arr if i != 'neural_network'])
-    # Number of ML algorithms
-    n_ml_algs = len(skem_key_arr)
-    # Features used
-    feat_arr = num.array(param_dict['ml_args']._feature_cols())
-    # Numbre of features
-    n_feat = len(feat_arr)
-    # Initializing array
-    feat_rank_arr = num.zeros((n_feat, n_ml_algs))
-    ## Choosing which type of `ranking` to show
-    if (rank_opt == 'perc'):
-        rank_col  = 1
-        rank_type = float
-    elif (rank_opt == 'idx'):
-        rank_col  = 2
-        rank_type = int
-    # Looping over ML algorithms
-    for kk, skem_key in tqdm(enumerate(skem_key_arr)):
-        # Reading in Data
-        feat_imp_sort = models_dict[skem_key]['feat_imp_sort']
-        # Converting to DataFrame
-        feat_imp_sort_pd = pd.DataFrame(feat_imp_sort[:, rank_col].astype(rank_type),
-                                index=feat_imp_sort[:, 0],
-                                columns=[skem_key])
-        if (kk == 0):
-            feat_rank_pd = feat_imp_sort_pd
-        else:
-            feat_rank_pd = pd.merge(feat_rank_pd,
-                                    feat_imp_sort_pd,
-                                    left_index=True,
-                                    right_index=True)
-    #
-    # Calculating total ranking
-    feat_rank_pd.loc[:,'rank_sum'] = feat_rank_pd.sum(axis=1)
-    ##
-    ## Ordering by rank
-    feat_rank_pd.sort_values('rank_sum', ascending=True, inplace=True)
-    ##
-    ## Renaming columns
-    feat_rank_pd.rename(index=feat_cols_dict, inplace=True)
-    ##
-    ## Excluding `rank_sum` column
-    feat_rank_col_exclude = feat_rank_pd.columns.difference(['rank_sum'])
-    feat_rank_pd_mod      = feat_rank_pd.loc[:,feat_rank_col_exclude].copy()
-    ## Renaming columns
-    feat_rank_pd_mod_cols     = feat_rank_pd_mod.columns.values
-    feat_rank_pd_mod_cols_mod = [xx.replace('_',' ').replace('_rank','').title() for xx in 
-                                feat_rank_pd_mod_cols]
-    feat_rank_pd_mod.rename(columns=dict(zip(   feat_rank_pd_mod_cols,
-                                                feat_rank_pd_mod_cols_mod)),
-                            inplace=True)
-    ##
-    ## Plotting details
-    plt.clf()
-    plt.close()
-    fig = plt.figure(figsize=figsize)
-    ax1 = fig.add_subplot(111, facecolor='white')
-    # Axis labels
-    if (rank_opt == 'idx'):
-        xlabel = r'$\leftarrow \textrm{Importance ranking}$'
-    elif (rank_opt == 'perc'):
-        xlabel = r'$\rightarrow \textrm{Importance ranking}$'
-    ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
-    # Plotting
-    # Width
-    if stacked_opt:
-        b = feat_rank_pd_mod.plot(  kind='barh',
-                                stacked=stacked_opt,
-                                ax=ax1,
-                                legend=True)
-    else:
-        b = feat_rank_pd_mod.plot(  kind='barh',
-                                stacked=stacked_opt,
-                                ax=ax1,
-                                legend=True,
-                                width=0.5)
-    b.tick_params(labelsize=25)
-    ## Legend
-    leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
-        prop={'size':20})
-    # leg.get_frame().set_facecolor('none')
-    ## Ticks
-    if (rank_opt == 'idx'):
-        major_loc_val = 10
-        minor_loc_val = 5
-    elif (rank_opt == 'perc'):
-        major_loc_val = 0.2
-        minor_loc_val = 0.1
-    ax_data_major_loc  = ticker.MultipleLocator(major_loc_val)
-    ax_data_minor_loc  = ticker.MultipleLocator(minor_loc_val)
-    ax1.xaxis.set_major_locator(ax_data_major_loc)
-    ax1.xaxis.set_minor_locator(ax_data_minor_loc)
-    # Inverting axis
-    ax1.invert_yaxis()
-    ##
-    ## Saving figure
-    if fig_fmt=='pdf':
-        plt.savefig(fname, bbox_inches='tight')
-    else:
-        plt.savefig(fname, bbox_inches='tight', dpi=400)
-    print('{0} Figure saved as: {1}'.format(file_msg, fname))
-    plt.clf()
-    plt.close()
-
 # Model Score - Different algorithms - Bar Chart
 def model_score_chart_1d(models_dict, param_dict, proj_dict,
-    fig_fmt='pdf', figsize=(10,8), fig_number=3, score_type='perc'):
+    fig_fmt='pdf', figsize=(10,8), fig_number=2, score_type='perc'):
     """
     Plots the overall `score` for each algorithm, and compares them to
     the more traditional group mass estimation techniques, i.e. HAM and 
@@ -1224,7 +1050,7 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     #
     # Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
-                            'Fig_{0}_{1}_ml_algorithms_scores_{2}.{3}'.format(
+                            'Fig_{0}_{1}_ml_algorithms_scores_{2}_HOD.{3}'.format(
                                 fig_number,
                                 param_dict['catl_str_fig'],
                                 score_type,
@@ -1241,13 +1067,18 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     #
     # Reading in data
     for kk, ml_kk in enumerate(ml_algs_names):
-        # Reading data
-        # Model dictionary
-        ml_model_kk_dict = models_dict[ml_kk]
-        # Score
-        model_score = ml_model_kk_dict['score_{0}'.format(score_type)]
-        # Assigning to DataFrame
-        ml_algs_pd.loc[kk, 'ML'] = model_score
+        # Looping over different HOD models
+        for zz, hod_zz in enumerate(hod_arr):
+            # Reading data
+            # Model dictionary
+            ml_model_kk_dict = models_dict[ml_kk][hod_zz]
+            # Score
+            model_score = ml_model_kk_dict['score_{0}'.format(score_type)]
+            # Assigning to DataFrame
+            ml_algs_pd.loc[kk, 'HOD {0}'.format(hod_zz)] = model_score
+    #
+    # Delete 'ML' column
+    ml_algs_pd.drop(columns=['ML'], inplace=True)
     #
     # -- Traditonal mehods
     # HAM
@@ -1313,296 +1144,6 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     plt.clf()
     plt.close()
 
-# HAM, Dynamical, and ML masses vs `True` halo mass
-def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
-    arr_len=10, bin_statval='left', fig_fmt='png', figsize=(25,5),
-    fig_number=4):
-    """
-    Plots the `predicted` vs the `true` mass for each of the different
-    algorithms.
-
-    Parameters
-    -------------
-    models_dict : `dict`
-        Dictionary containing the results from the ML analysis.
-
-    param_dict : `dict`
-        Dictionary with input parameters and values related to this project.
-
-    proj_dict: python dictionary
-        Dictionary with current and new paths to project directories
-    
-    arr_len : `int`, optional
-        Minimum number of elements in bins. This variable is set to `0`
-        by default.
-
-    bin_statval : `str`, optional
-        Option for where to plot the bin values. This variable is set
-        to `average` by default.
-
-        Options:
-        - 'average': Returns the x-points at the average x-value of the bin
-        - 'left'   : Returns the x-points at the left-edge of the x-axis bin
-        - 'right'  : Returns the x-points at the right-edge of the x-axis bin
-
-    fig_fmt : `str`, optional (default = 'pdf')
-        extension used to save the figure
-
-    figsize : `tuple`, optional
-        Size of the output figure. This variable is set to `(12,15.5)` by
-        default.
-
-    fig_number : `int`, optional
-        Number of figure in the workflow. This variable is set to `1`
-        by default.
-    """
-    file_msg     = param_dict['Prog_msg']
-    # Constants
-    cm           = plt.cm.get_cmap('viridis')
-    plot_dict    = param_dict['plot_dict']
-    alpha        = 0.4
-    alpha_mass   = 0.2
-    zorder_lines = 5
-    zorder_mass  = 10
-    markersize   = 1
-    zorder_shade = zorder_mass - 1
-    zorder_ml    = zorder_mass + 1
-    bin_width    = param_dict['ml_args'].mass_bin_width
-    #
-    # Figure name
-    fname = os.path.join(proj_dict['figure_dir'],
-                'Fig_{0}_{1}_pred_true_masses.{2}'.format(
-                    fig_number, param_dict['catl_str_fig'], fig_fmt))
-    #
-    # Algorithm names - thought as indices for the plot
-    ml_algs_names = num.sort(list(models_dict.keys()))
-    n_ml_algs     = len(ml_algs_names)
-    # Initializing dictionary that will hold the necessary information
-    # of each model
-    pred_true_dict = {}
-    # Looping over different models
-    for zz, model_zz in tqdm(enumerate(ml_algs_names)):
-        # ML dictionary
-        model_zz_dict = models_dict[model_zz]
-        # Coordinates for the x- and y-axes.
-        model_zz_x = model_zz_dict['mhalo_pred']
-        model_zz_y = model_zz_dict['mhalo_true']
-        # Calculating statistics
-        x_arr, y_arr, y_std_arr, y_std_err = cstats.Stats_one_arr(
-                                                model_zz_x,
-                                                model_zz_y,
-                                                base=bin_width,
-                                                arr_len=arr_len,
-                                                bin_statval=bin_statval)
-        # Saving to dictionary
-        pred_true_dict[model_zz] = {}
-        pred_true_dict[model_zz]['x_stat'] = x_arr
-        pred_true_dict[model_zz]['y_stat'] = y_arr
-        pred_true_dict[model_zz]['y_err' ] = y_std_arr
-        pred_true_dict[model_zz]['pred'  ] = model_zz_x
-        pred_true_dict[model_zz]['true'  ] = model_zz_y
-    ##
-    ## Obtaining HAM and Dynamical masses
-    #
-    # - HAM
-    (   ham_pred,
-        ham_true,
-        ham_frac_diff) = param_dict['ml_args'].extract_trad_masses(
-                            mass_opt='ham', return_frac_diff=True)
-    #
-    # - Dynamical
-    (   dyn_pred,
-        dyn_true,
-        dyn_frac_diff) = param_dict['ml_args'].extract_trad_masses(
-                            mass_opt='dyn', return_frac_diff=True)
-    #
-    # Only choosing non-zero values and those larger than `10`
-    dyn_pred_mask = dyn_pred > 10.
-    dyn_pred      = dyn_pred[dyn_pred_mask]
-    dyn_true      = dyn_true[dyn_pred_mask]
-    dyn_frac_diff = dyn_frac_diff[dyn_pred_mask]
-    #
-    # Binning data for the different masses
-    # - HAM mass
-    (   x_stat_ham,
-        y_stat_ham,
-        y_std_ham ,
-        y_std_err_ham) = cstats.Stats_one_arr(  ham_pred,
-                                                ham_true,
-                                                base=bin_width,
-                                                arr_len=arr_len,
-                                                bin_statval=bin_statval)
-    # - Dynamical mass
-    (   x_stat_dyn,
-        y_stat_dyn,
-        y_std_dyn,
-        y_std_err_dyn) = cstats.Stats_one_arr(  dyn_pred,
-                                                dyn_true,
-                                                base=bin_width,
-                                                arr_len=arr_len,
-                                                bin_statval=bin_statval)
-    ##
-    ## Lower- and upper-limits for errors
-    # - HAM
-    y1_ham = y_stat_ham - y_std_ham
-    y2_ham = y_stat_ham + y_std_ham
-    # - Dynamical
-    y1_dyn = y_stat_dyn - y_std_dyn
-    y2_dyn = y_stat_dyn + y_std_dyn
-    #
-    # One-one line
-    one_arr = num.linspace(0, 15, num=100)
-    #
-    # -- Figure details
-    # ML algorithms - Names
-    ml_algs_names_dict = {x: x.replace('_',' ').title() for x in ml_algs_names}
-    # Axes labels
-    # X-axis
-    xlabel = r'\boldmath$\log M_{predicted}\left[h^{-1} M_{\odot}\right]$'
-    # Y-axis
-    ylabel = r'\boldmath$\log M_{\textrm{halo}}\left[h^{-1} M_{\odot}\right]$'
-    # Initializing color schemes
-    cm     = plt.cm.get_cmap('viridis')
-    cm_arr = [cm(kk/float(n_ml_algs)) for kk in range(n_ml_algs)]
-    # Initializing figure
-    plt.clf()
-    plt.close()
-    fig, axes = plt.subplots(nrows=1, ncols=2 + n_ml_algs, sharex=True,
-                    sharey=True, figsize=figsize)
-    # Flattening out the axes
-    axes = axes.flatten()
-    # Looping over ML algorithms
-    for kk, ml_kk in enumerate(ml_algs_names):
-        # Axes being used
-        ax = axes[kk]
-        # Background
-        ax.set_facecolor('white')
-        # Model name
-        ml_kk_name = ml_algs_names_dict[ml_kk]
-        # Plotting x- and y-arrays
-        x_stat = pred_true_dict[ml_kk]['x_stat']
-        y_stat = pred_true_dict[ml_kk]['y_stat']
-        y_err  = pred_true_dict[ml_kk]['y_err' ]
-        pred   = pred_true_dict[ml_kk]['pred'  ]
-        true   = pred_true_dict[ml_kk]['true'  ]
-        # Fill-between variables
-        y1 = y_stat - y_err
-        y2 = y_stat + y_err
-        #
-        # - Plotting
-        # Points
-        ax.scatter( pred,
-                    true,
-                    c=cm_arr[kk],
-                    marker='o',
-                    s=1,
-                    alpha=alpha,
-                    zorder=zorder_shade,
-                    rasterized=True)
-        # Relation
-        ax.plot(x_stat,
-                y_stat,
-                color=cm_arr[kk],
-                linestyle='-',
-                marker='o',
-                markersize=markersize,
-                zorder=zorder_ml)
-        # Fill-between
-        ax.fill_between(x_stat,
-                        y1, y2,
-                        color=cm_arr[kk],
-                        alpha=alpha,
-                        label=ml_kk_name,
-                        zorder=zorder_ml)
-        ax.legend(loc='upper left', numpoints=1, frameon=False,
-            prop={'size': 14})
-    # HAM and Dynamical masses
-    # -- HAM Mass
-    # Points
-    # Relation
-    ax_ham = axes[n_ml_algs]
-    ax_ham.set_facecolor('white')
-    ax_ham.plot(x_stat_ham,
-                y_stat_ham,
-                color=plot_dict['color_ham'],
-                linestyle='-',
-                marker='o',
-                zorder=zorder_mass)
-    # Fill-between
-    ax_ham.fill_between(x_stat_ham,
-                        y1_ham,
-                        y2_ham,
-                        color=plot_dict['color_ham'],
-                        alpha=alpha,
-                        label='HAM',
-                        zorder=zorder_shade)
-    # -- DYNAMICAL Mass
-    # Points
-    # Relation
-    ax_dyn = axes[n_ml_algs + 1]
-    ax_dyn.set_facecolor('white')
-    ax_dyn.plot(x_stat_dyn,
-                y_stat_dyn,
-                color=plot_dict['color_dyn'],
-                linestyle='-',
-                marker='o',
-                zorder=zorder_mass)
-    # Fill-between
-    ax_dyn.fill_between(x_stat_dyn,
-                        y1_dyn,
-                        y2_dyn,
-                        color=plot_dict['color_dyn'],
-                        alpha=alpha,
-                        label='Dynamical',
-                        zorder=zorder_shade)
-    # --- One-One Array and other settings
-    # Constants
-    # Setting limits
-    xlim = (10, 15)
-    ylim = (10, 15)
-    # Mayor and minor locators
-    xaxis_major = 1
-    xaxis_minor = 0.2
-    yaxis_major = 1
-    yaxis_minor = 0.2
-    xaxis_major_loc = ticker.MultipleLocator(xaxis_major)
-    xaxis_minor_loc = ticker.MultipleLocator(xaxis_minor)
-    yaxis_major_loc = ticker.MultipleLocator(yaxis_major)
-    yaxis_minor_loc = ticker.MultipleLocator(yaxis_minor)
-    # Looping over axes
-    for kk, ax in enumerate(axes):
-        ax.plot(one_arr, one_arr, linestyle='--', color='black')
-        # Axis labels
-        ax.set_xlim(xlim)
-        ax.set_ylim(ylim)
-        # Labels
-        ax.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
-        if (kk == 0):
-            ax.set_ylabel(ylabel, fontsize=plot_dict['size_label'])
-        # Mayor and minor locators
-        ax.xaxis.set_major_locator(xaxis_major_loc)
-        ax.xaxis.set_minor_locator(xaxis_minor_loc)
-        ax.yaxis.set_major_locator(yaxis_major_loc)
-        ax.yaxis.set_minor_locator(yaxis_minor_loc)
-        # Legend
-        ax.legend(loc='upper left', numpoints=1, frameon=False,
-            prop={'size': 14})
-    # Spacing
-    plt.subplots_adjust(wspace=0.05)
-    #
-    # Saving figure
-    ##
-    ## Saving figure
-    if (fig_fmt == 'pdf'):
-        plt.savefig(fname, bbox_inches='tight', rasterize=True)
-    else:
-        plt.savefig(fname, bbox_inches='tight', dpi=400)
-    print('{0} Figure saved as: {1}'.format(file_msg, fname))
-    plt.clf()
-    plt.close()
-
-
-
 
 
 
@@ -1653,20 +1194,10 @@ def main(args):
     param_dict['feat_cols_dict'] = param_dict['ml_args'].feat_cols_names_dict()
     ##
     ## Fractional difference of `predicted` and `truth`
-    frac_diff_model(models_dict, param_dict, proj_dict,
-            plot_opt=param_dict['plot_opt'])
+    frac_diff_model(models_dict, param_dict, proj_dict)
     #
-    # # Feature ranking
-    # feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
-    #     rank_opt='perc')
-    # feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
-    #     rank_opt='idx')
-    # #
-    # # Model Score - Different algorithms - Bar Chart
-    # model_score_chart_1d(models_dict, param_dict, proj_dict)
-    # #
-    # # HAM, Dynamical, and ML masses vs `True` halo mass
-    # pred_masses_halo_mass(models_dict, param_dict, proj_dict)
+    # Model Score - Different algorithms - Bar Chart
+    model_score_chart_1d(models_dict, param_dict, proj_dict)
     ##
     ## End time for running the catalogues
     end_time = datetime.now()
