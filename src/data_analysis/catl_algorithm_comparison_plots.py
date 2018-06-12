@@ -1309,10 +1309,13 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
     alpha        = 0.4
     alpha_mass   = 0.2
     zorder_lines = 5
-    zorder_mass  = 10
+    zorder_points= 10
+    zorder_shade = zorder_points + 1
+    zorder_line  = zorder_points + 2
+    # zorder_mass  = 10
     markersize   = 1
-    zorder_shade = zorder_mass - 1
-    zorder_ml    = zorder_mass + 1
+    # zorder_shade = zorder_mass - 1
+    # zorder_ml    = zorder_mass + 1
     bin_width    = param_dict['ml_args'].mass_bin_width
     #
     # Figure name
@@ -1444,7 +1447,7 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
                     marker='o',
                     s=1,
                     alpha=alpha,
-                    zorder=zorder_shade,
+                    zorder=zorder_points,
                     rasterized=True)
         # Relation
         ax.plot(x_stat,
@@ -1453,14 +1456,14 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
                 linestyle='-',
                 marker='o',
                 markersize=markersize,
-                zorder=zorder_ml)
+                zorder=zorder_line)
         # Fill-between
         ax.fill_between(x_stat,
                         y1, y2,
                         color=cm_arr[kk],
                         alpha=alpha,
                         label=ml_kk_name,
-                        zorder=zorder_ml)
+                        zorder=zorder_shade)
         ax.legend(loc='upper left', numpoints=1, frameon=False,
             prop={'size': 14})
     # HAM and Dynamical masses
@@ -1474,7 +1477,7 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
                 color=plot_dict['color_ham'],
                 linestyle='-',
                 marker='o',
-                zorder=zorder_mass)
+                zorder=zorder_line)
     # Fill-between
     ax_ham.fill_between(x_stat_ham,
                         y1_ham,
@@ -1482,7 +1485,7 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
                         color=plot_dict['color_ham'],
                         alpha=alpha,
                         label='HAM',
-                        zorder=zorder_shade)
+                        zorder=zorder_points)
     # -- DYNAMICAL Mass
     # Points
     # Relation
@@ -1493,7 +1496,7 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
                 color=plot_dict['color_dyn'],
                 linestyle='-',
                 marker='o',
-                zorder=zorder_mass)
+                zorder=zorder_line)
     # Fill-between
     ax_dyn.fill_between(x_stat_dyn,
                         y1_dyn,
