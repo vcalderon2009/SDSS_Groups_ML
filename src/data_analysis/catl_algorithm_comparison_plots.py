@@ -1309,9 +1309,9 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
     alpha        = 0.4
     alpha_mass   = 0.2
     zorder_lines = 5
-    zorder_points= 10
-    zorder_shade = zorder_points + 1
-    zorder_line  = zorder_points + 2
+    zorder_points= 5
+    zorder_shade = zorder_points + 10
+    zorder_line  = zorder_points + 20
     # zorder_mass  = 10
     markersize   = 1
     # zorder_shade = zorder_mass - 1
