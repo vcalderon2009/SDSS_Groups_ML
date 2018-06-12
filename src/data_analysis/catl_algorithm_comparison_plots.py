@@ -1446,8 +1446,15 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
                     marker='o',
                     s=1,
                     alpha=alpha,
-                    zorder=zorder_points,
+                    zorder=3,
                     rasterized=True)
+        # Fill-between
+        ax.fill_between(x_stat,
+                        y1, y2,
+                        color=cm_arr[kk],
+                        alpha=alpha,
+                        label=ml_kk_name,
+                        zorder=4)
         # Relation
         ax.plot(x_stat,
                 y_stat,
@@ -1455,14 +1462,7 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
                 linestyle='-',
                 marker='o',
                 markersize=markersize,
-                zorder=zorder_line)
-        # Fill-between
-        ax.fill_between(x_stat,
-                        y1, y2,
-                        color=cm_arr[kk],
-                        alpha=alpha,
-                        label=ml_kk_name,
-                        zorder=zorder_shade)
+                zorder=5)
         ax.legend(loc='upper left', numpoints=1, frameon=False,
             prop={'size': 14})
     # HAM and Dynamical masses
