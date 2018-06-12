@@ -1050,14 +1050,17 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     #
     # Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
-                            'Fig_{0}_{1}_ml_algorithms_scores_{2}_HOD.{3}'.format(
-                                fig_number,
-                                param_dict['catl_str_fig'],
-                                score_type,
-                                fig_fmt))
+                        'Fig_{0}_{1}_ml_algorithms_scores_{2}_HOD.{3}'.format(
+                            fig_number,
+                            param_dict['catl_str_fig'],
+                            score_type,
+                            fig_fmt))
     #
     # Algorithms names - Thought as indices for this plot
     ml_algs_names = num.sort(list(models_dict))
+    # Number of HOD
+    hod_arr = list(models_dict[list(models_dict.keys())[0]].keys())
+    n_hod   = len(hod_arr)
     #
     # Initializing DataFrame
     zero_arr = num.zeros(len(ml_algs_names))
