@@ -156,7 +156,7 @@ def get_parser():
                         `training` of the ML algorithm.
                         """,
                         type=str,
-                        default='1_2_3_4_5_6_7_8')
+                        default='0_1_2_3_4_5_6_7_8')
     ## Type of dark matter halo to use in the simulation
     parser.add_argument('-halotype',
                         dest='halotype',

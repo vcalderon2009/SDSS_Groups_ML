@@ -883,7 +883,7 @@ def get_analysis_hod_diff_params(param_dict):
     ## --------------------------------------------------------------------- ##
     catl_params_main_arr = num.array([
                             ('hod_n'         , '-hod_model_n'   , 0          ),
-                            ('hod_models_n'  , '-hod_models_n'  , '1_2_3_4_5_6_7_8'),
+                            ('hod_models_n'  , '-hod_models_n'  , '0_1_2_3_4_5_6_7_8'),
                             ('halotype'      , '-halotype'      , 'so'       ),
                             ('clf_method'    , '-clf_method'    , 1          ),
                             ('dv'            , '-dv'            , 1.0        ),
@@ -1044,7 +1044,7 @@ def get_analysis_hod_diff_params(param_dict):
     ## --------------------------------------------------------------------- ##
     catl_params_main_plot_arr = num.array([
                             ('hod_n'         , '-hod_model_n'   , 0          ),
-                            ('hod_models_n'  , '-hod_models_n'  , '1_2_3_4_5_6_7_8'),
+                            ('hod_models_n'  , '-hod_models_n'  , '0_1_2_3_4_5_6_7_8'),
                             ('halotype'      , '-halotype'      , 'so'       ),
                             ('clf_method'    , '-clf_method'    , 1          ),
                             ('dv'            , '-dv'            , 1.0        ),
@@ -1235,7 +1235,7 @@ def get_analysis_dv_diff_params(param_dict):
     ## --------------------------------------------------------------------- ##
     catl_params_main_arr = num.array([
                             ('hod_n'         , '-hod_model_n'   , 0          ),
-                            ('dv_models_n'  , '-dv_models_n'  , '0.9_0.925_0.95_0.975_1.025_1.05_1.10'),
+                            ('dv_models_n'  , '-dv_models_n'  , '0.9_0.925_0.95_0.975_1.0_1.025_1.05_1.10'),
                             ('halotype'      , '-halotype'      , 'so'       ),
                             ('clf_method'    , '-clf_method'    , 1          ),
                             ('dv'            , '-dv'            , 1.0        ),
@@ -1396,7 +1396,7 @@ def get_analysis_dv_diff_params(param_dict):
     ## --------------------------------------------------------------------- ##
     catl_params_main_plot_arr = num.array([
                             ('hod_n'         , '-hod_model_n'   , 0          ),
-                            ('dv_models_n'   , '-dv_models_n'   , '0.9_0.925_0.95_0.975_1.025_1.05_1.10'),
+                            ('dv_models_n'   , '-dv_models_n'   , '0.9_0.925_0.95_0.975_1.0_1.025_1.05_1.10'),
                             ('halotype'      , '-halotype'      , 'so'       ),
                             ('clf_method'    , '-clf_method'    , 1          ),
                             ('dv'            , '-dv'            , 1.0        ),

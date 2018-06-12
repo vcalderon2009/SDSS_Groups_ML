@@ -194,7 +194,7 @@ def get_parser():
                         will be used for the `testing` of the ML algorithm.
                         """,
                         type=str,
-                        default='0.9_0.925_0.95_0.975_1.025_1.05_1.10')
+                        default='0.9_0.925_0.95_0.975_1.0_1.025_1.05_1.10')
     ## Luminosity sample to analyze
     parser.add_argument('-sample',
                         dest='sample',
