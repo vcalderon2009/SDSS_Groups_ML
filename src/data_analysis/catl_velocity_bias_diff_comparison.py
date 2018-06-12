@@ -1214,7 +1214,7 @@ def ml_models_training(models_dict, param_dict, proj_dict):
         models_dict[skem_ii] = {}
         # Looping over different HOD models
         for hod_kk in list(train_test_dict['test'].keys()):
-            print('{0} Running HOD = `{1}`'.format(file_msg, hod_kk))
+            print('{0} Running DV = `{1}`'.format(file_msg, hod_kk))
             # Running analysis
             models_dict[skem_ii][hod_kk] = ml_analysis(
                                             skem_ii,
