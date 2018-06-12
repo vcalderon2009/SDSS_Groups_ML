@@ -667,7 +667,8 @@ class ReadML(object):
         return features_cols
 
     def extract_trad_masses_alt(self, mass_opt='ham', score_method='perc',
-        threshold=None, perc=None, return_score=False, return_frac_diff=False):
+        threshold=None, perc=None, return_score=False, return_frac_diff=False,
+        nlim_min=5, nlim_threshold=False):
         """
         Extracts the `training` and `testing` datasets for the
         traditional methods of estimating masses.
@@ -705,6 +706,14 @@ class ReadML(object):
             differences between the `predicted` array and the `true`
             array. This variable is set to `False` by default.
 
+        nlim_min : `int`, optional
+            Minimum number of elements in a group, to show as part of the
+            catalogue. This variable is set to `5` by default.
+
+        nlim_threshold: `bool`, optional
+            If `True`, only groups with number of members larger than
+            `nlim_min` are included as part of the catalogue.
+
         Returns
         ---------
         pred_mass_arr : `numpy.ndarray`
@@ -732,6 +741,10 @@ class ReadML(object):
         #
         # Loading datafile
         catl_pd_tot = self.extract_merged_catl_info(opt='combined')
+        ##
+        ## Only selecting groups with `nlim_min` galaxies or larger
+        if nlim_threshold:
+            catl_pd_tot = catl_pd_tot.loc[(catl_pd_tot['GG_ngals'] >= nlim_min)]
         ##
         ## Temporarily fixing `GG_mdyn_rproj`
         catl_pd_tot.loc[:, 'GG_mdyn_rproj'] /= 0.96
