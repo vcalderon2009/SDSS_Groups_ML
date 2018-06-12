@@ -69,6 +69,8 @@ RESAMPLE_OPT = 'under'
 ## -- Comparing HODs
 HOD_MODELS_N = '0_1_2_3_4_5_6_7_8'
 INCLUDE_NN   = 'False'
+DV_MODELS_N  = '0.9_0.925_0.95_0.975_1.025_1.05_1.10'
+INCLUDE_NN   = "False"
 
 
 # Checking for Anaconda
@@ -216,7 +218,9 @@ ml_analysis:
 	-sample_method $(SAMPLE_METHOD) -bin_val $(BIN_VAL) \
 	-ml_analysis $(ML_ANALYSIS) -plot_opt $(PLOT_OPT) -rank_opt $(RANK_OPT) \
 	-resample_opt $(RESAMPLE_OPT) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) \
-	-v $(VERBOSE) -perf $(PERF_OPT) -seed $(SEED)
+	-v $(VERBOSE) -perf $(PERF_OPT) -seed $(SEED) \
+	-hod_models_n $(HOD_MODELS_N) -dv_models_n $(DV_MODELS_N) \
+	-include_nn $(INCLUDE_NN)
 
 ## Plots the figures of the set of `merged` catalogues - New and Improved
 catl_main_props:

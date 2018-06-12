@@ -244,6 +244,7 @@ class ReadML(object):
         self.resample_opt   = kwargs.get('resample_opt', 'under')
         self.hod_models_n   = kwargs.get('hod_models_n', '0_1_2_3_4_5_6_7_8')
         self.include_nn     = kwargs.get('include_nn', False)
+        self.dv_models_n   = kwargs.get('dv_models_n', '0.9_0.925_0.95_0.975_1.025_1.05_1.10')
         #
         # Extra variables
         self.sample_Mr      = 'Mr{0}'.format(self.sample)
@@ -1352,16 +1353,167 @@ class ReadML(object):
         else:
             return models_dict
 
+    def catl_hod_diff_fig_str(self):
+        """
+        Prefix string for the figure of `algorithm comparison` ML stage.
 
+        Returns
+        ---------
+        catl_alg_comp_fig_str : `str`
+            Prefix string for the figure of `algorithm comparison`.
+        """
+        # ML Training prefix
+        catl_train_prefix_str = self._catl_train_prefix_str()
+        # Adding to main string
+        catl_train_prefix_str += '_hod_diff'
 
+        return catl_train_prefix_str
 
+    def catl_train_dv_diff_dir(self, check_exist=True,
+        create_dir=False):
+        """
+        Directory for the `HOD comparison` section of the ML analysis.
 
+        Parameters
+        -----------
+        check_exist : `bool`, optional
+            If `True`, it checks for whether or not the file exists.
+            This variable is set to `True` by default.
 
+        create_dir : `bool`, optional
+            If `True`, it creates the directory if it does not exist.
 
-#
+        Returns
+        --------
+        catl_train_hod_diff_dir : `str`
+            Output directory for the `HOD comparison` ML analysis.
+        """
+        # Check input parameters
+        # `check_exist`
+        if not (isinstance(check_exist, bool)):
+            msg = '`check_exist` ({0}) must be of `boolean` type!'.format(
+                type(check_exist))
+            raise TypeError(msg)
+        #
+        # `create_dir`
+        if not (isinstance(create_dir, bool)):
+            msg = '`create_dir` ({0}) must be of `boolean` type!'.format(
+                type(create_dir))
+            raise TypeError(msg)
+        #
+        # Output directory
+        main_catl_train_dir = self.main_catl_train_dir(check_exist=False,
+            create_dir=False)
+        # Appending to main directory
+        catl_train_dv_diff_comp_dir = os.path.join(main_catl_train_dir,
+                                    'ml_dv_diff',
+                                    self.dv_models_n)
+        # Creating directory if necessary
+        if create_dir:
+            cfutils.Path_Folder(catl_train_dv_diff_comp_dir)
+        # Check that folder exists
+        if check_exist:
+            if not (os.path.exists(catl_train_dv_diff_comp_dir)):
+                msg = '`catl_train_dv_diff_comp_dir` ({0}) was not found! '
+                msg += 'Check your path!'
+                msg = msg.format(catl_train_dv_diff_comp_dir)
+                raise FileNotFoundError(msg)
 
+        return catl_train_dv_diff_comp_dir
 
+    def catl_train_dv_diff_file(self, ext='p', check_exist=True):
+        """
+        Path to the file that contains the outputs from the
+        `HOD comparison` stage.
 
+        Parameters
+        -----------
+        ext : `str`, optional
+            Extension of the file being analyzed. This variable is set to
+            `p` by default.
 
+        check_exist : `bool`, optional
+            If `True`, it checks for whether or not the file exists.
+            This variable is set to `True` by default.
+
+        Returns
+        ---------
+        catl_train_hod_diff_path : `str`
+            Path to the file with the outputs from the `HOD comparison`
+            stage of the ML analysis.
+        """
+        # `Algorithm comparison` directory
+        catl_train_dv_diff_dir = self.catl_train_dv_diff_dir(
+                                    check_exist=True,
+                                    create_dir=False)
+        # `HOD Comparison` Prefix string
+        filename_str = '{0}_nn_{1}_md.{2}'.format(
+                            self._catl_train_prefix_str(),
+                            self.include_nn,
+                            ext)
+        # `catl_train_hod_diff_path`
+        catl_train_dv_diff_path = os.path.join(catl_train_dv_diff_dir,
+                                filename_str)
+        # Checking if file exists
+        if check_exist:
+            if not (os.path.exists(catl_train_dv_diff_path)):
+                msg = '`catl_train_dv_diff_path` ({0}) was not found!'.format(
+                    catl_train_dv_diff_path)
+                raise FileNotFoundError(msg)
+
+        return catl_train_dv_diff_path
+
+    def extract_catl_dv_diff_info(self, ext='p', return_path=False):
+        """
+        Extracts the information from the `DV Difference`, and
+        returns a set of dictionaries.
+
+        Parameters
+        -----------
+        ext : `str`, optional
+            Extension of the file being analyzed. This variable is set to
+            `p` by default.
+
+        return_path : `bool`, optional
+            If True, the function also returns the path to the file being read.
+
+        Returns
+        ---------
+        models_dict : `dict`
+            Dictionary with the output results from the `DV difference`
+            stage of the ML analysis.
+        """
+        # File containing the dictionaries
+        catl_dv_diff_path = self.catl_train_dv_diff_file(ext=ext,
+                                check_exist=True)
+        # Extracting information
+        with open(catl_dv_diff_path, 'rb') as file_p:
+            obj_arr = pickle.load(file_p)
+        # Unpacking objects
+        if (len(obj_arr) == 1):
+            models_dict = obj_arr[0]
+        else:
+            msg = '`obj` ({0}) must be of length `1`'.format(len(obj_arr))
+
+        if return_path:
+            return models_dict, catl_dv_diff_path
+        else:
+            return models_dict
+
+    def catl_dv_diff_fig_str(self):
+        """
+        Prefix string for the figure of `algorithm comparison` ML stage.
+
+        Returns
+        ---------
+        catl_alg_comp_fig_str : `str`
+            Prefix string for the figure of `algorithm comparison`.
+        """
+        # ML Training prefix
+        catl_train_prefix_str = self._catl_train_prefix_str()
+        # Adding to main string
+        catl_train_prefix_str += '_dv_diff'
+
+        return catl_train_prefix_str
 
 

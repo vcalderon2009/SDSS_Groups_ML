@@ -167,6 +167,18 @@ def get_parser():
                         """,
                         type=_check_pos_val,
                         default=1.0)
+    ## Number of distinct velocity bias measurements to create.
+    ## Dictates how many different types of mock catalogues to create
+    parser.add_argument('-dv_models_n',
+                        dest='dv_models_n',
+                        help="""
+                        Velocity dispersion models to use for this analysis.
+                        The values in the string consist of the `first`
+                        models with a different velocity dispersion, which
+                        will be used for the `testing` of the ML algorithm.
+                        """,
+                        type=str,
+                        default='0.9_0.925_0.95_0.975_1.025_1.05_1.10')
     ## Luminosity sample to analyze
     parser.add_argument('-sample',
                         dest='sample',
@@ -379,7 +391,7 @@ def get_parser():
                         dest='ml_analysis',
                         help='Type of analysis to perform.',
                         type=str,
-                        choices=['hod_dv_fixed', 'dv_fixed'],
+                        choices=['hod_dv_fixed', 'dv_fixed', 'hod_fixed'],
                         default='hod_dv_fixed')
     ## Which axes to plot
     parser.add_argument('-plot_opt',
@@ -502,6 +514,8 @@ def df_value_modifier(df, name, param_dict):
 
     return df
 
+### --------------- Analysis Parameters --------------- ###
+
 def get_analysis_alg_comp_params(param_dict):
     """
     Parameters for the data analysis step, right after training and
@@ -525,7 +539,7 @@ def get_analysis_alg_comp_params(param_dict):
     ## --------------------------------------------------------------------- ##
     ## Calculation for the ML analysis predictions - Parameters
     ## --------------------------------------------------------------------- ##
-    catl_alg_comp_arr = num.array([
+    catl_params_main_arr = num.array([
                             ('hod_n'         , '-hod_model_n'   , 0          ),
                             ('halotype'      , '-halotype'      , 'so'       ),
                             ('clf_method'    , '-clf_method'    , 1          ),
@@ -565,123 +579,123 @@ def get_analysis_alg_comp_params(param_dict):
     ##
     ## Converting to pandas DataFrame
     colnames = ['Name', 'Flag', 'Value']
-    alg_comp_df = pd.DataFrame(catl_alg_comp_arr, columns=colnames)
+    main_df = pd.DataFrame(catl_params_main_arr, columns=colnames)
     ##
     ## Sorting out DataFrame by `name`
-    alg_comp_df = alg_comp_df.sort_values(by='Name')
-    alg_comp_df.reset_index(inplace=True, drop=True)
+    main_df = main_df.sort_values(by='Name')
+    main_df.reset_index(inplace=True, drop=True)
     ##
     ## HOD Model to use
-    alg_comp_df = df_value_modifier(alg_comp_df, 'hod_n', param_dict)
+    main_df = df_value_modifier(main_df, 'hod_n', param_dict)
     ##
     ## Type of dark matter halo to use in the simulation
-    alg_comp_df = df_value_modifier(alg_comp_df, 'halotype', param_dict)
+    main_df = df_value_modifier(main_df, 'halotype', param_dict)
     ##
     ## CLF Method for assigning galaxy properties
-    alg_comp_df = df_value_modifier(alg_comp_df, 'clf_method', param_dict)
+    main_df = df_value_modifier(main_df, 'clf_method', param_dict)
     ##
     ## Random seed used during the CLF assignment
-    alg_comp_df = df_value_modifier(alg_comp_df, 'clf_seed', param_dict)
+    main_df = df_value_modifier(main_df, 'clf_seed', param_dict)
     ##
     ## Difference between galaxy and mass velocity profiles
-    alg_comp_df = df_value_modifier(alg_comp_df, 'dv', param_dict)
+    main_df = df_value_modifier(main_df, 'dv', param_dict)
     ##
     ## SDSS luminosity sample to analyze
-    alg_comp_df = df_value_modifier(alg_comp_df, 'sample', param_dict)
+    main_df = df_value_modifier(main_df, 'sample', param_dict)
     ##
     ## Type of Abundance matching
-    alg_comp_df = df_value_modifier(alg_comp_df, 'catl_type', param_dict)
+    main_df = df_value_modifier(main_df, 'catl_type', param_dict)
     ##
     ## Cosmology choice
-    alg_comp_df = df_value_modifier(alg_comp_df, 'cosmo_choice', param_dict)
+    main_df = df_value_modifier(main_df, 'cosmo_choice', param_dict)
     ##
     ## Minimum number of galaxies in a group
-    alg_comp_df = df_value_modifier(alg_comp_df, 'nmin', param_dict)
+    main_df = df_value_modifier(main_df, 'nmin', param_dict)
     ##
     ## Total number of properties to predict. Default = 1
-    alg_comp_df = df_value_modifier(alg_comp_df, 'n_predict', param_dict)
+    main_df = df_value_modifier(main_df, 'n_predict', param_dict)
     ##
     ## Option for shuffling dataset when creating `testing` and `training`
     ## datasets
-    alg_comp_df = df_value_modifier(alg_comp_df, 'shuffle_opt', param_dict)
+    main_df = df_value_modifier(main_df, 'shuffle_opt', param_dict)
     ##
     ## Option for Shuffling dataset when separing `training` and `testing` sets
-    alg_comp_df = df_value_modifier(alg_comp_df, 'dropna_opt', param_dict)
+    main_df = df_value_modifier(main_df, 'dropna_opt', param_dict)
     ##
     ## Option for which preprocessing of the data to use.
-    alg_comp_df = df_value_modifier(alg_comp_df, 'pre_opt', param_dict)
+    main_df = df_value_modifier(main_df, 'pre_opt', param_dict)
     ##
     ## Option for which kind of separation of training/testing to use for the 
     ## datasets.
-    alg_comp_df = df_value_modifier(alg_comp_df, 'test_train_opt', param_dict)
+    main_df = df_value_modifier(main_df, 'test_train_opt', param_dict)
     ##
     ## Initial and final indices of the simulation boxes to use for the 
     ## testing and training datasets.
-    alg_comp_df = df_value_modifier(alg_comp_df, 'box_idx', param_dict)
+    main_df = df_value_modifier(main_df, 'box_idx', param_dict)
     ##
     ## Index of the simulation box to use for the `training` and `testing
-    alg_comp_df = df_value_modifier(alg_comp_df, 'box_test', param_dict)
+    main_df = df_value_modifier(main_df, 'box_test', param_dict)
     ##
     ## Fraction of the sample to be used.
     ## Only if `test_train_opt == 'sample_frac'`
-    alg_comp_df = df_value_modifier(alg_comp_df, 'sample_frac', param_dict)
+    main_df = df_value_modifier(main_df, 'sample_frac', param_dict)
     ##
     ## Testing size for ML
-    alg_comp_df = df_value_modifier(alg_comp_df, 'test_size', param_dict)
+    main_df = df_value_modifier(main_df, 'test_size', param_dict)
     ##
     ## Option for using all features or just a few
-    alg_comp_df = df_value_modifier(alg_comp_df, 'n_feat_use', param_dict)
+    main_df = df_value_modifier(main_df, 'n_feat_use', param_dict)
     ##
     ## Option for calculating densities or not
-    alg_comp_df = df_value_modifier(alg_comp_df, 'dens_calc', param_dict)
+    main_df = df_value_modifier(main_df, 'dens_calc', param_dict)
     ##
     ## Number of hidden layers to use for neural network
-    alg_comp_df = df_value_modifier(alg_comp_df, 'hidden_layers', param_dict)
+    main_df = df_value_modifier(main_df, 'hidden_layers', param_dict)
     ##
     ## Number of units per hidden layer for the neural. network.
     ## Default = `100`.
-    alg_comp_df = df_value_modifier(alg_comp_df, 'unit_layer', param_dict)
+    main_df = df_value_modifier(main_df, 'unit_layer', param_dict)
     ##
     ## Option for determining which scoring method to use.
-    alg_comp_df = df_value_modifier(alg_comp_df, 'score_method', param_dict)
+    main_df = df_value_modifier(main_df, 'score_method', param_dict)
     ##
     ## Threshold value used for when ``score_method == 'threshold'``
-    alg_comp_df = df_value_modifier(alg_comp_df, 'threshold', param_dict)
+    main_df = df_value_modifier(main_df, 'threshold', param_dict)
     ##
     ## Percentage value used for when ``score_method == 'perc'``
-    alg_comp_df = df_value_modifier(alg_comp_df, 'perc_val', param_dict)
+    main_df = df_value_modifier(main_df, 'perc_val', param_dict)
     ##
     ## Method for binning or sumsample the array of the estimated group mass.
-    alg_comp_df = df_value_modifier(alg_comp_df, 'sample_method', param_dict)
+    main_df = df_value_modifier(main_df, 'sample_method', param_dict)
     ##
     ## Type of binning to use for the mass
-    alg_comp_df = df_value_modifier(alg_comp_df, 'bin_val', param_dict)
+    main_df = df_value_modifier(main_df, 'bin_val', param_dict)
     ##
     ## Type of analysis to perform.
-    alg_comp_df = df_value_modifier(alg_comp_df, 'ml_analysis', param_dict)
+    main_df = df_value_modifier(main_df, 'ml_analysis', param_dict)
     ##
     ## Type of resampling to use if necessary
-    alg_comp_df = df_value_modifier(alg_comp_df, 'resample_opt', param_dict)
+    main_df = df_value_modifier(main_df, 'resample_opt', param_dict)
     ##
     ## Percentage of CPU to use
-    alg_comp_df = df_value_modifier(alg_comp_df, 'cpu_frac', param_dict)
+    main_df = df_value_modifier(main_df, 'cpu_frac', param_dict)
     ##
     ## Option for removing files or not
-    alg_comp_df = df_value_modifier(alg_comp_df, 'remove_files', param_dict)
+    main_df = df_value_modifier(main_df, 'remove_files', param_dict)
     ##
     ## Option for displaying outputs or not
-    alg_comp_df = df_value_modifier(alg_comp_df, 'verbose', param_dict)
+    main_df = df_value_modifier(main_df, 'verbose', param_dict)
     ##
     ## Option for looking at `perfect` mock catalogues
-    alg_comp_df = df_value_modifier(alg_comp_df, 'perf_opt', param_dict)
+    main_df = df_value_modifier(main_df, 'perf_opt', param_dict)
     ##
     ## Random seed for the analysis
-    alg_comp_df = df_value_modifier(alg_comp_df, 'seed', param_dict)
+    main_df = df_value_modifier(main_df, 'seed', param_dict)
     ##
     ## --------------------------------------------------------------------- ##
     ## Calculation for the ML analysis predictions - Parameters - Plot
     ## --------------------------------------------------------------------- ##
-    catl_alg_comp_plot_arr = num.array([
+    catl_params_main_plot_arr = num.array([
                             ('hod_n'         , '-hod_model_n'   , 0          ),
                             ('halotype'      , '-halotype'      , 'so'       ),
                             ('clf_method'    , '-clf_method'    , 1          ),
@@ -723,124 +737,124 @@ def get_analysis_alg_comp_params(param_dict):
     ##
     ## Converting to pandas DataFrame
     colnames = ['Name', 'Flag', 'Value']
-    alg_comp_plot_df = pd.DataFrame(catl_alg_comp_plot_arr, columns=colnames)
+    main_plot_df = pd.DataFrame(catl_params_main_plot_arr, columns=colnames)
     ##
     ## Sorting out DataFrame by `name`
-    alg_comp_plot_df = alg_comp_plot_df.sort_values(by='Name')
-    alg_comp_plot_df.reset_index(inplace=True, drop=True)
+    main_plot_df = main_plot_df.sort_values(by='Name')
+    main_plot_df.reset_index(inplace=True, drop=True)
     ##
     ## HOD Model to use
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'hod_n', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'hod_n', param_dict)
     ##
     ## Type of dark matter halo to use in the simulation
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'halotype', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'halotype', param_dict)
     ##
     ## CLF Method for assigning galaxy properties
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'clf_method', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'clf_method', param_dict)
     ##
     ## Random seed used during the CLF assignment
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'clf_seed', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'clf_seed', param_dict)
     ##
     ## Difference between galaxy and mass velocity profiles
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'dv', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'dv', param_dict)
     ##
     ## SDSS luminosity sample to analyze
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'sample', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'sample', param_dict)
     ##
     ## Type of Abundance matching
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'catl_type', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'catl_type', param_dict)
     ##
     ## Cosmology choice
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'cosmo_choice', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'cosmo_choice', param_dict)
     ##
     ## Minimum number of galaxies in a group
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'nmin', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'nmin', param_dict)
     ##
     ## Total number of properties to predict. Default = 1
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'n_predict', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'n_predict', param_dict)
     ##
     ## Option for shuffling dataset when creating `testing` and `training`
     ## datasets
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'shuffle_opt', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'shuffle_opt', param_dict)
     ##
     ## Option for Shuffling dataset when separing `training` and `testing` sets
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'dropna_opt', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'dropna_opt', param_dict)
     ##
     ## Option for which preprocessing of the data to use.
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'pre_opt', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'pre_opt', param_dict)
     ##
     ## Option for which kind of separation of training/testing to use for the 
     ## datasets.
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'test_train_opt', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'test_train_opt', param_dict)
     ##
     ## Initial and final indices of the simulation boxes to use for the 
     ## testing and training datasets.
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'box_idx', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'box_idx', param_dict)
     ##
     ## Index of the simulation box to use for the `training` and `testing
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'box_test', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'box_test', param_dict)
     ##
     ## Fraction of the sample to be used.
     ## Only if `test_train_opt == 'sample_frac'`
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'sample_frac', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'sample_frac', param_dict)
     ##
     ## Testing size for ML
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'test_size', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'test_size', param_dict)
     ##
     ## Option for using all features or just a few
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'n_feat_use', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'n_feat_use', param_dict)
     ##
     ## Option for calculating densities or not
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'dens_calc', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'dens_calc', param_dict)
     ##
     ## Number of hidden layers to use for neural network
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'hidden_layers', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'hidden_layers', param_dict)
     ##
     ## Number of units per hidden layer for the neural. network.
     ## Default = `100`.
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'unit_layer', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'unit_layer', param_dict)
     ##
     ## Option for determining which scoring method to use.
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'score_method', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'score_method', param_dict)
     ##
     ## Threshold value used for when ``score_method == 'threshold'``
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'threshold', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'threshold', param_dict)
     ##
     ## Percentage value used for when ``score_method == 'perc'``
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'perc_val', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'perc_val', param_dict)
     ##
     ## Method for binning or sumsample the array of the estimated group mass.
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'sample_method', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'sample_method', param_dict)
     ##
     ## Type of binning to use for the mass
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'bin_val', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'bin_val', param_dict)
     ##
     ## Type of analysis to perform.
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'ml_analysis', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'ml_analysis', param_dict)
     ##
     ## Option for which variable to plot on x-axis
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'plot_opt', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'plot_opt', param_dict)
     ##
     ## Option for which type of ranking to plot
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'rank_opt', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'rank_opt', param_dict)
     ##
     ## Type of resampling to use if necessary
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'resample_opt', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'resample_opt', param_dict)
     ##
     ## Percentage of CPU to use
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'cpu_frac', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'cpu_frac', param_dict)
     ##
     ## Option for removing files or not
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'remove_files', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'remove_files', param_dict)
     ##
     ## Option for displaying outputs or not
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'verbose', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'verbose', param_dict)
     ##
     ## Option for looking at `perfect` mock catalogues
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'perf_opt', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'perf_opt', param_dict)
     ##
     ## Random seed for the analysis
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'seed', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'seed', param_dict)
 
     return [alg_comp_df, alg_comp_plot_df]
 
@@ -867,7 +881,7 @@ def get_analysis_hod_diff_params(param_dict):
     ## --------------------------------------------------------------------- ##
     ## Calculation for the ML analysis predictions - Parameters
     ## --------------------------------------------------------------------- ##
-    catl_alg_comp_arr = num.array([
+    catl_params_main_arr = num.array([
                             ('hod_n'         , '-hod_model_n'   , 0          ),
                             ('hod_models_n'  , '-hod_models_n'  , '1_2_3_4_5_6_7_8'),
                             ('halotype'      , '-halotype'      , 'so'       ),
@@ -909,123 +923,126 @@ def get_analysis_hod_diff_params(param_dict):
     ##
     ## Converting to pandas DataFrame
     colnames = ['Name', 'Flag', 'Value']
-    alg_comp_df = pd.DataFrame(catl_alg_comp_arr, columns=colnames)
+    main_df = pd.DataFrame(catl_params_main_arr, columns=colnames)
     ##
     ## Sorting out DataFrame by `name`
-    alg_comp_df = alg_comp_df.sort_values(by='Name')
-    alg_comp_df.reset_index(inplace=True, drop=True)
+    main_df = main_df.sort_values(by='Name')
+    main_df.reset_index(inplace=True, drop=True)
     ##
     ## HOD Model to use
-    alg_comp_df = df_value_modifier(alg_comp_df, 'hod_models_n', param_dict)
+    main_df = df_value_modifier(main_df, 'hod_n', param_dict)
+    ##
+    ## HOD Model to use
+    main_df = df_value_modifier(main_df, 'hod_models_n', param_dict)
     ##
     ## Type of dark matter halo to use in the simulation
-    alg_comp_df = df_value_modifier(alg_comp_df, 'halotype', param_dict)
+    main_df = df_value_modifier(main_df, 'halotype', param_dict)
     ##
     ## CLF Method for assigning galaxy properties
-    alg_comp_df = df_value_modifier(alg_comp_df, 'clf_method', param_dict)
+    main_df = df_value_modifier(main_df, 'clf_method', param_dict)
     ##
     ## Random seed used during the CLF assignment
-    alg_comp_df = df_value_modifier(alg_comp_df, 'clf_seed', param_dict)
+    main_df = df_value_modifier(main_df, 'clf_seed', param_dict)
     ##
     ## Difference between galaxy and mass velocity profiles
-    alg_comp_df = df_value_modifier(alg_comp_df, 'dv', param_dict)
+    main_df = df_value_modifier(main_df, 'dv', param_dict)
     ##
     ## SDSS luminosity sample to analyze
-    alg_comp_df = df_value_modifier(alg_comp_df, 'sample', param_dict)
+    main_df = df_value_modifier(main_df, 'sample', param_dict)
     ##
     ## Type of Abundance matching
-    alg_comp_df = df_value_modifier(alg_comp_df, 'catl_type', param_dict)
+    main_df = df_value_modifier(main_df, 'catl_type', param_dict)
     ##
     ## Cosmology choice
-    alg_comp_df = df_value_modifier(alg_comp_df, 'cosmo_choice', param_dict)
+    main_df = df_value_modifier(main_df, 'cosmo_choice', param_dict)
     ##
     ## Minimum number of galaxies in a group
-    alg_comp_df = df_value_modifier(alg_comp_df, 'nmin', param_dict)
+    main_df = df_value_modifier(main_df, 'nmin', param_dict)
     ##
     ## Total number of properties to predict. Default = 1
-    alg_comp_df = df_value_modifier(alg_comp_df, 'n_predict', param_dict)
+    main_df = df_value_modifier(main_df, 'n_predict', param_dict)
     ##
     ## Option for shuffling dataset when creating `testing` and `training`
     ## datasets
-    alg_comp_df = df_value_modifier(alg_comp_df, 'shuffle_opt', param_dict)
+    main_df = df_value_modifier(main_df, 'shuffle_opt', param_dict)
     ##
     ## Option for Shuffling dataset when separing `training` and `testing` sets
-    alg_comp_df = df_value_modifier(alg_comp_df, 'dropna_opt', param_dict)
+    main_df = df_value_modifier(main_df, 'dropna_opt', param_dict)
     ##
     ## Option for which preprocessing of the data to use.
-    alg_comp_df = df_value_modifier(alg_comp_df, 'pre_opt', param_dict)
+    main_df = df_value_modifier(main_df, 'pre_opt', param_dict)
     ##
     ## Option for which kind of separation of training/testing to use for the 
     ## datasets.
-    alg_comp_df = df_value_modifier(alg_comp_df, 'test_train_opt', param_dict)
+    main_df = df_value_modifier(main_df, 'test_train_opt', param_dict)
     ##
     ## Initial and final indices of the simulation boxes to use for the 
     ## testing and training datasets.
-    alg_comp_df = df_value_modifier(alg_comp_df, 'box_idx', param_dict)
+    main_df = df_value_modifier(main_df, 'box_idx', param_dict)
     ##
     ## Index of the simulation box to use for the `training` and `testing
-    alg_comp_df = df_value_modifier(alg_comp_df, 'box_test', param_dict)
+    main_df = df_value_modifier(main_df, 'box_test', param_dict)
     ##
     ## Fraction of the sample to be used.
     ## Only if `test_train_opt == 'sample_frac'`
-    alg_comp_df = df_value_modifier(alg_comp_df, 'sample_frac', param_dict)
+    main_df = df_value_modifier(main_df, 'sample_frac', param_dict)
     ##
     ## Testing size for ML
-    alg_comp_df = df_value_modifier(alg_comp_df, 'test_size', param_dict)
+    main_df = df_value_modifier(main_df, 'test_size', param_dict)
     ##
     ## Option for using all features or just a few
-    alg_comp_df = df_value_modifier(alg_comp_df, 'n_feat_use', param_dict)
+    main_df = df_value_modifier(main_df, 'n_feat_use', param_dict)
     ##
     ## Option for calculating densities or not
-    alg_comp_df = df_value_modifier(alg_comp_df, 'dens_calc', param_dict)
+    main_df = df_value_modifier(main_df, 'dens_calc', param_dict)
     ##
     ## Number of hidden layers to use for neural network
-    alg_comp_df = df_value_modifier(alg_comp_df, 'hidden_layers', param_dict)
+    main_df = df_value_modifier(main_df, 'hidden_layers', param_dict)
     ##
     ## Number of units per hidden layer for the neural. network.
     ## Default = `100`.
-    alg_comp_df = df_value_modifier(alg_comp_df, 'unit_layer', param_dict)
+    main_df = df_value_modifier(main_df, 'unit_layer', param_dict)
     ##
     ## Option for determining which scoring method to use.
-    alg_comp_df = df_value_modifier(alg_comp_df, 'score_method', param_dict)
+    main_df = df_value_modifier(main_df, 'score_method', param_dict)
     ##
     ## Threshold value used for when ``score_method == 'threshold'``
-    alg_comp_df = df_value_modifier(alg_comp_df, 'threshold', param_dict)
+    main_df = df_value_modifier(main_df, 'threshold', param_dict)
     ##
     ## Percentage value used for when ``score_method == 'perc'``
-    alg_comp_df = df_value_modifier(alg_comp_df, 'perc_val', param_dict)
+    main_df = df_value_modifier(main_df, 'perc_val', param_dict)
     ##
     ## Method for binning or sumsample the array of the estimated group mass.
-    alg_comp_df = df_value_modifier(alg_comp_df, 'sample_method', param_dict)
+    main_df = df_value_modifier(main_df, 'sample_method', param_dict)
     ##
     ## Type of binning to use for the mass
-    alg_comp_df = df_value_modifier(alg_comp_df, 'bin_val', param_dict)
+    main_df = df_value_modifier(main_df, 'bin_val', param_dict)
     ##
     ## Type of analysis to perform.
-    alg_comp_df = df_value_modifier(alg_comp_df, 'ml_analysis', param_dict)
+    main_df = df_value_modifier(main_df, 'ml_analysis', param_dict)
     ##
     ## Type of resampling to use if necessary
-    alg_comp_df = df_value_modifier(alg_comp_df, 'resample_opt', param_dict)
+    main_df = df_value_modifier(main_df, 'resample_opt', param_dict)
     ##
     ## Percentage of CPU to use
-    alg_comp_df = df_value_modifier(alg_comp_df, 'cpu_frac', param_dict)
+    main_df = df_value_modifier(main_df, 'cpu_frac', param_dict)
     ##
     ## Option for removing files or not
-    alg_comp_df = df_value_modifier(alg_comp_df, 'remove_files', param_dict)
+    main_df = df_value_modifier(main_df, 'remove_files', param_dict)
     ##
     ## Option for displaying outputs or not
-    alg_comp_df = df_value_modifier(alg_comp_df, 'verbose', param_dict)
+    main_df = df_value_modifier(main_df, 'verbose', param_dict)
     ##
     ## Option for looking at `perfect` mock catalogues
-    alg_comp_df = df_value_modifier(alg_comp_df, 'perf_opt', param_dict)
+    main_df = df_value_modifier(main_df, 'perf_opt', param_dict)
     ##
     ## Random seed for the analysis
-    alg_comp_df = df_value_modifier(alg_comp_df, 'seed', param_dict)
+    main_df = df_value_modifier(main_df, 'seed', param_dict)
     ##
     ## --------------------------------------------------------------------- ##
     ## Calculation for the ML analysis predictions - Parameters - Plot
     ## --------------------------------------------------------------------- ##
-    catl_alg_comp_plot_arr = num.array([
+    catl_params_main_plot_arr = num.array([
                             ('hod_n'         , '-hod_model_n'   , 0          ),
                             ('hod_models_n'  , '-hod_models_n'  , '1_2_3_4_5_6_7_8'),
                             ('halotype'      , '-halotype'      , 'so'       ),
@@ -1069,129 +1086,486 @@ def get_analysis_hod_diff_params(param_dict):
     ##
     ## Converting to pandas DataFrame
     colnames = ['Name', 'Flag', 'Value']
-    alg_comp_plot_df = pd.DataFrame(catl_alg_comp_plot_arr, columns=colnames)
+    main_plot_df = pd.DataFrame(catl_params_main_plot_arr, columns=colnames)
     ##
     ## Sorting out DataFrame by `name`
-    alg_comp_plot_df = alg_comp_plot_df.sort_values(by='Name')
-    alg_comp_plot_df.reset_index(inplace=True, drop=True)
+    main_plot_df = main_plot_df.sort_values(by='Name')
+    main_plot_df.reset_index(inplace=True, drop=True)
     ##
     ## HOD Model to use
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'hod_n', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'hod_n', param_dict)
     ##
     ## Type of dark matter halo to use in the simulation
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'halotype', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'halotype', param_dict)
     ##
     ## CLF Method for assigning galaxy properties
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'clf_method', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'clf_method', param_dict)
     ##
     ## Random seed used during the CLF assignment
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'clf_seed', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'clf_seed', param_dict)
     ##
     ## Difference between galaxy and mass velocity profiles
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'dv', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'dv', param_dict)
     ##
     ## SDSS luminosity sample to analyze
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'sample', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'sample', param_dict)
     ##
     ## Type of Abundance matching
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'catl_type', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'catl_type', param_dict)
     ##
     ## Cosmology choice
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'cosmo_choice', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'cosmo_choice', param_dict)
     ##
     ## Minimum number of galaxies in a group
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'nmin', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'nmin', param_dict)
     ##
     ## Total number of properties to predict. Default = 1
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'n_predict', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'n_predict', param_dict)
     ##
     ## Option for shuffling dataset when creating `testing` and `training`
     ## datasets
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'shuffle_opt', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'shuffle_opt', param_dict)
     ##
     ## Option for Shuffling dataset when separing `training` and `testing` sets
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'dropna_opt', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'dropna_opt', param_dict)
     ##
     ## Option for which preprocessing of the data to use.
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'pre_opt', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'pre_opt', param_dict)
     ##
     ## Option for which kind of separation of training/testing to use for the 
     ## datasets.
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'test_train_opt', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'test_train_opt', param_dict)
     ##
     ## Initial and final indices of the simulation boxes to use for the 
     ## testing and training datasets.
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'box_idx', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'box_idx', param_dict)
     ##
     ## Index of the simulation box to use for the `training` and `testing
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'box_test', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'box_test', param_dict)
     ##
     ## Fraction of the sample to be used.
     ## Only if `test_train_opt == 'sample_frac'`
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'sample_frac', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'sample_frac', param_dict)
     ##
     ## Testing size for ML
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'test_size', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'test_size', param_dict)
     ##
     ## Option for using all features or just a few
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'n_feat_use', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'n_feat_use', param_dict)
     ##
     ## Option for calculating densities or not
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'dens_calc', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'dens_calc', param_dict)
     ##
     ## Number of hidden layers to use for neural network
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'hidden_layers', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'hidden_layers', param_dict)
     ##
     ## Number of units per hidden layer for the neural. network.
     ## Default = `100`.
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'unit_layer', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'unit_layer', param_dict)
     ##
     ## Option for determining which scoring method to use.
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'score_method', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'score_method', param_dict)
     ##
     ## Threshold value used for when ``score_method == 'threshold'``
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'threshold', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'threshold', param_dict)
     ##
     ## Percentage value used for when ``score_method == 'perc'``
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'perc_val', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'perc_val', param_dict)
     ##
     ## Method for binning or sumsample the array of the estimated group mass.
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'sample_method', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'sample_method', param_dict)
     ##
     ## Type of binning to use for the mass
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'bin_val', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'bin_val', param_dict)
     ##
     ## Type of analysis to perform.
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'ml_analysis', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'ml_analysis', param_dict)
     ##
     ## Option for which variable to plot on x-axis
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'plot_opt', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'plot_opt', param_dict)
     ##
     ## Option for which type of ranking to plot
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'rank_opt', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'rank_opt', param_dict)
     ##
     ## Type of resampling to use if necessary
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'resample_opt', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'resample_opt', param_dict)
     ##
     ## Option to include results from neural network or not
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'include_nn', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'include_nn', param_dict)
     ##
     ## Percentage of CPU to use
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'cpu_frac', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'cpu_frac', param_dict)
     ##
     ## Option for removing files or not
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'remove_files', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'remove_files', param_dict)
     ##
     ## Option for displaying outputs or not
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'verbose', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'verbose', param_dict)
     ##
     ## Option for looking at `perfect` mock catalogues
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'perf_opt', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'perf_opt', param_dict)
     ##
     ## Random seed for the analysis
-    alg_comp_plot_df = df_value_modifier(alg_comp_plot_df, 'seed', param_dict)
+    main_plot_df = df_value_modifier(main_plot_df, 'seed', param_dict)
 
     return [alg_comp_df, alg_comp_plot_df]
+
+def get_analysis_dv_diff_params(param_dict):
+    """
+    Parameters for the data analysis step, right after training and
+    testing ML algorithms.
+
+    Parameters
+    -----------
+    param_dict : `dict`
+        dictionary with project variables
+
+    Returns
+    --------
+    catl_feat_df : `pd.DataFrame`
+        DataFrame with necessary parameters to run `catl_feature_calculation`
+        script.
+    """
+    ##
+    ## Array of values used for the analysis.
+    ## Format: (name of variable, flag, value)
+    #
+    ## --------------------------------------------------------------------- ##
+    ## Calculation for the ML analysis predictions - Parameters
+    ## --------------------------------------------------------------------- ##
+    catl_params_main_arr = num.array([
+                            ('hod_n'         , '-hod_model_n'   , 0          ),
+                            ('dv_models_n'  , '-dv_models_n'  , '0.9_0.925_0.95_0.975_1.025_1.05_1.10'),
+                            ('halotype'      , '-halotype'      , 'so'       ),
+                            ('clf_method'    , '-clf_method'    , 1          ),
+                            ('dv'            , '-dv'            , 1.0        ),
+                            ('clf_seed'      , '-clf_seed'      , 1235       ),
+                            ('sample'        , '-sample'        , '19'       ),
+                            ('catl_type'     , '-abopt'         , 'mr'       ),
+                            ('cosmo_choice'  , '-cosmo'         , 'LasDamas' ),
+                            ('nmin'          , '-nmin'          , 2          ),
+                            ('mass_factor'   , '-mass_factor'   , 10         ),
+                            ('n_predict'     , '-n_predict'     , 1          ),
+                            ('shuffle_opt'   , '-shuffle_opt'   , True       ),
+                            ('dropna_opt'    , '-dropna_opt'    , True       ),
+                            ('pre_opt'       , '-pre_opt'       , 'standard' ),
+                            ('test_train_opt', '-test_train_opt', 'boxes_n'  ),
+                            ('box_idx'       , '-box_idx'       , '0_4_5'    ),
+                            ('box_test'      , '-box_test'      , 0          ),
+                            ('sample_frac'   , '-sample_frac'   , 0.01       ),
+                            ('test_size'     , '-test_size'     , 0.25       ),
+                            ('n_feat_use'    , '-n_feat_use'    , 'sub'      ),
+                            ('dens_calc'     , '-dens_calc'     , True       ),
+                            ('kf_splits'     , '-kf_splits'     , 3          ),
+                            ('hidden_layers' , '-hidden_layers' , 3          ),
+                            ('unit_layer'    , '-unit_layer'    , 100        ),
+                            ('score_method'  , '-score_method'  , 'threshold'),
+                            ('threshold'     , '-threshold'     , 0.1        ),
+                            ('perc_val'      , '-perc_val'      , 0.68       ),
+                            ('sample_method' , '-sample_method' , 'binning'  ),
+                            ('bin_val'       , '-bin_val'       , 'fixed'    ),
+                            ('ml_analysis'   , '-ml_analysis'   , 'hod_fixed'),
+                            ('resample_opt'  , '-resample_opt'  , 'under'    ),
+                            ('include_nn'    , '-include_nn'    , False      ),
+                            ('cpu_frac'      , '-cpu'           , 0.75       ),
+                            ('remove_files'  , '-remove'        , False      ),
+                            ('verbose'       , '-v'             , False      ),
+                            ('perf_opt'      , '-perf'          , False      ),
+                            ('seed'          , '-seed'          , 1         )])
+    ##
+    ## Converting to pandas DataFrame
+    colnames = ['Name', 'Flag', 'Value']
+    main_df = pd.DataFrame(catl_params_main_arr, columns=colnames)
+    ##
+    ## Sorting out DataFrame by `name`
+    main_df = main_df.sort_values(by='Name')
+    main_df.reset_index(inplace=True, drop=True)
+    ##
+    ## HOD Model to use
+    main_df = df_value_modifier(main_df, 'hod_n', param_dict)
+    ##
+    ## Different models of DV to use for comparison
+    main_df = df_value_modifier(main_df, 'dv_models_n', param_dict)
+    ##
+    ## Type of dark matter halo to use in the simulation
+    main_df = df_value_modifier(main_df, 'halotype', param_dict)
+    ##
+    ## CLF Method for assigning galaxy properties
+    main_df = df_value_modifier(main_df, 'clf_method', param_dict)
+    ##
+    ## Random seed used during the CLF assignment
+    main_df = df_value_modifier(main_df, 'clf_seed', param_dict)
+    ##
+    ## Difference between galaxy and mass velocity profiles
+    main_df = df_value_modifier(main_df, 'dv', param_dict)
+    ##
+    ## SDSS luminosity sample to analyze
+    main_df = df_value_modifier(main_df, 'sample', param_dict)
+    ##
+    ## Type of Abundance matching
+    main_df = df_value_modifier(main_df, 'catl_type', param_dict)
+    ##
+    ## Cosmology choice
+    main_df = df_value_modifier(main_df, 'cosmo_choice', param_dict)
+    ##
+    ## Minimum number of galaxies in a group
+    main_df = df_value_modifier(main_df, 'nmin', param_dict)
+    ##
+    ## Total number of properties to predict. Default = 1
+    main_df = df_value_modifier(main_df, 'n_predict', param_dict)
+    ##
+    ## Option for shuffling dataset when creating `testing` and `training`
+    ## datasets
+    main_df = df_value_modifier(main_df, 'shuffle_opt', param_dict)
+    ##
+    ## Option for Shuffling dataset when separing `training` and `testing` sets
+    main_df = df_value_modifier(main_df, 'dropna_opt', param_dict)
+    ##
+    ## Option for which preprocessing of the data to use.
+    main_df = df_value_modifier(main_df, 'pre_opt', param_dict)
+    ##
+    ## Option for which kind of separation of training/testing to use for the 
+    ## datasets.
+    main_df = df_value_modifier(main_df, 'test_train_opt', param_dict)
+    ##
+    ## Initial and final indices of the simulation boxes to use for the 
+    ## testing and training datasets.
+    main_df = df_value_modifier(main_df, 'box_idx', param_dict)
+    ##
+    ## Index of the simulation box to use for the `training` and `testing
+    main_df = df_value_modifier(main_df, 'box_test', param_dict)
+    ##
+    ## Fraction of the sample to be used.
+    ## Only if `test_train_opt == 'sample_frac'`
+    main_df = df_value_modifier(main_df, 'sample_frac', param_dict)
+    ##
+    ## Testing size for ML
+    main_df = df_value_modifier(main_df, 'test_size', param_dict)
+    ##
+    ## Option for using all features or just a few
+    main_df = df_value_modifier(main_df, 'n_feat_use', param_dict)
+    ##
+    ## Option for calculating densities or not
+    main_df = df_value_modifier(main_df, 'dens_calc', param_dict)
+    ##
+    ## Number of hidden layers to use for neural network
+    main_df = df_value_modifier(main_df, 'hidden_layers', param_dict)
+    ##
+    ## Number of units per hidden layer for the neural. network.
+    ## Default = `100`.
+    main_df = df_value_modifier(main_df, 'unit_layer', param_dict)
+    ##
+    ## Option for determining which scoring method to use.
+    main_df = df_value_modifier(main_df, 'score_method', param_dict)
+    ##
+    ## Threshold value used for when ``score_method == 'threshold'``
+    main_df = df_value_modifier(main_df, 'threshold', param_dict)
+    ##
+    ## Percentage value used for when ``score_method == 'perc'``
+    main_df = df_value_modifier(main_df, 'perc_val', param_dict)
+    ##
+    ## Method for binning or sumsample the array of the estimated group mass.
+    main_df = df_value_modifier(main_df, 'sample_method', param_dict)
+    ##
+    ## Type of binning to use for the mass
+    main_df = df_value_modifier(main_df, 'bin_val', param_dict)
+    ##
+    ## Type of analysis to perform.
+    main_df = df_value_modifier(main_df, 'ml_analysis', param_dict)
+    ##
+    ## Type of resampling to use if necessary
+    main_df = df_value_modifier(main_df, 'resample_opt', param_dict)
+    ##
+    ## Percentage of CPU to use
+    main_df = df_value_modifier(main_df, 'cpu_frac', param_dict)
+    ##
+    ## Option for removing files or not
+    main_df = df_value_modifier(main_df, 'remove_files', param_dict)
+    ##
+    ## Option for displaying outputs or not
+    main_df = df_value_modifier(main_df, 'verbose', param_dict)
+    ##
+    ## Option for looking at `perfect` mock catalogues
+    main_df = df_value_modifier(main_df, 'perf_opt', param_dict)
+    ##
+    ## Random seed for the analysis
+    main_df = df_value_modifier(main_df, 'seed', param_dict)
+    ##
+    ## --------------------------------------------------------------------- ##
+    ## Calculation for the ML analysis predictions - Parameters - Plot
+    ## --------------------------------------------------------------------- ##
+    catl_params_main_plot_arr = num.array([
+                            ('hod_n'         , '-hod_model_n'   , 0          ),
+                            ('dv_models_n'   , '-dv_models_n'   , '0.9_0.925_0.95_0.975_1.025_1.05_1.10'),
+                            ('halotype'      , '-halotype'      , 'so'       ),
+                            ('clf_method'    , '-clf_method'    , 1          ),
+                            ('dv'            , '-dv'            , 1.0        ),
+                            ('clf_seed'      , '-clf_seed'      , 1235       ),
+                            ('sample'        , '-sample'        , '19'       ),
+                            ('catl_type'     , '-abopt'         , 'mr'       ),
+                            ('cosmo_choice'  , '-cosmo'         , 'LasDamas' ),
+                            ('nmin'          , '-nmin'          , 2          ),
+                            ('mass_factor'   , '-mass_factor'   , 10         ),
+                            ('n_predict'     , '-n_predict'     , 1          ),
+                            ('shuffle_opt'   , '-shuffle_opt'   , True       ),
+                            ('dropna_opt'    , '-dropna_opt'    , True       ),
+                            ('pre_opt'       , '-pre_opt'       , 'standard' ),
+                            ('test_train_opt', '-test_train_opt', 'boxes_n'  ),
+                            ('box_idx'       , '-box_idx'       , '0_4_5'    ),
+                            ('box_test'      , '-box_test'      , 0          ),
+                            ('sample_frac'   , '-sample_frac'   , 0.01       ),
+                            ('test_size'     , '-test_size'     , 0.25       ),
+                            ('n_feat_use'    , '-n_feat_use'    , 'sub'      ),
+                            ('dens_calc'     , '-dens_calc'     , True       ),
+                            ('kf_splits'     , '-kf_splits'     , 3          ),
+                            ('hidden_layers' , '-hidden_layers' , 3          ),
+                            ('unit_layer'    , '-unit_layer'    , 100        ),
+                            ('score_method'  , '-score_method'  , 'threshold'),
+                            ('threshold'     , '-threshold'     , 0.1        ),
+                            ('perc_val'      , '-perc_val'      , 0.68       ),
+                            ('sample_method' , '-sample_method' , 'binning'  ),
+                            ('bin_val'       , '-bin_val'       , 'fixed'    ),
+                            ('ml_analysis'   , '-ml_analysis'   , 'hod_fixed' ),
+                            ('resample_opt'  , '-resample_opt'  , 'under'    ),
+                            ('include_nn'    , '-include_nn'    , False      ),
+                            ('plot_opt'      , '-plot_opt'      , 'mhalo'    ),
+                            ('rank_opt'      , '-rank_opt'      , 'idx'      ),
+                            ('cpu_frac'      , '-cpu'           , 0.75       ),
+                            ('remove_files'  , '-remove'        , False      ),
+                            ('verbose'       , '-v'             , False      ),
+                            ('perf_opt'      , '-perf'          , False      ),
+                            ('seed'          , '-seed'          , 1         )])
+    ##
+    ## Converting to pandas DataFrame
+    colnames = ['Name', 'Flag', 'Value']
+    main_plot_df = pd.DataFrame(catl_params_main_plot_arr, columns=colnames)
+    ##
+    ## Sorting out DataFrame by `name`
+    main_plot_df = main_plot_df.sort_values(by='Name')
+    main_plot_df.reset_index(inplace=True, drop=True)
+    ##
+    ## HOD Model to use
+    main_plot_df = df_value_modifier(main_plot_df, 'hod_n', param_dict)
+    ##
+    ## Different models of DV to use for comparison
+    main_plot_df = df_value_modifier(main_plot_df, 'dv_models_n', param_dict)
+    ##
+    ## Type of dark matter halo to use in the simulation
+    main_plot_df = df_value_modifier(main_plot_df, 'halotype', param_dict)
+    ##
+    ## CLF Method for assigning galaxy properties
+    main_plot_df = df_value_modifier(main_plot_df, 'clf_method', param_dict)
+    ##
+    ## Random seed used during the CLF assignment
+    main_plot_df = df_value_modifier(main_plot_df, 'clf_seed', param_dict)
+    ##
+    ## Difference between galaxy and mass velocity profiles
+    main_plot_df = df_value_modifier(main_plot_df, 'dv', param_dict)
+    ##
+    ## SDSS luminosity sample to analyze
+    main_plot_df = df_value_modifier(main_plot_df, 'sample', param_dict)
+    ##
+    ## Type of Abundance matching
+    main_plot_df = df_value_modifier(main_plot_df, 'catl_type', param_dict)
+    ##
+    ## Cosmology choice
+    main_plot_df = df_value_modifier(main_plot_df, 'cosmo_choice', param_dict)
+    ##
+    ## Minimum number of galaxies in a group
+    main_plot_df = df_value_modifier(main_plot_df, 'nmin', param_dict)
+    ##
+    ## Total number of properties to predict. Default = 1
+    main_plot_df = df_value_modifier(main_plot_df, 'n_predict', param_dict)
+    ##
+    ## Option for shuffling dataset when creating `testing` and `training`
+    ## datasets
+    main_plot_df = df_value_modifier(main_plot_df, 'shuffle_opt', param_dict)
+    ##
+    ## Option for Shuffling dataset when separing `training` and `testing` sets
+    main_plot_df = df_value_modifier(main_plot_df, 'dropna_opt', param_dict)
+    ##
+    ## Option for which preprocessing of the data to use.
+    main_plot_df = df_value_modifier(main_plot_df, 'pre_opt', param_dict)
+    ##
+    ## Option for which kind of separation of training/testing to use for the 
+    ## datasets.
+    main_plot_df = df_value_modifier(main_plot_df, 'test_train_opt', param_dict)
+    ##
+    ## Initial and final indices of the simulation boxes to use for the 
+    ## testing and training datasets.
+    main_plot_df = df_value_modifier(main_plot_df, 'box_idx', param_dict)
+    ##
+    ## Index of the simulation box to use for the `training` and `testing
+    main_plot_df = df_value_modifier(main_plot_df, 'box_test', param_dict)
+    ##
+    ## Fraction of the sample to be used.
+    ## Only if `test_train_opt == 'sample_frac'`
+    main_plot_df = df_value_modifier(main_plot_df, 'sample_frac', param_dict)
+    ##
+    ## Testing size for ML
+    main_plot_df = df_value_modifier(main_plot_df, 'test_size', param_dict)
+    ##
+    ## Option for using all features or just a few
+    main_plot_df = df_value_modifier(main_plot_df, 'n_feat_use', param_dict)
+    ##
+    ## Option for calculating densities or not
+    main_plot_df = df_value_modifier(main_plot_df, 'dens_calc', param_dict)
+    ##
+    ## Number of hidden layers to use for neural network
+    main_plot_df = df_value_modifier(main_plot_df, 'hidden_layers', param_dict)
+    ##
+    ## Number of units per hidden layer for the neural. network.
+    ## Default = `100`.
+    main_plot_df = df_value_modifier(main_plot_df, 'unit_layer', param_dict)
+    ##
+    ## Option for determining which scoring method to use.
+    main_plot_df = df_value_modifier(main_plot_df, 'score_method', param_dict)
+    ##
+    ## Threshold value used for when ``score_method == 'threshold'``
+    main_plot_df = df_value_modifier(main_plot_df, 'threshold', param_dict)
+    ##
+    ## Percentage value used for when ``score_method == 'perc'``
+    main_plot_df = df_value_modifier(main_plot_df, 'perc_val', param_dict)
+    ##
+    ## Method for binning or sumsample the array of the estimated group mass.
+    main_plot_df = df_value_modifier(main_plot_df, 'sample_method', param_dict)
+    ##
+    ## Type of binning to use for the mass
+    main_plot_df = df_value_modifier(main_plot_df, 'bin_val', param_dict)
+    ##
+    ## Type of analysis to perform.
+    main_plot_df = df_value_modifier(main_plot_df, 'ml_analysis', param_dict)
+    ##
+    ## Option for which variable to plot on x-axis
+    main_plot_df = df_value_modifier(main_plot_df, 'plot_opt', param_dict)
+    ##
+    ## Option for which type of ranking to plot
+    main_plot_df = df_value_modifier(main_plot_df, 'rank_opt', param_dict)
+    ##
+    ## Type of resampling to use if necessary
+    main_plot_df = df_value_modifier(main_plot_df, 'resample_opt', param_dict)
+    ##
+    ## Option to include results from neural network or not
+    main_plot_df = df_value_modifier(main_plot_df, 'include_nn', param_dict)
+    ##
+    ## Percentage of CPU to use
+    main_plot_df = df_value_modifier(main_plot_df, 'cpu_frac', param_dict)
+    ##
+    ## Option for removing files or not
+    main_plot_df = df_value_modifier(main_plot_df, 'remove_files', param_dict)
+    ##
+    ## Option for displaying outputs or not
+    main_plot_df = df_value_modifier(main_plot_df, 'verbose', param_dict)
+    ##
+    ## Option for looking at `perfect` mock catalogues
+    main_plot_df = df_value_modifier(main_plot_df, 'perf_opt', param_dict)
+    ##
+    ## Random seed for the analysis
+    main_plot_df = df_value_modifier(main_plot_df, 'seed', param_dict)
+
+    return [alg_comp_df, alg_comp_plot_df]
+
+### --------------- Executing script --------------- ###
 
 def get_exec_string(df_arr, param_dict):
     """
@@ -1261,25 +1635,45 @@ def project_const(param_dict):
     env_name        = 'sdss_groups_ml'
     ##
     ## Choosing the script(s) that will be ran
+    ##
+    ## Fixed HOD and DV value - Default
     if (param_dict['ml_analysis'] == 'hod_dv_fixed'):
         window_name     = 'SDSS_ML_data_analysis_fixed_hodn_{0}_dv_{1}'.format(
             param_dict['hod_n'], param_dict['dv'])
-    elif (param_dict['ml_analysis'] == 'dv_fixed'):
+    ##
+    ## Fixed DV and alternating HOD models
+    if (param_dict['ml_analysis'] == 'dv_fixed'):
         window_name     = 'SDSS_ML_data_analysis_fixed_hodn_{0}_dv_{1}'.format(
             param_dict['hod_models_n'], param_dict['dv'])
     sub_window_name = 'data_analysis'
     file_exe_name   = 'catl_data_analysis_{0}_run.sh'.format(
                         param_dict['ml_analysis'])
     ##
+    ## Fixed HOD and alternating DV models
+    if (param_dict['ml_analysis'] == 'hod_fixed'):
+        window_name     = 'SDSS_ML_data_analysis_fixed_dv_{0}_dv_{1}'.format(
+            param_dict['dv_models_n'], param_dict['dv'])
+    sub_window_name = 'data_analysis'
+    file_exe_name   = 'catl_data_analysis_{0}_run.sh'.format(
+                        param_dict['ml_analysis'])
+    ##
     ## File or files to run
+    ##
+    ## Fixed HOD and DV
     if (param_dict['ml_analysis'] == 'hod_dv_fixed'):
         run_file_dict    = {}
         run_file_dict[0] = {'file': 'catl_algorithm_comparison.py'}
         run_file_dict[1] = {'file': 'catl_algorithm_comparison_plots.py'}
-    elif (param_dict['ml_analysis'] == 'dv_fixed'):
+    ## Fixed DV and multiple HOD models
+    if (param_dict['ml_analysis'] == 'dv_fixed'):
         run_file_dict    = {}
         run_file_dict[0] = {'file': 'catl_hod_diff_comparison.py'}
         run_file_dict[1] = {'file': 'catl_hod_diff_comparison_plots.py'}
+    ## Fixed HOD and multiple DV models
+    if (param_dict['ml_analysis'] == 'hod_fixed'):
+        run_file_dict    = {}
+        run_file_dict[0] = {'file': 'catl_velocity_bias_diff_comparison.py'}
+        run_file_dict[1] = {'file': 'catl_velocity_bias_diff_comparison_plots.py'}
     ##
     ## Saving to main dictionary
     param_dict['env_name'       ] = env_name
@@ -1389,6 +1783,8 @@ def main(args):
         df_arr = get_analysis_alg_comp_params(param_dict)
     elif (param_dict['ml_analysis'] == 'dv_fixed'):
         df_arr = get_analysis_hod_diff_params(param_dict)
+    elif (param_dict['ml_analysis'] == 'hod_fixed'):
+        df_arr = get_analysis_dv_diff_params(param_dict)
     ##
     ## Running analysis
     file_construction_and_execution(df_arr, param_dict)
