@@ -1095,6 +1095,9 @@ def get_analysis_hod_diff_params(param_dict):
     ## HOD Model to use
     main_plot_df = df_value_modifier(main_plot_df, 'hod_n', param_dict)
     ##
+    ## HOD Model to use
+    main_plot_df = df_value_modifier(main_plot_df, 'hod_models_n', param_dict)
+    ##
     ## Type of dark matter halo to use in the simulation
     main_plot_df = df_value_modifier(main_plot_df, 'halotype', param_dict)
     ##
