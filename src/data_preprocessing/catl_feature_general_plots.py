@@ -1004,7 +1004,7 @@ def covariance_plot(catl_pd, param_dict, proj_dict, plot_only_feat=False,
 
 ## Plots showing the points of HAM and `Dynamical`
 def pred_masses_halo_mass(param_dict, proj_dict,
-    arr_len=10, bin_statval='left', fig_fmt='pdf', figsize=(15, 10),
+    arr_len=10, bin_statval='left', fig_fmt='pdf', figsize=(15, 12),
     fig_number=3):
     """
     Plots the `predicted` vs `true` mass for each of the `traditional`
@@ -1042,16 +1042,16 @@ def pred_masses_halo_mass(param_dict, proj_dict,
         Number of figure in the workflow. This variable is set to `4`
         by default.
     """
-    file_msg = param_dict['Prog_msg']
+    file_msg      = param_dict['Prog_msg']
     # Constants
-    cm = plt.cm.get_cmap('viridis')
-    plot_dict = param_dict['plot_dict']
-    alpha = 0.2
+    cm            = plt.cm.get_cmap('viridis')
+    plot_dict     = param_dict['plot_dict']
+    alpha         = 0.4
     zorder_points = 5
-    zorder_shade = 6
-    zorder_line = 7
-    markersize=1
-    bin_width = param_dict['ml_args'].mass_bin_width
+    zorder_shade  = 8
+    zorder_line   = 10
+    markersize    = 1
+    bin_width     = param_dict['ml_args'].mass_bin_width
     #
     # Figure name
     fname    = os.path.join(proj_dict['figure_dir'],
@@ -1147,7 +1147,8 @@ def pred_masses_halo_mass(param_dict, proj_dict,
                 linestyle='-',
                 color=plot_dict['color_{0}'.format(mass_kk)],
                 marker='o',
-                zorder=zorder_line)
+                zorder=zorder_line,
+                linewidth=5)
         # Shade
         ax.fill_between(mass_dict['x_stat'],
                         mass_dict['y1'],
@@ -1159,8 +1160,8 @@ def pred_masses_halo_mass(param_dict, proj_dict,
     # --- One-One Array and other settings
     # Constants
     # Setting limits
-    xlim = (10, 15)
-    ylim = (10, 15)
+    xlim = (10.8, 15)
+    ylim = (10.8, 15)
     # Mayor and minor locators
     xaxis_major = 1
     xaxis_minor = 0.2
