@@ -1092,12 +1092,18 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
         for zz, hod_zz in enumerate(hod_arr):
             # Reading data
             # Model dictionary
-            # if (hod_zz != param_dict['hod_n']):
-            ml_model_kk_dict = models_dict[ml_kk][hod_zz]
-            # Score
-            model_score = ml_model_kk_dict['score_{0}'.format(score_type)]
-            # Assigning to DataFrame
-            ml_algs_pd.loc[kk, 'HOD {0}'.format(hod_zz)] = model_score
+            if (hod_zz != param_dict['hod_n']):
+                ml_model_kk_dict = models_dict[ml_kk][hod_zz]
+                # Score
+                model_score = ml_model_kk_dict['score_{0}'.format(score_type)]
+                # Assigning to DataFrame
+                ml_algs_pd.loc[kk, 'HOD {0}'.format(hod_zz)] = model_score
+            else:
+                ml_model_kk_dict = models_dict[ml_kk][hod_zz]
+                # Score
+                model_score = ml_model_kk_dict['score_{0}'.format(score_type)]
+                # Assigning to DataFrame
+                ml_algs_pd.loc[kk, 'Fiducial Model'] = model_score
     #
     # Delete 'ML' column
     ml_algs_pd.drop(columns=['ML'], inplace=True)
