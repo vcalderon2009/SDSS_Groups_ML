@@ -1002,6 +1002,220 @@ def covariance_plot(catl_pd, param_dict, proj_dict, plot_only_feat=False,
     plt.clf()
     plt.close()
 
+## Plots showing the points of HAM and `Dynamical`
+def pred_masses_halo_mass(param_dict, proj_dict,
+    arr_len=10, bin_statval='left', fig_fmt='pdf', figsize=(15, 10),
+    fig_number=3):
+    """
+    Plots the `predicted` vs `true` mass for each of the `traditional`
+    mass estimates.
+
+    Parameters
+    ------------
+    param_dict : `dict`
+        Dictionary with input parameters and values related to this project.
+
+    proj_dict: python dictionary
+        Dictionary with current and new paths to project directories
+    
+    arr_len : `int`, optional
+        Minimum number of elements in bins. This variable is set to `0`
+        by default.
+
+    bin_statval : `str`, optional
+        Option for where to plot the bin values. This variable is set
+        to `left` by default.
+
+        Options:
+        - 'average': Returns the x-points at the average x-value of the bin
+        - 'left'   : Returns the x-points at the left-edge of the x-axis bin
+        - 'right'  : Returns the x-points at the right-edge of the x-axis bin
+
+    fig_fmt : `str`, optional (default = 'pdf')
+        Extension used to save the figure
+
+    figsize : `tuple`, optional
+        Size of the output figure. This variable is set to `(12,15.5)` by
+        default.
+
+    fig_number : `int`, optional
+        Number of figure in the workflow. This variable is set to `4`
+        by default.
+    """
+    file_msg = param_dict['Prog_msg']
+    # Constants
+    cm = plt.cm.get_cmap('viridis')
+    plot_dict = param_dict['plot_dict']
+    alpha = 0.2
+    zorder_points = 5
+    zorder_shade = 6
+    zorder_line = 7
+    markersize=1
+    bin_width = param_dict['ml_args'].mass_bin_width
+    #
+    # Figure name
+    fname    = os.path.join(proj_dict['figure_dir'],
+                            'Fig_{0}_{1}_mass_ham_dyn.{2}'.format(
+                                fig_number,
+                                param_dict['catl_str_fig'],
+                                fig_fmt))
+    #
+    # Obtaining HAM and Dynamical masses
+    # Looping over HAM and Dynamical
+    pred_mass_dict = {}
+    for kk, mass_kk in enumerate(['ham', 'dyn']):
+        # Initializing dictionary
+        pred_mass_dict[mass_kk] = {}
+        # Getting masses
+        if (mass_kk == 'ham')
+            (   mass_pred,
+                mass_true) = param_dict['ml_args'].extract_trad_masses_alt(
+                                mass_opt='ham',
+                                return_frac_diff=False)
+        else:
+            (   mass_pred,
+                mass_true) = param_dict['ml_args'].extract_trad_masses_alt(
+                                mass_opt='ham',
+                                return_frac_diff=False,
+                                nlim_threshold=True,
+                                nlim_min=4)
+            # Only choosing values larger than 11
+            mass_pred_mask = mass_pred >= 11.
+            mass_pred = mass_pred[mass_pred_mask]
+            mass_true = mass_true[mass_pred_mask]
+        #
+        # Binning data for the different masses
+        (   x_stat,
+            y_stat,
+            y_std,
+            y_std_err) = cstats.Stats_one_arr(  mass_pred,
+                                                mass_true,
+                                                base=bin_width,
+                                                arr_len=arr_len,
+                                                bin_statval=bin_statval)
+        #
+        # Lower and upper limits for erryrs
+        y1 = y_stat - y_std
+        y2 = y_stat + y_std
+        #
+        # Saving to dictionary
+        pred_mass_dict[mass_kk]['x_stat'   ] = x_stat
+        pred_mass_dict[mass_kk]['y_stat'   ] = y_stat
+        pred_mass_dict[mass_kk]['y_std'    ] = y_std
+        pred_mass_dict[mass_kk]['y1'       ] = y1
+        pred_mass_dict[mass_kk]['y2'       ] = y2
+        pred_mass_dict[mass_kk]['mass_pred'] = mass_pred
+        pred_mass_dict[mass_kk]['mass_true'] = mass_true
+    #
+    # One-one line
+    one_arr = num.linspace(0, 15, num=100)
+    #
+    # Figure details
+    xlabel = r'\boldmath$\log M_{predicted}\left[h^{-1} M_{\odot}\right]$'
+    # Y-axis
+    ylabel = r'\boldmath$\log M_{\textrm{halo}}\left[h^{-1} M_{\odot}\right]$'
+    # Plotting constants
+    label_dict = {'ham': 'HAM', 'dyn': 'Dynamical Mass'}
+    # Initializing figure
+    plt.clf()
+    plt.close()
+    fig, axes = plt.subplots(nrows=1, ncols=2, sharex=True,
+                    sharey=True, figsize=figsize)
+    # Flattening out the axes
+    axes = axes.flatten()
+    # Plotting HAM and Dynamical
+    for kk, mass_kk in enumerate(pred_mass_dict.keys()):
+        # Axis
+        ax = axes[kk]
+        # Axis background color
+        ax.set_facecolor('white')
+        # Mass dictionary
+        mass_dict = pred_mass_dict[mass_kk]
+        # Points
+        ax.plot(mass_dict['mass_pred'],
+                mass_dict['mass_true'],
+                marker='o',
+                linestyle='',
+                markersize=markersize,
+                color=plot_dict['color_{0}'.format(mass_kk)],
+                alpha=alpha,
+                zorder=zorder_points,
+                rasterized=True)
+        # Relation
+        ax.plot(mass_dict['x_stat'],
+                mass_dict['y_stat'],
+                linestyle='-',
+                color=plot_dict['color_{0}'.format(mass_kk)],
+                marker='o',
+                zorder=zorder_line)
+        # Shade
+        ax.fill_between(mass_dict['x_stat'],
+                        mass_dict['y1'],
+                        mass_dict['y2'],
+                        color=plot_dict['color_{0}'.format(mass_kk)],
+                        alpha=alpha,
+                        label=label_dict[mass_kk],
+                        zorder=zorder_shade)
+    # --- One-One Array and other settings
+    # Constants
+    # Setting limits
+    xlim = (10, 15)
+    ylim = (10, 15)
+    # Mayor and minor locators
+    xaxis_major = 1
+    xaxis_minor = 0.2
+    yaxis_major = 1
+    yaxis_minor = 0.2
+    xaxis_major_loc = ticker.MultipleLocator(xaxis_major)
+    xaxis_minor_loc = ticker.MultipleLocator(xaxis_minor)
+    yaxis_major_loc = ticker.MultipleLocator(yaxis_major)
+    yaxis_minor_loc = ticker.MultipleLocator(yaxis_minor)
+    # Looping over axes
+    for kk, ax in enumerate(axes):
+        ax.plot(one_arr, one_arr, linestyle='--', color='black', zorder=10)
+        # Axis labels
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        # Labels
+        ax.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
+        if (kk == 0):
+            ax.set_ylabel(ylabel, fontsize=plot_dict['size_label'])
+        # Mayor and minor locators
+        ax.xaxis.set_major_locator(xaxis_major_loc)
+        ax.xaxis.set_minor_locator(xaxis_minor_loc)
+        ax.yaxis.set_major_locator(yaxis_major_loc)
+        ax.yaxis.set_minor_locator(yaxis_minor_loc)
+        # Legend
+        ax.legend(loc='upper left', numpoints=1, frameon=False,
+            prop={'size': 14})
+    # Spacing
+    plt.subplots_adjust(wspace=0.05)
+    #
+    # Saving figure
+    ##
+    ## Saving figure
+    if (fig_fmt == 'pdf'):
+        plt.savefig(fname, bbox_inches='tight', rasterize=True)
+    else:
+        plt.savefig(fname, bbox_inches='tight', dpi=400)
+    print('{0} Figure saved as: {1}'.format(file_msg, fname))
+    plt.clf()
+    plt.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## --------- Main Function ------------##
 
 def main(args):
@@ -1050,6 +1264,9 @@ def main(args):
     #
     # Covariance Matrix
     covariance_plot(catl_pd, param_dict, proj_dict)
+    #
+    # Traditional methods for estimating masses
+    pred_masses_halo_mass(param_dict, proj_dict)
     ##
     ## End time for running the catalogues
     end_time = datetime.now()
