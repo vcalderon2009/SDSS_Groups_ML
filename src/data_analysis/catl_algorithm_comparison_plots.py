@@ -929,7 +929,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
                         label='Dynamical',
                         zorder=zorder_shade)
     ## Legend
-    leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
+    leg = ax1.legend(loc='upper left', numpoints=1, frameon=False,
         prop={'size':14})
     leg.get_frame().set_facecolor('none')
     ## Ticks
