@@ -62,11 +62,11 @@ SAMPLE_METHOD= 'binning'
 BIN_VAL      = 'fixed'
 ML_ANALYSIS  = 'hod_dv_fixed'
 KF_SPLITS    = 3
-## -- Algorithm Comparison --
+# -- Algorithm Comparison --
 PLOT_OPT     = 'mgroup'
 RANK_OPT     = 'idx'
 RESAMPLE_OPT = 'under'
-## -- Comparing HODs
+# -- Comparing HODs
 HOD_MODELS_N = '0_1_2_3_4_5_6_7_8'
 INCLUDE_NN   = 'False'
 DV_MODELS_N  = '0.9_0.925_0.95_0.975_1.025_1.05_1.10'
