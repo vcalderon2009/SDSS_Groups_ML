@@ -1263,7 +1263,7 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
 
 # HAM, Dynamical, and ML masses vs `True` halo mass
 def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
-    arr_len=10, bin_statval='left', fig_fmt='png', figsize=(25,5),
+    arr_len=10, bin_statval='left', fig_fmt='pdf', figsize=(25,5),
     fig_number=4):
     """
     Plots the `predicted` vs the `true` mass for each of the different
