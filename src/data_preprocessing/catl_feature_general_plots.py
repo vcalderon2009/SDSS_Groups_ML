@@ -1046,7 +1046,7 @@ def pred_masses_halo_mass(param_dict, proj_dict,
     # Constants
     cm            = plt.cm.get_cmap('viridis')
     plot_dict     = param_dict['plot_dict']
-    alpha         = 0.4
+    alpha         = 0.2
     zorder_points = 5
     zorder_shade  = 8
     zorder_line   = 10
@@ -1070,12 +1070,12 @@ def pred_masses_halo_mass(param_dict, proj_dict,
         if (mass_kk == 'ham'):
             (   mass_pred,
                 mass_true) = param_dict['ml_args'].extract_trad_masses_alt(
-                                mass_opt='ham',
+                                mass_opt=mass_kk,
                                 return_frac_diff=False)
         else:
             (   mass_pred,
                 mass_true) = param_dict['ml_args'].extract_trad_masses_alt(
-                                mass_opt='ham',
+                                mass_opt=mass_kk,
                                 return_frac_diff=False,
                                 nlim_threshold=True,
                                 nlim_min=4)
