@@ -1129,6 +1129,8 @@ def pred_masses_halo_mass(param_dict, proj_dict,
         ax = axes[kk]
         # Axis background color
         ax.set_facecolor('white')
+        # Aspect ratio
+        ax.set_aspect(aspect=1)
         # Mass dictionary
         mass_dict = pred_mass_dict[mass_kk]
         # Points
