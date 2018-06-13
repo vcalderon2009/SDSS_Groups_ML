@@ -1067,7 +1067,7 @@ def pred_masses_halo_mass(param_dict, proj_dict,
         # Initializing dictionary
         pred_mass_dict[mass_kk] = {}
         # Getting masses
-        if (mass_kk == 'ham')
+        if (mass_kk == 'ham'):
             (   mass_pred,
                 mass_true) = param_dict['ml_args'].extract_trad_masses_alt(
                                 mass_opt='ham',
