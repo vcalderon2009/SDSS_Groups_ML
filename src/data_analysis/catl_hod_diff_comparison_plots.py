@@ -1138,8 +1138,7 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     ml_algs_pd.plot(kind='barh',
                     stacked=False,
                     ax=ax1,
-                    legend=True,
-                    colormap='Paired')
+                    legend=True)
     # HAM and Dynamical masses - Lines
     ax1.axvline(    x=ham_score,
                     color=plot_dict['color_ham'],
