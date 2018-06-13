@@ -805,9 +805,9 @@ def frac_diff_model(param_dict, proj_dict, plot_opt='mhalo',
                                                 mass_opt='dyn',
                                                 return_frac_diff=True,
                                                 nlim_threshold=True,
-                                                nlim_min=10)
+                                                nlim_min=4)
     # Only choosing non-zero values
-    dyn_pred_mask = dyn_pred >= 12.0
+    dyn_pred_mask = dyn_pred >= 11.0
     dyn_pred      = dyn_pred[dyn_pred_mask]
     dyn_true      = dyn_true[dyn_pred_mask]
     dyn_frac_diff = dyn_frac_diff[dyn_pred_mask]
