@@ -897,47 +897,47 @@ def frac_diff_model(param_dict, proj_dict, plot_opt='mhalo',
         dyn_x = dyn_true
     ##
     ## Binning data
-    # HAM
-    ham_dict = stats_frac_diff( ham_pred,
-                                ham_true,
-                                base=bin_width,
-                                arr_len=arr_len,
-                                bin_statval=bin_statval)
-    x_stat_ham = ham_dict['x_stat']
-    y_stat_ham = ham_dict['y_stat_fd']
-    y1_ham     = ham_dict['y1_fd']
-    y2_ham     = ham_dict['y2_fd']
-    # Dynamical
-    dyn_dict = stats_frac_diff( dyn_pred,
-                                dyn_true,
-                                base=bin_width,
-                                arr_len=arr_len,
-                                bin_statval=bin_statval)
-    x_stat_dyn = dyn_dict['x_stat']
-    y_stat_dyn = dyn_dict['y_stat_fd']
-    y1_dyn     = dyn_dict['y1_fd']
-    y2_dyn     = dyn_dict['y2_fd']
-    # (   x_stat_ham   ,
-    #     y_stat_ham   ,
-    #     y_std_ham    ,
-    #     y_std_err_ham) = cstats.Stats_one_arr(  ham_x,
-    #                                             ham_frac_diff,
-    #                                             base=bin_width,
-    #                                             arr_len=arr_len,
-    #                                             bin_statval=bin_statval)
-    # y1_ham = y_stat_ham - y_std_ham
-    # y2_ham = y_stat_ham + y_std_ham
+    # # HAM
+    # ham_dict = stats_frac_diff( ham_pred,
+    #                             ham_true,
+    #                             base=bin_width,
+    #                             arr_len=arr_len,
+    #                             bin_statval=bin_statval)
+    # x_stat_ham = ham_dict['x_stat']
+    # y_stat_ham = ham_dict['y_stat_fd']
+    # y1_ham     = ham_dict['y1_fd']
+    # y2_ham     = ham_dict['y2_fd']
     # # Dynamical
-    # (   x_stat_dyn   ,
-    #     y_stat_dyn   ,
-    #     y_std_dyn    ,
-    #     y_std_err_dyn) = cstats.Stats_one_arr(  dyn_x,
-    #                                             dyn_frac_diff,
-    #                                             base=bin_width,
-    #                                             arr_len=arr_len,
-    #                                             bin_statval=bin_statval)
-    # y1_dyn = y_stat_dyn - y_std_dyn
-    # y2_dyn = y_stat_dyn + y_std_dyn
+    # dyn_dict = stats_frac_diff( dyn_pred,
+    #                             dyn_true,
+    #                             base=bin_width,
+    #                             arr_len=arr_len,
+    #                             bin_statval=bin_statval)
+    # x_stat_dyn = dyn_dict['x_stat']
+    # y_stat_dyn = dyn_dict['y_stat_fd']
+    # y1_dyn     = dyn_dict['y1_fd']
+    # y2_dyn     = dyn_dict['y2_fd']
+    (   x_stat_ham   ,
+        y_stat_ham   ,
+        y_std_ham    ,
+        y_std_err_ham) = cstats.Stats_one_arr(  ham_x,
+                                                ham_frac_diff,
+                                                base=bin_width,
+                                                arr_len=arr_len,
+                                                bin_statval=bin_statval)
+    y1_ham = y_stat_ham - y_std_ham
+    y2_ham = y_stat_ham + y_std_ham
+    # Dynamical
+    (   x_stat_dyn   ,
+        y_stat_dyn   ,
+        y_std_dyn    ,
+        y_std_err_dyn) = cstats.Stats_one_arr(  dyn_x,
+                                                dyn_frac_diff,
+                                                base=bin_width,
+                                                arr_len=arr_len,
+                                                bin_statval=bin_statval)
+    y1_dyn = y_stat_dyn - y_std_dyn
+    y2_dyn = y_stat_dyn + y_std_dyn
     ##
     ## Figure details
     # Labels
