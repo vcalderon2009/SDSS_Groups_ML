@@ -683,6 +683,7 @@ def array_insert(arr1, arr2, axis=1):
 
     return arr3
 
+# Clean version of the catalogue
 def catl_file_read_clean(param_dict, proj_dict, dropna_opt=True):
     """
     Reads in the catalogue and cleans it for plotting.
@@ -725,6 +726,81 @@ def catl_file_read_clean(param_dict, proj_dict, dropna_opt=True):
     catl_pd       = catl_pd.drop(catl_drop_arr, axis=1)
 
     return catl_pd
+
+# Correctly converting the axes between fractional difference and normal
+def stats_frac_diff(pred_arr, true_arr, base=0.4, arr_len=10,
+    bin_statval='left', return_frac_diff=True):
+    """
+    Correctly converts the fractional difference of a given sample of 
+    `predicted` and `true` values
+
+    Parameters
+    -----------
+    pred_arr : array-like or `numpy.ndarray`
+        Array of the `predicted` values
+
+    true_arr : array-like or `numpy.ndarray`
+        Array of the `true` values
+
+    base : `float`, optional
+        Bin width in units of `pred_arr`. This variable is set to 
+        `0.4` by default.
+
+    arr_len : `int`, optional
+        Minimum number of elements in bins. This variable is set to `0`
+        by default.
+
+    bin_statval : `str`, optional
+        Option for where to plot the bin values. This variable is set
+        to `average` by default.
+
+        Options:
+        - 'average': Returns the x-points at the average x-value of the bin
+        - 'left'   : Returns the x-points at the left-edge of the x-axis bin
+        - 'right'  : Returns the x-points at the right-edge of the x-axis bin
+
+    Returns
+    ---------
+    main_dict : `dict`
+        Dictionary containing the different statistics to use for `pred_arr`
+        and `true_arr`
+    """
+    # Computing normal statistics
+    (   x_stat,
+        y_stat,
+        y_std,
+        y_std_err) = cstats.Stats_one_arr(  pred_arr,
+                                            true_arr,
+                                            base=base,
+                                            arr_len=arr_len,
+                                            bin_statval=bin_statval)
+    # Limits for 1 standard deviation
+    y1 = y_stat - y_std
+    y2 = y_stat + y_std
+    # Computing fractional difference `correctly`
+    frac_diff = 100 * (pred_arr - true_arr) / true_arr
+    #
+    # Computing the limits of the relation `correctly`
+    y_stat_fd = 100 * (x_stat - y_stat) / y_stat
+    y1_fd     = -100 * (x_stat - y1) / y1
+    y2_fd     = -100 * (x_stat - y2) / y2
+    #
+    # Saving to dictionary
+    main_dict = {}
+    main_dict['x_stat'   ] = x_stat
+    main_dict['y_stat'   ] = y_stat
+    main_dict['y_std'    ] = y_std
+    main_dict['y_std_err'] = y_std_err
+    main_dict['y1'       ] = y1
+    main_dict['y2'       ] = y2
+    main_dict['y_stat_fd'] = y_stat_fd
+    main_dict['y1_fd'    ] = y1_fd
+    main_dict['y2_fd'    ] = y2_fd
+
+    return main_dict
+
+
+
 
 ## --------- Plotting Functions ------------##
 
@@ -822,27 +898,46 @@ def frac_diff_model(param_dict, proj_dict, plot_opt='mhalo',
     ##
     ## Binning data
     # HAM
-    (   x_stat_ham   ,
-        y_stat_ham   ,
-        y_std_ham    ,
-        y_std_err_ham) = cstats.Stats_one_arr(  ham_x,
-                                                ham_frac_diff,
-                                                base=bin_width,
-                                                arr_len=arr_len,
-                                                bin_statval=bin_statval)
-    y1_ham = y_stat_ham - y_std_ham
-    y2_ham = y_stat_ham + y_std_ham
+    ham_dict = stats_frac_diff( ham_pred,
+                                ham_true,
+                                base=bin_width,
+                                arr_len=arr_len,
+                                bin_statval=bin_statval)
+    x_stat_ham = ham_dict['x_stat']
+    y_stat_ham = ham_dict['y_stat_fd']
+    y1_ham     = ham_dict['y1_fd']
+    y2_ham     = ham_dict['y2_fd']
     # Dynamical
-    (   x_stat_dyn   ,
-        y_stat_dyn   ,
-        y_std_dyn    ,
-        y_std_err_dyn) = cstats.Stats_one_arr(  dyn_x,
-                                                dyn_frac_diff,
-                                                base=bin_width,
-                                                arr_len=arr_len,
-                                                bin_statval=bin_statval)
-    y1_dyn = y_stat_dyn - y_std_dyn
-    y2_dyn = y_stat_dyn + y_std_dyn
+    dyn_dict = stats_frac_diff( dyn_pred,
+                                dyn_true,
+                                base=bin_width,
+                                arr_len=arr_len,
+                                bin_statval=bin_statval)
+    x_stat_dyn = dyn_dict['x_stat']
+    y_stat_dyn = dyn_dict['y_stat_fd']
+    y1_dyn     = dyn_dict['y1_fd']
+    y2_dyn     = dyn_dict['y2_fd']
+    # (   x_stat_ham   ,
+    #     y_stat_ham   ,
+    #     y_std_ham    ,
+    #     y_std_err_ham) = cstats.Stats_one_arr(  ham_x,
+    #                                             ham_frac_diff,
+    #                                             base=bin_width,
+    #                                             arr_len=arr_len,
+    #                                             bin_statval=bin_statval)
+    # y1_ham = y_stat_ham - y_std_ham
+    # y2_ham = y_stat_ham + y_std_ham
+    # # Dynamical
+    # (   x_stat_dyn   ,
+    #     y_stat_dyn   ,
+    #     y_std_dyn    ,
+    #     y_std_err_dyn) = cstats.Stats_one_arr(  dyn_x,
+    #                                             dyn_frac_diff,
+    #                                             base=bin_width,
+    #                                             arr_len=arr_len,
+    #                                             bin_statval=bin_statval)
+    # y1_dyn = y_stat_dyn - y_std_dyn
+    # y2_dyn = y_stat_dyn + y_std_dyn
     ##
     ## Figure details
     # Labels
