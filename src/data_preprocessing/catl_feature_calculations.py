@@ -635,7 +635,7 @@ def catalogue_analysis(ii, catl_ii_name, box_n, param_dict, proj_dict,
         group_mod_pd = pd.DataFrame({'groupid':num.sort(group_ii_pd['groupid'])})
         ## Indices for each galaxy group
         group_gals_dict = group_gals_idx(memb_ii_pd, group_ii_pd)
-        ## Brightness of brightness galaxy
+        ## Brightness of brightest galaxy
         group_mod_pd = group_brightest_gal( memb_ii_pd  , group_ii_pd    , 
                                             group_mod_pd, group_gals_dict)
         ## Brighness ratio between 1st and 2nd brightest galaxies in galaxy group
