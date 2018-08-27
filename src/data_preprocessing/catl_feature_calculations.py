@@ -928,8 +928,8 @@ def group_brightness_gal_ratio(memb_ii_pd, group_ii_pd, group_mod_pd,
 def group_shape(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict, 
     param_dict, nmin=2):
     """
-    Determines the brightness ratio of the 1st and 2nd brightest 
-    galaxies in galaxy group
+    Determines the shape of the galaxy group in terms its
+    eigenvalues and eigenvectors.
 
     Parameters
     ------------
