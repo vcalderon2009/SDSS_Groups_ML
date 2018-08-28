@@ -244,7 +244,7 @@ class ReadML(object):
         self.resample_opt   = kwargs.get('resample_opt', 'under')
         self.hod_models_n   = kwargs.get('hod_models_n', '0_1_2_3_4_5_6_7_8')
         self.include_nn     = kwargs.get('include_nn', False)
-        self.dv_models_n   = kwargs.get('dv_models_n', '0.9_0.925_0.95_0.975_1.025_1.05_1.10')
+        self.dv_models_n    = kwargs.get('dv_models_n', '0.9_0.925_0.95_0.975_1.025_1.05_1.10')
         #
         # Extra variables
         self.sample_Mr      = 'Mr{0}'.format(self.sample)
