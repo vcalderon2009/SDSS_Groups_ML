@@ -15,7 +15,6 @@ Init file for main Source file
 
 # Importing modules
 
-from . import data
 from . import data_analysis
 from . import data_preprocessing
 from . import data_testing
