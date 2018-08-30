@@ -3,7 +3,7 @@
 
 # Victor Calderon
 # Created      : 2018-05-26
-# Last Modified: 2018-05-26
+# Last Modified: 2018-05-30
 # Vanderbilt University
 from __future__ import print_function, division, absolute_import
 __author__     =['Victor Calderon']
@@ -36,15 +36,22 @@ import matplotlib.ticker as ticker
 plt.rc('text', usetex=True)
 import seaborn as sns
 #sns.set()
-from progressbar import (Bar, ETA, FileTransferSpeed, Percentage, ProgressBar,
-                        ReverseBar, RotatingMarker)
-from tqdm import tqdm
 
 # Extra-modules
 from argparse import ArgumentParser
 from argparse import HelpFormatter
 from operator import attrgetter
 from tqdm import tqdm
+
+## ML Modules
+import sklearn
+import sklearn.metrics          as skmetrics
+import sklearn.model_selection  as skms
+import sklearn.ensemble         as skem
+import sklearn.neural_network   as skneuro
+import sklearn.preprocessing    as skpre
+import xgboost
+import scipy
 
 ## Functions
 class SortingHelpFormatter(HelpFormatter):
@@ -102,28 +109,159 @@ def get_parser():
         input arguments to the script
     """
     ## Define parser object
-    description_msg = 'Description of Script'
+    description_msg = """
+    Script to determine the optimal size of the sample being analyzed.
+    """
     parser = ArgumentParser(description=description_msg,
                             formatter_class=SortingHelpFormatter,)
     ## 
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
-    parser.add_argument('-namevar', '--long-name',
-                        dest='variable_name',
-                        help='Description of variable',
-                        type=float,
+    ## Number of HOD's to create. Dictates how many different types of 
+    ##      mock catalogues to create
+    parser.add_argument('-hod_model_n',
+                        dest='hod_n',
+                        help="Number of distinct HOD model to use.",
+                        type=int,
+                        choices=range(0,10),
+                        metavar='[0-10]',
                         default=0)
-    ##
-    parser.add_argument('-namevar1', '--long-name1',
-                        dest='variable_name1',
-                        help='Description of variable',
+    ## Type of dark matter halo to use in the simulation
+    parser.add_argument('-halotype',
+                        dest='halotype',
+                        help='Type of the DM halo.',
+                        type=str,
+                        choices=['so','fof'],
+                        default='so')
+    ## CLF/CSMF method of assigning galaxy properties
+    parser.add_argument('-clf_method',
+                        dest='clf_method',
+                        help="""
+                        Method for assigning galaxy properties to mock 
+                        galaxies. Options:
+                        (1) = Independent assignment of (g-r), sersic, logssfr
+                        (2) = (g-r) decides active/passive designation and 
+                        draws values independently.
+                        (3) (g-r) decides active/passive designation, and 
+                        assigns other galaxy properties for that given 
+                        galaxy.
+                        """,
+                        type=int,
+                        choices=[1,2,3],
+                        default=3)
+    ## Difference between galaxy and mass velocity profiles (v_g-v_c)/(v_m-v_c)
+    parser.add_argument('-dv',
+                        dest='dv',
+                        help="""
+                        Difference between galaxy and mass velocity profiles 
+                        (v_g-v_c)/(v_m-v_c)
+                        """,
                         type=_check_pos_val,
-                        default=0.1)
-    ## `Perfect Catalogue` Option
-    parser.add_argument('-namevar2', '--long-name2',
-                        dest='variable_name2',
-                        help='Description of variable',
+                        default=1.0)
+    ## Luminosity sample to analyze
+    parser.add_argument('-sample',
+                        dest='sample',
+                        help='SDSS Luminosity sample to analyze',
+                        type=str,
+                        choices=['all', '19','20','21'],
+                        default='19')
+    ## SDSS Type
+    parser.add_argument('-abopt',
+                        dest='catl_type',
+                        help='Type of Abund. Matching used in catalogue',
+                        type=str,
+                        choices=['mr', 'mstar'],
+                        default='mr')
+    ## Cosmology Choice
+    parser.add_argument('-cosmo',
+                        dest='cosmo_choice',
+                        help='Choice of Cosmology',
+                        type=str,
+                        choices=['LasDamas', 'Planck'],
+                        default='LasDamas')
+    ## Minimum of galaxies in a group
+    parser.add_argument('-nmin',
+                        dest='nmin',
+                        help='Minimum number of galaxies in a galaxy group',
+                        type=int,
+                        choices=range(2,1000),
+                        metavar='[1-1000]',
+                        default=2)
+    ## Total number of properties to predict. Default = 1
+    parser.add_argument('-n_predict',
+                        dest='n_predict',
+                        help="""
+                        Number of properties to predict. Default = 1""",
+                        type=int,
+                        choices=range(1,4),
+                        default=1)
+    ## Option for Shuffling dataset when separating 
+    ## `training` and `testing` sets
+    parser.add_argument('-shuffle_opt',
+                        dest='shuffle_opt',
+                        help="""
+                        Option for whether or not to shuffle the data before 
+                        splitting.
+                        """,
                         type=_str2bool,
-                        default=False)
+                        default=True)
+    ## Option for Shuffling dataset when separing `training` and `testing` sets
+    parser.add_argument('-dropna_opt',
+                        dest='dropna_opt',
+                        help="""
+                        Option for whether or not to drop NaNs from the dataset
+                        """,
+                        type=_str2bool,
+                        default=True)
+    ## Option for removing file
+    parser.add_argument('-pre_opt',
+                        dest='pre_opt',
+                        help="""
+                        Option for which preprocessing of the data to use.
+                        """,
+                        type=str,
+                        choices=['min_max','standard','normalize', 'no', 'all'],
+                        default='standard')
+    ## Option for which kind of separation of training/testing to use for the 
+    ## datasets.
+    parser.add_argument('-test_train_opt',
+                        dest='test_train_opt',
+                        help="""
+                        Option for which kind of separation of training/testing
+                        to use for the datasets.
+                        """,
+                        type=str,
+                        choices=['sample_frac', 'boxes_n'],
+                        default='boxes_n')
+    ## Initial and final indices of the simulation boxes to use for the 
+    ## testing and training datasets.
+    parser.add_argument('-box_idx',
+                        dest='box_idx',
+                        help="""
+                        Initial and final indices of the simulation boxes to 
+                        use for the `training` datasets.
+                        And the index of the boxes used for `testing`.
+                        Example: 0_4_5 >>> This will use from 0th to 4th box
+                        for training, and the 5th box for testing.""",
+                        nargs=str,
+                        default='0_4_5')
+    ## Testing size for ML
+    parser.add_argument('-test_size',
+                        dest='test_size',
+                        help='Percentage size of the catalogue used for testing',
+                        type=_check_pos_val,
+                        default=0.25)
+    ## Option for using all features or just a few
+    parser.add_argument('-n_feat_use',
+                        dest='n_feat_use',
+                        help="""
+                        Option for which features to use for the ML training 
+                        dataset.
+                        """,
+                        choices=['all', 'sub'],
+                        default='sub')
+
+
+
     ## Program message
     parser.add_argument('-progmsg',
                         dest='Prog_msg',

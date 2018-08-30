@@ -783,7 +783,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
         # New X-axis
         model_kk_x = model_kk_data['mhalo_pred']
         # Y-axis
-        model_kk_y    = model_kk_data['frac_diff']
+        model_kk_y = model_kk_data['frac_diff']
         # Calculating error in bins
         (   x_stat_arr,
             y_stat_arr,

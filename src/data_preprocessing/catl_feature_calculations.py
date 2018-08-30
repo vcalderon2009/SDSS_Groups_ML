@@ -953,7 +953,7 @@ def group_shape(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
     ## Cosmology
     cosmo_model = param_dict['cosmo_model']
     speed_c     = param_dict['speed_c']
-    ## Array for brightness ratio
+    ## Array for group shapes.
     group_shape_arr = num.zeros(len(group_ii_pd))
     ## Groups with number of galaxies larger than `nmin`
     groups_nmin_arr = group_ii_pd.loc[group_ii_pd['GG_ngals']>=nmin,'groupid']
