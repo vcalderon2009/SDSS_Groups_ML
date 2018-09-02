@@ -683,11 +683,16 @@ def directory_skeleton(param_dict, proj_dict):
                                 catl_prefix_path,
                                 'sf_{0}'.format(param_dict['sample_frac']),
                                 param_dict['pre_opt'])
+    # Paper Figure directory
+    paper_fig_dir = os.path.join(   proj_dict['plot_dir'],
+                                    'Paper_Figures')
     # Creating folder
     cfutils.Path_Folder(figure_dir)
+    cfutils.Path_Folder(paper_fig_dir)
     #
     # Adding to `proj_dict`
     proj_dict['figure_dir'] = figure_dir
+    proj_dict['paper_fig_dir'] = paper_fig_dir
 
     return proj_dict
 
