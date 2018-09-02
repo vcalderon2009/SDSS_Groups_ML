@@ -661,8 +661,12 @@ def directory_skeleton(param_dict, proj_dict):
                                 catl_prefix_path,
                                 'sf_{0}'.format(param_dict['sample_frac']),
                                 param_dict['pre_opt'])
+    # Paper Figure directory
+    paper_fig_dir = os.path.join(   proj_dict['plot_dir'],
+                                    'Paper_Figures')
     # Creating folder
     cfutils.Path_Folder(figure_dir)
+    cfutils.Path_Folder(paper_fig_dir)
     #
     # Adding to `proj_dict`
     proj_dict['figure_dir'] = figure_dir
@@ -763,6 +767,10 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
                                 fig_number,
                                 param_dict['catl_str_fig'],
                                 plot_opt))
+    ##
+    ## Paper Figure
+    fname_paper = os.path.join( proj_dict['paper_fig_dir'],
+                                'Figure_04.{0}'.format(fig_fmt))
     ## Algorithm names - Thought as indices for the plot
     ml_algs_names = num.sort(list(models_dict.keys()))
     n_ml_algs     = len(ml_algs_names)
@@ -957,8 +965,12 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     ## Saving figure
     if fig_fmt=='pdf':
         plt.savefig(fname, bbox_inches='tight')
+        plt.savefig(fname_paper, bbox_inches='tight')
     else:
         plt.savefig(fname, bbox_inches='tight', dpi=400)
+        plt.savefig(fname_paper, bbox_inches='tight', dpi=400)
+    ##
+    ##
     print('{0} Figure saved as: {1}'.format(file_msg, fname))
     plt.clf()
     plt.close()
@@ -1014,6 +1026,10 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
                                 param_dict['catl_str_fig'],
                                 rank_opt,
                                 fig_fmt))
+    ##
+    ## Paper Figure
+    fname_paper = os.path.join( proj_dict['paper_fig_dir'],
+                                'Figure_05.{0}'.format(fig_fmt))
     #
     # Constants
     feat_cols_dict = param_dict['ml_args'].feat_cols_names_dict()
@@ -1120,8 +1136,12 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
     ## Saving figure
     if fig_fmt=='pdf':
         plt.savefig(fname, bbox_inches='tight')
+        plt.savefig(fname_paper, bbox_inches='tight')
     else:
         plt.savefig(fname, bbox_inches='tight', dpi=400)
+        plt.savefig(fname_paper, bbox_inches='tight', dpi=400)
+    ##
+    ##
     print('{0} Figure saved as: {1}'.format(file_msg, fname))
     plt.clf()
     plt.close()
@@ -1177,6 +1197,10 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
                                 param_dict['catl_str_fig'],
                                 score_type,
                                 fig_fmt))
+    ##
+    ## Paper Figure
+    fname_paper = os.path.join( proj_dict['paper_fig_dir'],
+                                'Figure_06.{0}'.format(fig_fmt))
     #
     # Algorithms names - Thought as indices for this plot
     ml_algs_names = num.sort(list(models_dict))
@@ -1255,8 +1279,10 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     ## Saving figure
     if fig_fmt == 'pdf':
         plt.savefig(fname, bbox_inches='tight')
+        plt.savefig(fname_paper, bbox_inches='tight')
     else:
         plt.savefig(fname, bbox_inches='tight', dpi=400)
+        plt.savefig(fname_paper, bbox_inches='tight', dpi=400)
     print('{0} Figure saved as: {1}'.format(file_msg, fname))
     plt.clf()
     plt.close()
@@ -1323,6 +1349,10 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
     fname = os.path.join(proj_dict['figure_dir'],
                 'Fig_{0}_{1}_pred_true_masses.{2}'.format(
                     fig_number, param_dict['catl_str_fig'], fig_fmt))
+    ##
+    ## Paper Figure
+    fname_paper = os.path.join( proj_dict['paper_fig_dir'],
+                                'Figure_07.{0}'.format(fig_fmt))
     #
     # Algorithm names - thought as indices for the plot
     ml_algs_names = num.sort(list(models_dict.keys()))
@@ -1548,8 +1578,10 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
     ## Saving figure
     if (fig_fmt == 'pdf'):
         plt.savefig(fname, bbox_inches='tight', rasterize=True)
+        plt.savefig(fname_paper, bbox_inches='tight', rasterize=True)
     else:
         plt.savefig(fname, bbox_inches='tight', dpi=400)
+        plt.savefig(fname_paper, bbox_inches='tight', dpi=400)
     print('{0} Figure saved as: {1}'.format(file_msg, fname))
     plt.clf()
     plt.close()

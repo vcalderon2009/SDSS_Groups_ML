@@ -651,11 +651,16 @@ def directory_skeleton(param_dict, proj_dict):
     figure_dir = os.path.join(proj_dict['plot_dir'],
                                 'catl_props_exploration',
                                 catl_prefix_path)
+    # Paper Figure directory
+    paper_fig_dir = os.path.join(   proj_dict['plot_dir'],
+                                    'Paper_Figures')
     # Creating folder
     cfutils.Path_Folder(figure_dir)
+    cfutils.Path_Folder(paper_fig_dir)
     #
     # Adding to `proj_dict`
-    proj_dict['figure_dir'] = figure_dir
+    proj_dict['figure_dir'   ] = figure_dir
+    proj_dict['paper_fig_dir'] = paper_fig_dir
 
     return proj_dict
 
@@ -867,6 +872,10 @@ def frac_diff_model(param_dict, proj_dict, plot_opt='mhalo',
                                 fig_number,
                                 param_dict['catl_str_fig'],
                                 fig_fmt))
+    ##
+    ## Paper Figure
+    fname_paper = os.path.join( proj_dict['paper_fig_dir'],
+                                'Figure_01.{0}'.format(fig_fmt))
     ## Abundance matched mass
     # HAM
     (   ham_pred,
@@ -1013,9 +1022,14 @@ def frac_diff_model(param_dict, proj_dict, plot_opt='mhalo',
     ## Saving figure
     if fig_fmt=='pdf':
         plt.savefig(fname, bbox_inches='tight')
+        plt.savefig(fname_paper, bbox_inches='tight')
     else:
         plt.savefig(fname, bbox_inches='tight', dpi=400)
+        plt.savefig(fname_paper, bbox_inches='tight', dpi=400)
+    ##
+    ##
     print('{0} Figure saved as: {1}'.format(file_msg, fname))
+    print('{0} Paper Figure saved as: {1}'.format(file_msg, fname_paper))
     plt.clf()
     plt.close()
 
@@ -1060,6 +1074,10 @@ def covariance_plot(catl_pd, param_dict, proj_dict, plot_only_feat=False,
                                     fig_number,
                                     param_dict['catl_str_fig'],
                                     fig_fmt))
+    ##
+    ## Paper Figure
+    fname_paper = os.path.join( proj_dict['paper_fig_dir'],
+                                'Figure_02.{0}'.format(fig_fmt))
     ## Renaming properties
     catl_pd_copy = catl_pd.copy()
     # Plotting only features if applicable
@@ -1091,9 +1109,14 @@ def covariance_plot(catl_pd, param_dict, proj_dict, plot_only_feat=False,
     ## Saving figure
     if fig_fmt=='pdf':
         plt.savefig(fname, bbox_inches='tight')
+        plt.savefig(fname_paper, bbox_inches='tight')
     else:
         plt.savefig(fname, bbox_inches='tight', dpi=400)
+        plt.savefig(fname_paper, bbox_inches='tight', dpi=400)
+    ##
+    ##
     print('{0} Figure saved as: {1}'.format(Prog_msg, fname))
+    print('{0} Paper Figure saved as: {1}'.format(file_msg, fname_paper))
     plt.clf()
     plt.close()
 
@@ -1154,6 +1177,10 @@ def pred_masses_halo_mass(param_dict, proj_dict,
                                 fig_number,
                                 param_dict['catl_str_fig'],
                                 fig_fmt))
+    ##
+    ## Paper Figure
+    fname_paper = os.path.join( proj_dict['paper_fig_dir'],
+                                'Figure_03.{0}'.format(fig_fmt))
     #
     # Obtaining HAM and Dynamical masses
     # Looping over HAM and Dynamical
@@ -1294,9 +1321,14 @@ def pred_masses_halo_mass(param_dict, proj_dict,
     ## Saving figure
     if (fig_fmt == 'pdf'):
         plt.savefig(fname, bbox_inches='tight', rasterize=True)
+        plt.savefig(fname_paper, bbox_inches='tight', rasterize=True)
     else:
         plt.savefig(fname, bbox_inches='tight', dpi=400)
+        plt.savefig(fname_paper, bbox_inches='tight', dpi=400)
+    ##
+    ##
     print('{0} Figure saved as: {1}'.format(file_msg, fname))
+    print('{0} Paper Figure saved as: {1}'.format(file_msg, fname_paper))
     plt.clf()
     plt.close()
 
