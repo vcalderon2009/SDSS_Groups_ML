@@ -1105,6 +1105,7 @@ def covariance_plot(catl_pd, param_dict, proj_dict, plot_only_feat=False,
                 square=True, linewidths=.5,
                 cbar_kws={"shrink": .5, 'label':r'$\Leftarrow$ Correlation $\Rightarrow$'},
                 ax=ax1)
+    g.tick_params(labelsize=5)
     ##
     ## Saving figure
     if fig_fmt=='pdf':
@@ -1331,20 +1332,6 @@ def pred_masses_halo_mass(param_dict, proj_dict,
     print('{0} Paper Figure saved as: {1}'.format(file_msg, fname_paper))
     plt.clf()
     plt.close()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ## --------- Main Function ------------##
 
