@@ -1105,7 +1105,7 @@ def covariance_plot(catl_pd, param_dict, proj_dict, plot_only_feat=False,
                 square=True, linewidths=.5,
                 cbar_kws={"shrink": .5, 'label':r'$\Leftarrow$ Correlation $\Rightarrow$'},
                 ax=ax1)
-    g.tick_params(labelsize=20)
+    g.tick_params(labelsize=15)
     ##
     ## Saving figure
     if fig_fmt=='pdf':
