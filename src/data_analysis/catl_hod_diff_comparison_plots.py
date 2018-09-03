@@ -1032,6 +1032,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
     ##
     ##
     print('{0} Figure saved as: {1}'.format(file_msg, fname))
+    print('{0} Paper Figure saved as: {1}'.format(file_msg, fname_paper))
     plt.clf()
     plt.close()
 
@@ -1190,6 +1191,7 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     ##
     ##
     print('{0} Figure saved as: {1}'.format(file_msg, fname))
+    print('{0} Paper Figure saved as: {1}'.format(file_msg, fname_paper))
     plt.clf()
     plt.close()
 

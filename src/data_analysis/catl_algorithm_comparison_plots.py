@@ -972,6 +972,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     ##
     ##
     print('{0} Figure saved as: {1}'.format(file_msg, fname))
+    print('{0} Paper Figure saved as: {1}'.format(file_msg, fname_paper))
     plt.clf()
     plt.close()
 
@@ -1283,6 +1284,8 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     else:
         plt.savefig(fname, bbox_inches='tight', dpi=400)
         plt.savefig(fname_paper, bbox_inches='tight', dpi=400)
+    ##
+    ##
     print('{0} Figure saved as: {1}'.format(file_msg, fname))
     plt.clf()
     plt.close()
@@ -1582,7 +1585,10 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
     else:
         plt.savefig(fname, bbox_inches='tight', dpi=400)
         plt.savefig(fname_paper, bbox_inches='tight', dpi=400)
+    ##
+    ##
     print('{0} Figure saved as: {1}'.format(file_msg, fname))
+    print('{0} Paper Figure saved as: {1}'.format(file_msg, fname_paper))
     plt.clf()
     plt.close()
 

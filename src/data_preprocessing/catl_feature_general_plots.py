@@ -1067,7 +1067,7 @@ def covariance_plot(catl_pd, param_dict, proj_dict, plot_only_feat=False,
         Number of figure in the workflow. This variable is set to `2`
         by default.
     """
-    Prog_msg   = param_dict['Prog_msg']
+    file_msg = param_dict['Prog_msg']
     ## Filename
     fname    = os.path.join(    proj_dict['figure_dir'],
                                 'Fig_{0}_{1}_feature_covariance.{2}'.format(
@@ -1115,7 +1115,7 @@ def covariance_plot(catl_pd, param_dict, proj_dict, plot_only_feat=False,
         plt.savefig(fname_paper, bbox_inches='tight', dpi=400)
     ##
     ##
-    print('{0} Figure saved as: {1}'.format(Prog_msg, fname))
+    print('{0} Figure saved as: {1}'.format(file_msg, fname))
     print('{0} Paper Figure saved as: {1}'.format(file_msg, fname_paper))
     plt.clf()
     plt.close()
