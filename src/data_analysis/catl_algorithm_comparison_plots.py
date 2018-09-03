@@ -669,7 +669,8 @@ def directory_skeleton(param_dict, proj_dict):
     cfutils.Path_Folder(paper_fig_dir)
     #
     # Adding to `proj_dict`
-    proj_dict['figure_dir'] = figure_dir
+    proj_dict['figure_dir'   ] = figure_dir
+    proj_dict['paper_fig_dir'] = paper_fig_dir
 
     return proj_dict
 
