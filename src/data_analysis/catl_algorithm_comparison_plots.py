@@ -1026,6 +1026,7 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
     file_msg = param_dict['Prog_msg']
     ## Matplotlib option
     matplotlib.rcParams['axes.linewidth'] = 2.5
+    matplotlib.rcParams['axes.edgecolor'] = 'black'
     # Figure name
     ##
     ## Figure name
@@ -1195,6 +1196,9 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     """
     file_msg  = param_dict['Prog_msg']
     plot_dict = param_dict['plot_dict']
+    ## Matplotlib option
+    matplotlib.rcParams['axes.linewidth'] = 2.5
+    matplotlib.rcParams['axes.edgecolor'] = 'black'
     # Score
     if (param_dict['score_method'] == 'model_score'):
         score_type = 'r2'
@@ -1342,6 +1346,9 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
         by default.
     """
     file_msg     = param_dict['Prog_msg']
+    ## Matplotlib option
+    matplotlib.rcParams['axes.linewidth'] = 2.5
+    matplotlib.rcParams['axes.edgecolor'] = 'black'
     # Constants
     cm           = plt.cm.get_cmap('viridis')
     plot_dict    = param_dict['plot_dict']
