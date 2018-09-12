@@ -750,6 +750,8 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
         by default.
     """
     file_msg = param_dict['Prog_msg']
+    ## Matplotlib option
+    matplotlib.rcParams['axes.linewidth'] = 2.5
     #
     # Constants
     cm           = plt.cm.get_cmap('viridis')
@@ -1022,6 +1024,8 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
             - ' perc' : Shows the ranking percentage for each feature.
     """
     file_msg = param_dict['Prog_msg']
+    ## Matplotlib option
+    matplotlib.rcParams['axes.linewidth'] = 2.5
     # Figure name
     ##
     ## Figure name

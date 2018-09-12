@@ -767,6 +767,8 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
         by default.
     """
     file_msg = param_dict['Prog_msg']
+    ## Matplotlib option
+    matplotlib.rcParams['axes.linewidth'] = 2.5
     #
     # Constants
     cm           = plt.cm.get_cmap('viridis')
@@ -1075,6 +1077,8 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     """
     file_msg  = param_dict['Prog_msg']
     plot_dict = param_dict['plot_dict']
+    ## Matplotlib option
+    matplotlib.rcParams['axes.linewidth'] = 2.5
     # Score
     if (param_dict['score_method'] == 'model_score'):
         score_type = 'r2'
