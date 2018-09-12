@@ -940,7 +940,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
                 ax.plot(x_stat,
                         y_stat,
                         color='black',
-                        linestyle=':',
+                        linestyle='-.',
                         linewidth=2,
                         marker='o',
                         zorder=zorder_ml)
