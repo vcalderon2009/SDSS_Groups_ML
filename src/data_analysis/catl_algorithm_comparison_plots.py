@@ -904,7 +904,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
         ax1.plot(   x_stat,
                     y_stat,
                     color=cm_arr[kk],
-                    linestyle=':',
+                    linestyle='-',
                     marker='o',
                     zorder=zorder_ml)
         ax1.fill_between(x_stat, y1, y2, color=cm_arr[kk], alpha=alpha,
@@ -915,7 +915,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
                 color=plot_dict['color_ham'],
                 linestyle='--',
                 marker='o',
-                zorder=zorder_mass)
+                zorder=zorder_ml)
     ax1.fill_between(   x_stat_ham,
                         y1_ham,
                         y2_ham, 
@@ -929,7 +929,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
                 color=plot_dict['color_dyn'],
                 linestyle='--',
                 marker='o',
-                zorder=zorder_mass)
+                zorder=zorder_ml)
     ax1.fill_between(   x_stat_dyn,
                         y1_dyn,
                         y2_dyn, 
