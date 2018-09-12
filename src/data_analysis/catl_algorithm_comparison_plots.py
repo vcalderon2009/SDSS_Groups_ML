@@ -961,7 +961,10 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     ax1.set_ylabel(ylabel, fontsize=plot_dict['size_label'])
     ##
     ## Limits
-    ax1.set_ylim(-20, 25)
+    xlim = (10, 15)
+    ylim = (-20, 20)
+    ax1.set_xlim(xlim)
+    ax1.set_ylim(ylim)
     ##
     ## Saving figure
     if fig_fmt=='pdf':

@@ -726,7 +726,7 @@ def array_insert(arr1, arr2, axis=1):
 
 # Fractional difference
 def frac_diff_model(models_dict, param_dict, proj_dict,
-    arr_len=10, bin_statval='left', fig_fmt='pdf', figsize=(15, 10),
+    arr_len=10, bin_statval='left', fig_fmt='pdf', figsize=(15, 8),
     fig_number=1):
     """
     Plots the fractional difference between `predicted` and `true`
