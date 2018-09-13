@@ -619,7 +619,7 @@ def add_to_dict(param_dict):
         model_kk = float(model_kk)
         # Copy of main `param_dict`
         param_dict_copy = copy.deepcopy(param_dict)
-        # Modifying HOD model number
+        # Modifying DV model number
         param_dict_copy['dv'] = model_kk
         # Saving as part of dictionary
         dv_n_dict[model_kk] = ReadML(**param_dict_copy)
@@ -635,7 +635,6 @@ def add_to_dict(param_dict):
     param_dict['skem_dict' ] = skem_dict
     param_dict['dv_n_arr'  ] = dv_n_arr
     param_dict['dv_n_dict' ] = dv_n_dict
-
 
     return param_dict
 
