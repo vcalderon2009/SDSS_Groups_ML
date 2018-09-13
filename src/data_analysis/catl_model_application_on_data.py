@@ -3,7 +3,7 @@
 
 # Victor Calderon
 # Created      : 2018-09-07
-# Last Modified: 2018-09-07
+# Last Modified: 2018-09-12
 # Vanderbilt University
 from __future__ import absolute_import, division, print_function
 __author__     = ['Victor Calderon']
@@ -14,6 +14,10 @@ __maintainer__ = ['Victor Calderon']
 Script that uses the already-trained ML models to estimate the
 masses of groups, and adds them to the already-defined
 masses from HAM and Dynamical Mass methods.
+
+It produces a set of catalogues with galaxy- and
+group-related information, as well as the estimated
+masses from the three ML algorithms.
 
 We will use the following ML algoriths:
     - Random Forests
@@ -609,18 +613,24 @@ def main(args):
     """
 
     """
+    ## Starting time
+    start_time = datetime.now()
     ## Reading all elements and converting to python dictionary
     param_dict = vars(args)
     ## Checking for correct input
     param_vals_test(param_dict)
-    ## Adding extra variables
-    param_dict = add_to_dict(param_dict)
+    #
+    # Creating instance of `ReadML` with the input parameters
+    param_dict['ml_args'] = ReadML(**param_dict)
     ## Program message
     Prog_msg = param_dict['Prog_msg']
+    ## Adding extra variables
+    param_dict = add_to_dict(param_dict)
     ##
     ## Creating Folder Structure
-    # proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths(__file__))
-    proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths('./'))
+    # proj_dict = cwpaths.cookiecutter_paths(__file__)
+    proj_dict = param_dict['ml_args'].proj_dict
+    proj_dict  = directory_skeleton(param_dict, proj_dict)
     ##
     ## Printing out project variables
     print('\n'+50*'='+'\n')
@@ -628,6 +638,9 @@ def main(args):
         if key !='Prog_msg':
             print('{0} `{1}`: {2}'.format(Prog_msg, key, key_val))
     print('\n'+50*'='+'\n')
+    ##
+    ## -------- ML main analysis -------- ##
+    ##
 
 
 # Main function
