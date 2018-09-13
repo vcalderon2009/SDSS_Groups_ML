@@ -16,6 +16,7 @@ Init file for main Source file
 # Importing modules
 
 from . import data_analysis
+from . import data_catls
 from . import data_preprocessing
 from . import data_testing
 from . import ml_tools
