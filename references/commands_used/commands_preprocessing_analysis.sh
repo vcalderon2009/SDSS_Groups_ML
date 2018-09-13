@@ -75,3 +75,11 @@ make ML_ANALYSIS="hod_fixed" HALOTYPE="so" CLF_METHOD=1 DENS_CALC="False" CPU_FR
 # make ML_ANALYSIS='hod_dv_fixed' HALOTYPE='so' CLF_METHOD=1 DENS_CALC="False" CPU_FRAC=0.75 TEST_TRAIN_OPT="sample_frac" SAMPLE_FRAC=0.1 REMOVE_FILES="False" DV=1.0 HOD_N=0 SAMPLE_METHOD="subsample" RESAMPLE_OPT="under" BIN_VAL="nbins" ml_analysis
 # make ML_ANALYSIS='hod_dv_fixed' HALOTYPE='so' CLF_METHOD=1 DENS_CALC="False" CPU_FRAC=0.75 TEST_TRAIN_OPT="sample_frac" SAMPLE_FRAC=0.1 REMOVE_FILES="False" DV=1.0 HOD_N=0 SAMPLE_METHOD="binning" BIN_VAL="nbins" ml_analysis
 make ML_ANALYSIS='hod_dv_fixed' HALOTYPE='so' CLF_METHOD=1 DENS_CALC="False" CPU_FRAC=0.75 TEST_TRAIN_OPT="boxes_n" SAMPLE_FRAC=0.1 REMOVE_FILES="False" DV=1.0 HOD_N=0 SAMPLE_METHOD="binning" BIN_VAL="nbins" ml_analysis
+
+##############################################################################
+##################### -------- CATALOGUES -------- ###########################
+##############################################################################
+##
+## --- Creating Catalogues for Mr19 ---
+
+
