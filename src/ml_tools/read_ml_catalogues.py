@@ -17,7 +17,7 @@ Utilities for reading in the ML outputs for this project.
 # Importing Modules
 from cosmo_utils       import mock_catalogues as cm
 from cosmo_utils       import utils           as cu
-from cosmo_utils.utils import file_utils      as cfutils
+from cosmo_utils.utils import file_utils      as cfutils4e
 from cosmo_utils.utils import file_readers    as cfreaders
 from cosmo_utils.utils import work_paths      as cwpaths
 from cosmo_utils.ml    import ml_utils        as cmlu
@@ -254,6 +254,33 @@ class ReadML(object):
         self.nbins          = 2
         # self.proj_dict      = cwpaths.cookiecutter_paths('./')
 
+    ## Prefix path based on initial parameters - Data
+    def catl_prefix_path_data(self):
+        """
+        Prefix path used for saving catalogues and other catalogue-related
+        objects.
+
+        Returns
+        ---------
+        catl_pre_path : `str`
+            Prefix path used for saving catalogue-related objects.
+        """
+        # Catalogue prefix string
+        catl_pre_path_data = os.path.join(
+                                    'SDSS',
+                                    'data',
+                                    'halos_{0}'.format(self.halotype),
+                                    'dv_{0}'.format(self.dv),
+                                    'hod_model_{0}'.format(self.hod_n),
+                                    'clf_seed_{0}'.format(self.clf_seed),
+                                    'clf_method_{0}'.format(self.clf_method),
+                                    self.catl_type,
+                                    self.sample_Mr,
+                                    'dens_{0}'.format(self.dens_calc))
+
+        return catl_pre_path_data
+
+    ## Prefix path based on initial parameters - Mock catalogues
     def catl_prefix_path(self):
         """
         Prefix path used for saving catalogues and other catalogue-related
@@ -278,6 +305,7 @@ class ReadML(object):
 
         return catl_pre_path
 
+    ## Directory for the merged catalogues
     def catl_merged_dir(self, opt='catl', check_exist=True):
         """
         Directory for the `merged` catalogues with the features for the
@@ -328,6 +356,7 @@ class ReadML(object):
 
         return merged_feat_dir
 
+    ## File prefix
     def _catl_pre_str(self):
         """
         String used as the prefix of files
@@ -356,6 +385,7 @@ class ReadML(object):
 
         return catl_pre_str
 
+    ## Info for merged catalogue
     def extract_merged_catl_info(self, opt='catl', idx=0, ext='hdf5',
         return_path=False):
         """
@@ -452,6 +482,7 @@ class ReadML(object):
         else:
             return merged_feat_pd
 
+    ## -- Feature preprocessing --
     def _feat_proc_pre_str(self):
         """
         String used as the prefix of files during the `feature processing`
@@ -666,6 +697,7 @@ class ReadML(object):
 
         return features_cols
 
+    ## -- Traditional mass estimates extraction --
     def extract_trad_masses_alt(self, mass_opt='ham', score_method='perc',
         threshold=None, perc=None, return_score=False, return_frac_diff=False,
         nlim_min=5, nlim_threshold=False):
@@ -934,6 +966,7 @@ class ReadML(object):
 
         return return_obj_list
 
+    ## -- Training of algorithms --
     def main_catl_train_dir(self, check_exist=True, create_dir=False):
         """
         Directory for the main training of the ML algorithms. This directory
@@ -1083,6 +1116,7 @@ class ReadML(object):
 
         return catl_train_str
 
+    ## -- Training algorithms - Algorithm comparison --
     def catl_train_alg_comp_file(self, ext='p', check_exist=True):
         """
         Path to the file that contains the outputs from the
@@ -1159,6 +1193,7 @@ class ReadML(object):
         else:
             return models_dict
 
+    ## -- Alternate names for different features
     def feat_cols_names_dict(self, return_all=False):
         """
         Substitutes for the column names in the list of `features`.
@@ -1235,6 +1270,7 @@ class ReadML(object):
 
         return catl_train_prefix_str
 
+    ## -- Training algorithms - HOD Comparison
     def catl_train_hod_diff_dir(self, check_exist=True,
         create_dir=False):
         """
@@ -1382,6 +1418,7 @@ class ReadML(object):
 
         return catl_train_prefix_str
 
+    ## -- Training algorithms - DV Comparison
     def catl_train_dv_diff_dir(self, check_exist=True,
         create_dir=False):
         """
@@ -1529,4 +1566,110 @@ class ReadML(object):
 
         return catl_train_prefix_str
 
+    ## -- Model Application to Data - SDSS
+    def catl_model_app_data_main(self, check_exist=True,
+        create_dir=False):
+        """
+        Directory for the main training of the ML algorithms. This directory
+        is mainly for the training and testing of the algorithms.
 
+        Parameters
+        -----------
+        check_exist : `bool`, optional
+            If `True`, it checks for whether or not the file exists.
+            This variable is set to `True` by default.
+
+        create_dir : `bool`, optional
+            If `True`, it creates the directory if it does not exist.
+
+        Returns
+        --------
+        main_catl_data_outdir : `str`
+            Output directory for the main catalogue output
+        """
+        # Check input parameters
+        # `check_exist`
+        if not (isinstance(check_exist, bool)):
+            msg = '`check_exist` ({0}) must be of `boolean` type!'.format(
+                type(check_exist))
+            raise TypeError(msg)
+        #
+        # `create_dir`
+        if not (isinstance(create_dir, bool)):
+            msg = '`create_dir` ({0}) must be of `boolean` type!'.format(
+                type(create_dir))
+            raise TypeError(msg)
+        # Catalogue Prefix
+        catl_prefix_path_data = self.catl_prefix_path_data()
+        # Output directory
+        main_catl_data_outdir = os.path.join(   self.proj_dict['proc_dir'],
+                                                'catl_data',
+                                                self.ml_analysis,
+                                                catl_prefix_path_data)
+        # Creating directory if necessary
+        if create_dir:
+            cfutils.Path_Folder(main_catl_data_outdir)
+        # Check that folder exists
+        if check_exist:
+            if not (os.path.exists(main_catl_data_outdir)):
+                msg = '`main_catl_data_outdir` ({0}) was not found! '
+                msg += 'Check your path!'
+                msg = msg.format(main_catl_data_outdir)
+                raise FileNotFoundError(msg)
+
+        return main_catl_data_outdir
+
+    def catl_model_app_data_file_prefix_str(self):
+        """
+        Prefix of the output data catalogue of SDSS. This file serves as
+        the prefix for the training
+
+        Returns
+        ---------
+        catl_app_data_str : `str`
+            Prefix string of the output file for SDSS data.
+        """
+        # ML Training prefix
+        catl_train_prefix_str = self._catl_train_prefix_str()
+        # Adding to main string
+        catl_app_data_str    += 'catl_data_out'
+
+        return catl_app_data_str
+
+    def catl_model_application_data_file(self, ext='hdf5', check_exist=True):
+        """
+        Path to the output file containing the necessary information
+        about the predicted ML masses, etc.
+
+        Parameters
+        -----------
+        ext : `str`, optional
+            Extension of the file being analyzed. This variable is set to
+            `hdf5` by default.
+
+        check_exist : `bool`, optional
+            If `True`, it checks for whether or not the file exists.
+            This variable is set to `True` by default.
+
+        Returns
+        -----------
+        catl_outfile_path : `str`
+            Path to the output file for the SDSS catalogue
+        """
+        # Catl Filename prefix
+        catl_app_data_str = self.catl_model_app_data_file_prefix_str()
+        # Output directory
+        outdir = self.catl_model_app_data_main( create_dir=True,
+                                                check_exist=False)
+        # Filename
+        filename_str = '{0}.{1}'.format(catl_app_data_str, ext)
+        # Output directory
+        catl_outfile_path = os.path.join( outdir, catl_app_data_str)
+        # Checking if file exists
+        if check_exist:
+            if not (os.path.exists(catl_outfile_path)):
+                msg = '`catl_outfile_path` ({0}) was not found!'.format(
+                    catl_outfile_path)
+                raise FileNotFoundError(msg)
+
+        return catl_outfile_path
