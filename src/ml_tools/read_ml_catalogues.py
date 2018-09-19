@@ -254,46 +254,25 @@ class ReadML(object):
         self.nbins          = 2
         # self.proj_dict      = cwpaths.cookiecutter_paths('./')
 
-    ## Prefix path based on initial parameters - Data
-    def catl_prefix_path_data(self):
-        """
-        Prefix path used for saving catalogues and other catalogue-related
-        objects.
-
-        Returns
-        ---------
-        catl_pre_path : `str`
-            Prefix path used for saving catalogue-related objects.
-        """
-        # Catalogue prefix string
-        catl_pre_path_data = os.path.join(
-                                    'SDSS',
-                                    'data',
-                                    'halos_{0}'.format(self.halotype),
-                                    'dv_{0}'.format(self.dv),
-                                    'hod_model_{0}'.format(self.hod_n),
-                                    'clf_seed_{0}'.format(self.clf_seed),
-                                    'clf_method_{0}'.format(self.clf_method),
-                                    self.catl_type,
-                                    self.sample_Mr,
-                                    'dens_{0}'.format(self.dens_calc))
-
-        return catl_pre_path_data
-
     ## Prefix path based on initial parameters - Mock catalogues
-    def catl_prefix_path(self):
+    def catl_prefix_path(self, catl_kind='mocks'):
         """
         Prefix path used for saving catalogues and other catalogue-related
         objects.
 
+        Parameters
+        -----------
+        catl_kind : {'mocks', 'data'} `str`
+            Option for which kind of catalogue to analyze
+
         Returns
-        ---------
+        -----------
         catl_pre_path : `str`
             Prefix path used for saving catalogue-related objects.
         """
         # Catalogue prefix string
         catl_pre_path = os.path.join('SDSS',
-                                    'mocks',
+                                    catl_kind,
                                     'halos_{0}'.format(self.halotype),
                                     'dv_{0}'.format(self.dv),
                                     'hod_model_{0}'.format(self.hod_n),
@@ -1567,8 +1546,7 @@ class ReadML(object):
         return catl_train_prefix_str
 
     ## -- Model Application to Data - SDSS
-    def catl_model_app_data_main(self, check_exist=True,
-        create_dir=False):
+    def catl_model_app_data_main(self, check_exist=True, create_dir=False):
         """
         Directory for the main training of the ML algorithms. This directory
         is mainly for the training and testing of the algorithms.
@@ -1600,7 +1578,7 @@ class ReadML(object):
                 type(create_dir))
             raise TypeError(msg)
         # Catalogue Prefix
-        catl_prefix_path_data = self.catl_prefix_path_data()
+        catl_prefix_path_data = self.catl_prefix_path(catl_kind='data')
         # Output directory
         main_catl_data_outdir = os.path.join(   self.proj_dict['proc_dir'],
                                                 'catl_data',
