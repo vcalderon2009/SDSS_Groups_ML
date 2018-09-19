@@ -245,6 +245,12 @@ def get_parser():
                         """,
                         type=_str2bool,
                         default=False)
+    ## Remove master catalogue
+    parser.add_argument('-rm_master',
+                        dest='rm_master',
+                        help='Option for removing the master catalogue',
+                        type=_str2bool,
+                        default=False)
     ## Verbose
     parser.add_argument('-v','--verbose',
                         dest='verbose',
@@ -1469,7 +1475,7 @@ def test_df_merged_dir(param_dict, proj_dict, n_catls, ext='hdf5'):
     ## List of catalogues
     files_arr = cfutils.Index(proj_dict['merged_gal_dir'], '.{0}'.format(ext))
     # Checking agains the expected number of files
-    if param_dict['remove_files']:
+    if (param_dict['rm_master'] or param_dict['remove_files']):
         merged_vac_save = True
     else:
         if (files_arr.size == n_catls):
@@ -1524,7 +1530,7 @@ def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
                             filename)
     # Checking if file exists
     if os.path.exists(filepath):
-        if param_dict['remove_files']:
+        if param_dict['rm_master']:
             os.remove(filepath)
     #
     # Only running if necessary

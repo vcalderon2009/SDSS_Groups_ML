@@ -52,6 +52,7 @@ TEST_SIZE      = 0.25
 N_FEAT_USE     = "sub"
 PERF_OPT       = "False"
 SEED           = 1235
+REMOVE_MASTER  = "False"
 # -- Training -- #
 HIDDEN_LAYERS= 3
 UNIT_LAYER   = 100
@@ -199,7 +200,8 @@ data_preprocess: download_dataset
 	-pre_opt $(PRE_OPT) -test_train_opt $(TEST_TRAIN_OPT) -box_idx $(BOX_IDX) \
 	-box_test $(BOX_TEST) -sample_frac $(SAMPLE_FRAC) -test_size $(TEST_SIZE) \
 	-n_feat_use $(N_FEAT_USE) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) \
-	-v $(VERBOSE) -perf $(PERF_OPT) -seed $(SEED) -dens_calc $(DENS_CALC)
+	-rm_master $(REMOVE_MASTER) -v $(VERBOSE) -perf $(PERF_OPT) \
+	-seed $(SEED) -dens_calc $(DENS_CALC)
 
 ## ML analysis of the preprocessed data and plots the necessary figures.
 ml_analysis:

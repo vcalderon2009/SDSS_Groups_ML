@@ -317,6 +317,12 @@ def get_parser():
                         help='Removed main files ',
                         type=_str2bool,
                         default=False)
+    ## Remove master catalogue
+    parser.add_argument('-rm_master',
+                        dest='rm_master',
+                        help='Option for removing the master catalogue',
+                        type=_str2bool,
+                        default=False)
     ## Verbose
     parser.add_argument('-v', '--verbose',
                         dest='verbose',
@@ -430,6 +436,7 @@ def get_analysis_params(param_dict):
                             ('dens_calc'   , '-dens_calc'   , True      ),
                             ('cpu_frac'    , '-cpu'         , 0.75      ),
                             ('remove_files', '-remove'      , False     ),
+                            ('rm_master'   , '-rm_master'   , False     ),
                             ('verbose'     , '-v'           , False     ),
                             ('perf_opt'    , '-perf'        , False     ),
                             ('seed'        , '-seed'        , 1         )])
@@ -483,6 +490,9 @@ def get_analysis_params(param_dict):
     ##
     ## Option for removing files or not
     catl_feat_df = df_value_modifier(catl_feat_df, 'remove_files', param_dict)
+    ##
+    ## Option for removing master catalogue or not
+    catl_feat_df = df_value_modifier(catl_feat_df, 'rm_master', param_dict)
     ##
     ## Option for displaying outputs or not
     catl_feat_df = df_value_modifier(catl_feat_df, 'verbose', param_dict)
