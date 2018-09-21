@@ -1088,10 +1088,10 @@ def group_general_prop(group_ii_pd, group_mod_pd):
         DataFrame, to which to add the group properties
     """
     ## Group properties
-    groups_cols = [ 'GG_ngals'  , 'GG_sigma_v', 
-                    'GG_rproj'  , 'GG_M_r'    ,
-                    'GG_M_group', 'GG_logssfr',
-                    'groupid'   ]
+    groups_cols = [ 'GG_ngals', 'GG_sigma_v',
+                    'GG_rproj', 'GG_M_r'    ,
+                    'GG_M_h'  , 'GG_logssfr_tot',
+                    'groupid' ]
     groups_cols_mod = [xx.replace('GG_','') for xx in groups_cols]
     ## Copy of `group_ii_pd`
     group_ii_pd_copy = (group_ii_pd.copy())[groups_cols]
@@ -1099,6 +1099,13 @@ def group_general_prop(group_ii_pd, group_mod_pd):
     groups_cols_dict = dict(zip(groups_cols,
                                 [xx.replace('GG_','') for xx in groups_cols]))
     group_ii_pd_copy = group_ii_pd_copy.rename(columns=groups_cols_dict)
+    # Renaming 'logssfr' and 'M_group'
+    groups_cols_dict_mod = {'M_h': 'M_group', 'logssfr_tot': 'logssfr'}
+    group_ii_pd_copy = group_ii_pd_copy.rename(columns=groups_cols_dict_mod)
+    # Modifying column names of list
+    groups_cols_mod = [xx.replace('_tot','') for xx in groups_cols_mod]
+    groups_cols_mod = [xx.replace('M_h','M_group') for xx in groups_cols_mod]
+    # Renaming 'M_group'
     ## Merging both DataFrames
     group_mod_pd = pd.merge(group_mod_pd, group_ii_pd_copy[groups_cols_mod], 
                             on='groupid',how='left')
@@ -1580,7 +1587,7 @@ def multiprocessing_catls(catl_arr, param_dict, proj_dict, memb_tuples_ii):
         ## Extracting `name` of the catalogue
         catl_ii_name = os.path.splitext(os.path.split(catl_ii)[1])[0]
         ## Box Number
-        box_n = int(catl_ii_name.split('_')[1])
+        box_n = 0
         ## Analaysis for the Halobias file
         catalogue_analysis(ii, catl_ii_name, box_n, param_dict, proj_dict)
 
@@ -1624,7 +1631,7 @@ def main(args):
     ## Looping over all galaxy catalogues
     # Paths to catalogues being analyzed
     (   catl_arr,
-        n_catls ) = cmcu.extract_catls( catl_kind='mocks',
+        n_catls ) = cmcu.extract_catls( catl_kind='data',
                                         catl_type=param_dict['catl_type'],
                                         sample_s=param_dict['sample_s'],
                                         halotype=param_dict['halotype'],
