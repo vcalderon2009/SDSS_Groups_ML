@@ -3,7 +3,7 @@
 
 # Victor Calderon
 # Created      : 2018-09-07
-# Last Modified: 2018-09-12
+# Last Modified: 2018-09-19
 # Vanderbilt University
 from __future__ import absolute_import, division, print_function
 __author__     = ['Victor Calderon']
@@ -389,6 +389,13 @@ def get_parser():
                         type=str,
                         choices=['over', 'under'],
                         default='under')
+    ## Algorithm used for the final estimation of mass
+    parser.add_argument('-chosen_alg',
+                        dest='chosen_ml_alg',
+                        help='Algorithm used for the final estimation of mass',
+                        type=str,
+                        choices=['xgboost', 'rf', 'nn'],
+                        default='xgboost')
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -604,6 +611,13 @@ def directory_skeleton(param_dict, proj_dict):
         Dictionary with current and new paths to project directories
     """
     ## In here, you define the directories of your project
+    #
+    # Main output file for this script
+    catl_outpath = param_dict['ml_args'].catl_model_application_data_file(
+        check_exist=False)
+    #
+    # Saving to `proj_dict`
+    proj_dict['catl_outpath'] = catl_outpath
 
     return proj_dict
 
@@ -611,7 +625,9 @@ def directory_skeleton(param_dict, proj_dict):
 
 def main(args):
     """
-
+    Script to produce catalogues with features and predicted masses for
+    SDSS DR7. It uses the sets of already-trained ML algorithms and
+    applies them to real data.
     """
     ## Starting time
     start_time = datetime.now()

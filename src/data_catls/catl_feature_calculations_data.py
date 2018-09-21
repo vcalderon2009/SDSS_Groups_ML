@@ -619,7 +619,7 @@ def catalogue_analysis(ii, catl_ii_name, box_n, param_dict, proj_dict,
             memb_ii_pd   ,
             group_ii_pd  ) = cmcu.catl_sdss_merge(
                                                 ii,
-                                                catl_kind='mocks',
+                                                catl_kind='data',
                                                 catl_type=param_dict['catl_type'],
                                                 sample_s=param_dict['sample_s'],
                                                 halotype=param_dict['halotype'],

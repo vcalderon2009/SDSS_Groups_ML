@@ -285,7 +285,7 @@ class ReadML(object):
         return catl_pre_path
 
     ## Directory for the merged catalogues
-    def catl_merged_dir(self, opt='catl', check_exist=True):
+    def catl_merged_dir(self, opt='catl', catl_kind='mocks', check_exist=True):
         """
         Directory for the `merged` catalogues with the features for the
         ML analysis.
@@ -298,6 +298,9 @@ class ReadML(object):
             Options:
                 - 'catls' : Directory of the individuals merged catls
                 - 'combined' : Directory of all the catalogues combined.
+
+        catl_kind : {'mocks', 'data'} `str`
+            Option for which kind of catalogue to analyze
 
         check_exist : `bool`, optional
             If `True`, it checks for whether or not the file exists.
@@ -313,7 +316,7 @@ class ReadML(object):
             msg = '`opt` ({0}) is not a valid input variable!'.format(opt)
             raise ValueError(msg)
         # Catalogue prefix string
-        catl_pre_path = self.catl_prefix_path()
+        catl_pre_path = self.catl_prefix_path(catl_kind=catl_kind)
         # `Merged` catalogues
         if (opt == 'catl'):
             merged_feat_dir = os.path.join( self.proj_dict['int_dir'],
@@ -365,8 +368,8 @@ class ReadML(object):
         return catl_pre_str
 
     ## Info for merged catalogue
-    def extract_merged_catl_info(self, opt='catl', idx=0, ext='hdf5',
-        return_path=False):
+    def extract_merged_catl_info(self, catl_kind='mocks', opt='catl', idx=0,
+        ext='hdf5', return_path=False):
         """
         Extracts the information from a catalogue and returns it as
         pandas DataFrame
@@ -380,6 +383,9 @@ class ReadML(object):
             Options:
                 - 'catls' : Directory of the individuals merged catls
                 - 'all' : Directory of all the catalogues combined.
+
+        catl_kind : {'mocks', 'data'} `str`
+            Option for which kind of catalogue to analyze
 
         idx : `NoneType` or `int`, optional
             Index of the catalogue, from which to extract the information.
@@ -423,7 +429,7 @@ class ReadML(object):
                 msg = '`idx` ({0}) must be larger or equal to 0'.format(idx)
                 raise ValueError(msg)
         # Find file
-        merged_dir   = self.catl_merged_dir(opt=opt)
+        merged_dir   = self.catl_merged_dir(opt=opt, catl_kind=catl_kind)
         catl_pre_str = self._catl_pre_str()
         # `catl` case
         if (opt == 'catl'):
@@ -511,7 +517,7 @@ class ReadML(object):
 
         return feat_proc_pre_str
 
-    def catl_feat_dir(self, check_exist=True):
+    def catl_feat_dir(self, catl_kind='mocks', check_exist=True):
         """
         Directory for the `features` dictionaries for the ML analysic.
 
@@ -528,7 +534,7 @@ class ReadML(object):
             versions of the catalogues.
         """
         # Catalogue prefix string
-        catl_pre_path = self.catl_prefix_path()
+        catl_pre_path = self.catl_prefix_path(catl_kind=catl_kind)
         # Feature catalogue
         catl_feat_dir = os.path.join(   self.proj_dict['int_dir'],
                                         'catl_features',
@@ -946,13 +952,17 @@ class ReadML(object):
         return return_obj_list
 
     ## -- Training of algorithms --
-    def main_catl_train_dir(self, check_exist=True, create_dir=False):
+    def main_catl_train_dir(self, catl_kind='mocks', check_exist=True,
+        create_dir=False):
         """
         Directory for the main training of the ML algorithms. This directory
         is mainly for the training and testing of the algorithms.
 
         Parameters
         -----------
+        catl_kind : {'mocks', 'data'} `str`
+            Option for which kind of catalogue to analyze
+
         check_exist : `bool`, optional
             If `True`, it checks for whether or not the file exists.
             This variable is set to `True` by default.
@@ -978,7 +988,7 @@ class ReadML(object):
                 type(create_dir))
             raise TypeError(msg)
         # Catalogue Prefix
-        catl_prefix_path = self.catl_prefix_path()
+        catl_prefix_path = self.catl_prefix_path(catl_kind=catl_kind)
         # Output directory
         main_catl_train_dir = os.path.join( self.proj_dict['int_dir'],
                                             'train_test_dir',
@@ -1642,7 +1652,7 @@ class ReadML(object):
         # Filename
         filename_str = '{0}.{1}'.format(catl_app_data_str, ext)
         # Output directory
-        catl_outfile_path = os.path.join( outdir, catl_app_data_str)
+        catl_outfile_path = os.path.join(outdir, catl_app_data_str)
         # Checking if file exists
         if check_exist:
             if not (os.path.exists(catl_outfile_path)):
