@@ -764,8 +764,8 @@ def galaxy_properties(memb_ii_pd, memb_mod_pd):
         DataFrame, to which to add the `member galaxy` properties
     """
     ## Galaxy Properties
-    gals_cols         = ['galtype', 'halo_ngal', 'M_r'      , 'logssfr',\
-                         'M_h'    , 'g_galtype', 'halo_rvir', 'g_r'    ,\
+    gals_cols         = ['M_r'      , 'logssfr',\
+                         'galtype', 'g_r'    ,\
                          'groupid', 'sersic'   ]
     gals_cols_pd_copy = (memb_ii_pd.copy())[gals_cols]
     # Merging DataFrames
@@ -1338,7 +1338,7 @@ def group_distance_closest_cluster(group_ii_pd, group_mod_pd, mass_factor=10):
         DataFrame, to which to add the group properties
     """
     # Group Columns
-    groups_cols      = ['GG_x', 'GG_y', 'GG_z', 'GG_M_group']
+    groups_cols      = ['GG_x', 'GG_y', 'GG_z', 'GG_M_h']
     groups_coords    = group_ii_pd[groups_cols].values
     groups_cart_arr  = groups_coords[:,0:3].copy()
     grups_mgroup_arr = groups_coords[:,  3].copy()
@@ -1540,6 +1540,8 @@ def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
                     ignore_index=True)
             ## Increasing number of groups
             group_id_tot += num.unique(catl_pd_ii[group_key]).size
+        ## Removing NaN's
+        catl_pd_main.dropna(inplace=True)
         ## Saving to file
         cfreaders.pandas_df_to_hdf5_file(catl_pd_main, filepath, key=file_key)
         cfutils.File_Exists(filepath)
@@ -1692,7 +1694,6 @@ def main(args):
     ##
     ## Making the `param_dict` None
     param_dict = None
-
 
 # Main function
 if __name__=='__main__':
