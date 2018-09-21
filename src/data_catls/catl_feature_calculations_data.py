@@ -28,6 +28,8 @@ from cosmo_utils.utils import geometry        as cgeom
 from cosmo_utils.mock_catalogues import catls_utils as cmcu
 from cosmo_utils.mock_catalogues import mags_calculations as cmag
 
+from src.ml_tools import ReadML
+
 import numpy as num
 import math
 import os
@@ -398,31 +400,13 @@ def directory_skeleton(param_dict, proj_dict):
     """
     ## Main Directories
     ##
-    ## Output file for all catalogues
-    catl_outdir    = os.path.join(  proj_dict['int_dir'],
-                                    'merged_feat_catl',
-                                    'SDSS',
-                                    'mocks',
-                                    'halos_{0}'.format(param_dict['halotype']),
-                                    'dv_{0}'.format(param_dict['dv']),
-                                    'hod_model_{0}'.format(param_dict['hod_n']),
-                                    'clf_seed_{0}'.format(param_dict['clf_seed']),
-                                    'clf_method_{0}'.format(param_dict['clf_method']),
-                                    param_dict['catl_type'],
-                                    param_dict['sample_Mr'],
-                                    'dens_{0}'.format(param_dict['dens_calc']))
-    ## Creating output folders for the catalogues
-    merged_gal_dir          = os.path.join(catl_outdir, 'merged_vac')
-    # merged_gal_perf_dir     = os.path.join(catl_outdir, 'merged_vac_perf'    )
-    merged_gal_all_dir      = os.path.join(catl_outdir, 'merged_vac_combined')
-    # merged_gal_perf_all_dir = os.path.join(catl_outdir, 'merged_vac_perf_all')
-    ##
-    ## Creating Directories
-    cfutils.Path_Folder(catl_outdir)
-    cfutils.Path_Folder(merged_gal_dir)
-    # cfutils.Path_Folder(merged_gal_perf_dir)
-    cfutils.Path_Folder(merged_gal_all_dir)
-    # cfutils.Path_Folder(merged_gal_perf_all_dir)
+    ## Output for all catalogues - Single catalogues
+    merged_gal_dir = param_dict['ml_args'].catl_merged_dir(opt='catl',
+        catl_kind='data', check_exist=True, create_dir=True)
+    ## Combined set of catalogues
+    merged_gal_all_dir = param_dict['ml_args'].catl_merged_dir(opt='combined',
+        catl_kind='data', check_exist=True, create_dir=True)
+
     ## Removing files if necessary
     if param_dict['remove_files']:
         for catl_ii in [merged_gal_dir, merged_gal_all_dir]:
@@ -430,12 +414,9 @@ def directory_skeleton(param_dict, proj_dict):
             for f in file_list:
                 os.remove(f)
     ##
-    ## Adding to `proj_dict`
-    proj_dict['catl_outdir'            ] = catl_outdir
-    proj_dict['merged_gal_dir'         ] = merged_gal_dir
-    # proj_dict['merged_gal_perf_dir'    ] = merged_gal_perf_dir
-    proj_dict['merged_gal_all_dir'     ] = merged_gal_all_dir
-    # proj_dict['merged_gal_perf_all_dir'] = merged_gal_perf_all_dir
+    ## Saving to dictionary `proj_dict`
+    proj_dict['merged_gal_dir'    ] = merged_gal_dir
+    proj_dict['merged_gal_all_dir'] = merged_gal_all_dir
 
     return proj_dict
 
@@ -1617,6 +1598,8 @@ def main(args):
     num.random.seed(param_dict['seed'])
     ## Checking for correct input
     param_vals_test(param_dict)
+    # Creating instance of `ReadML` with the input parameters
+    param_dict['ml_args'] = ReadML(**param_dict)
     ## ---- Adding to `param_dict` ---- 
     param_dict = add_to_dict(param_dict)
     ## Program message
@@ -1624,7 +1607,8 @@ def main(args):
     ##
     ## Creating Folder Structure
     # proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths(__file__))
-    proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths('./'))
+    proj_dict = param_dict['ml_args'].proj_dict
+    proj_dict  = directory_skeleton(param_dict, proj_dict)
     ## Choosing cosmological model
     cosmo_model = cosmo_create(cosmo_choice=param_dict['cosmo_choice'])
     # Assigning the cosmological model to `param_dict`
