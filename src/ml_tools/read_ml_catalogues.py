@@ -17,7 +17,7 @@ Utilities for reading in the ML outputs for this project.
 # Importing Modules
 from cosmo_utils       import mock_catalogues as cm
 from cosmo_utils       import utils           as cu
-from cosmo_utils.utils import file_utils      as cfutils4e
+from cosmo_utils.utils import file_utils      as cfutils
 from cosmo_utils.utils import file_readers    as cfreaders
 from cosmo_utils.utils import work_paths      as cwpaths
 from cosmo_utils.ml    import ml_utils        as cmlu
@@ -285,18 +285,19 @@ class ReadML(object):
         return catl_pre_path
 
     ## Directory for the merged catalogues
-    def catl_merged_dir(self, opt='catl', catl_kind='mocks', check_exist=True):
+    def catl_merged_dir(self, opt='catl', catl_kind='mocks', check_exist=True,
+        create_dir=False):
         """
         Directory for the `merged` catalogues with the features for the
         ML analysis.
 
         Parameters
         ------------
-        opt : {'catls', 'combined'} `str`, optional
+        opt : {'catl', 'combined'} `str`, optional
             Option for returning which directory to return.
 
             Options:
-                - 'catls' : Directory of the individuals merged catls
+                - 'catl' : Directory of the individuals merged catls
                 - 'combined' : Directory of all the catalogues combined.
 
         catl_kind : {'mocks', 'data'} `str`
@@ -329,6 +330,9 @@ class ReadML(object):
                                             'merged_feat_catl',
                                             catl_pre_path,
                                             'merged_vac_combined')
+        # Creating directory if necessary
+        if create_dir:
+            cfutils.Path_Folder(merged_feat_dir)
         # Checking that folders exist
         if check_exist:
             if not (os.path.exists(merged_feat_dir)):
@@ -517,15 +521,23 @@ class ReadML(object):
 
         return feat_proc_pre_str
 
-    def catl_feat_dir(self, catl_kind='mocks', check_exist=True):
+    def catl_feat_dir(self, catl_kind='mocks', check_exist=True,
+        create_dir=False):
         """
         Directory for the `features` dictionaries for the ML analysic.
 
         Parameters
         -----------
+        catl_kind : {'mocks', 'data'} `str`
+            Option for which kind of catalogue to analyze            
+
         check_exist : `bool`, optional
             If `True`, it checks for whether or not the file exists.
             This variable is set to `True` by default.
+
+        create_dir : `bool`, optional
+            If `True`, it creates the directory if it does not exist.
+            This variable is set to `False` by default.
 
         Returns
         --------
@@ -533,6 +545,18 @@ class ReadML(object):
             Path to the directory with the `features` for the `combined`
             versions of the catalogues.
         """
+        # Check input parameters
+        # `check_exist`
+        if not (isinstance(check_exist, bool)):
+            msg = '`check_exist` ({0}) must be of `boolean` type!'.format(
+                type(check_exist))
+            raise TypeError(msg)
+        #
+        # `create_dir`
+        if not (isinstance(create_dir, bool)):
+            msg = '`create_dir` ({0}) must be of `boolean` type!'.format(
+                type(create_dir))
+            raise TypeError(msg)
         # Catalogue prefix string
         catl_pre_path = self.catl_prefix_path(catl_kind=catl_kind)
         # Feature catalogue
@@ -540,6 +564,9 @@ class ReadML(object):
                                         'catl_features',
                                         catl_pre_path,
                                         'feat_processing')
+        # Creating directory if necessary
+        if create_dir:
+            cfutils.Path_Folder(catl_feat_dir)
         # Check for its existence
         if check_exist:
             if not (os.path.exists(catl_feat_dir)):
