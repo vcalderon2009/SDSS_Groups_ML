@@ -693,7 +693,7 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
 
     return pred_dict, param_dict
 
-def train_test_save(param_dict, train_dict, test_dict):
+def train_test_save(param_dict, pred_dict):
     """
     Saves the `training` and `testing` dictionaries to a file, so that
     it can be used for future analyses.
@@ -703,11 +703,8 @@ def train_test_save(param_dict, train_dict, test_dict):
     param_dict : `dict`
         Dictionary with `project` variables.
 
-    train_dict : `dict`
-        Dictionary containing the 'training' data from the catalogue
-
-    test_dict : `dict`
-        Dictionary containing the 'testing' data from the catalogue.
+    pred_dict : `dict`
+        Dictionary containing the 'features' for data.
     """
     file_msg = param_dict['Prog_msg']
     filepath = param_dict['filepath']
@@ -718,7 +715,7 @@ def train_test_save(param_dict, train_dict, test_dict):
     if not (os.path.exists(filepath)):
         ##
         ## List of objects to save in pickle file.
-        obj_arr = [train_dict, test_dict]
+        obj_arr = [pred_dict]
         ## Savng to pickle file
         with open(filepath, 'wb') as file_p:
             pickle.dump(obj_arr, file_p)
@@ -782,7 +779,7 @@ def main(args):
                                             test_train_opt=param_dict['test_train_opt'])
         ##
         ## Saving dictionaries and more to file
-        train_test_save(param_dict, train_dict, test_dict)
+        train_test_save(param_dict, pred_dict)
     else:
         ##
         ## Output message
