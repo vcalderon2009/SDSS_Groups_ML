@@ -520,7 +520,8 @@ def test_feat_file(param_dict, proj_dict):
     filename_str = param_dict['ml_args']._feat_proc_pre_str()
     ##
     ## Path to output file
-    filepath = param_dict['ml_args'].catl_feat_file(check_exist=False)
+    filepath = param_dict['ml_args'].catl_feat_file(check_exist=False,
+        catl_kind='data')
     ## Saving
     ##
     ## Checking if to run or not
@@ -635,11 +636,8 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
 
     Returns
     ---------
-    train_dict : `dict`
-        Dictionary containing the 'training' data from the catalogue
-
-    test_dict : `dict`
-        Dictionary containing the 'testing' data from the catalogue
+    pred_dict : `dict`
+        Dictionary containing the 'features' for data.
 
     param_dict : `dict`
         Dictionary with `project` variables + list `predicted` and `features`
@@ -673,164 +671,27 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
     ## Dropping NaN's
     if dropna_opt:
         catl_pd_tot.dropna(how='any', inplace=True)
-
-    ## Choosing which type to use for the training/testing datasets
-    if test_train_opt == 'sample_frac':
-        ## Fraction of the total dataset
-        catl_pd = catl_pd_tot.sample(   frac=sample_frac,
-                                        random_state=random_state)
-        ## Deleting `total` catalogue
-        catl_pd_tot = None
-        ##
-        ## Creating new DataFrames
-        pred_arr = catl_pd.loc[:, predicted_cols].values
-        feat_arr = catl_pd.loc[:, features_cols ].values
-        ## Modifying `pred_arr` and `feat_arr`
-        pred_arr = cgu.reshape_arr_1d(pred_arr)
-        feat_arr = cgu.reshape_arr_1d(feat_arr)
-        ##
-        # Scaled Feature array
-        feat_arr_scaled = cmlu.data_preprocessing(  feat_arr,
-                                                    pre_opt=pre_opt)
-        ##
-        ## Rescaling and computing training and testing datasets
-        (   train_dict,
-            test_dict ) = cmlu.train_test_dataset(  pred_arr,
-                                                    feat_arr,
-                                                    pre_opt=pre_opt,
-                                                    shuffle_opt=shuffle_opt,
-                                                    random_state=random_state,
-                                                    test_size=test_size)
-        ##
-        ## Saving to dictionary
-        param_dict['predicted_cols' ] = predicted_cols
-        param_dict['features_cols'  ] = features_cols
-        param_dict['feat_arr_scaled'] = feat_arr_scaled
-        param_dict['feat_arr'       ] = feat_arr
     ##
-    ## If selecting testing/training based on which boxes
-    if test_train_opt =='boxes_n':
-        ## Simualation boxes - Indices
-        (   box_train_start,
-            box_train_end  ,
-            box_test_idx   ) = (num.array(param_dict['box_idx'].split('_'))
-                                    .astype(int))
-        ##
-        ## List of boxes in the complete DataFrame
-        boxes_arr = num.unique(catl_pd_tot['box_n'].values)
-        # Checking for box's index
-        for box_idx in [box_train_start, box_train_end, box_test_idx]:
-            try:
-                assert(box_idx <= (len(boxes_arr) -1) )
-            except:
-                msg  = '{0} `box_idx` ({1}) is larger than the number of boxes '
-                msg += ' in the simulation ({2})!'
-                msg  = msg.format(file_msg, box_idx, len(boxes_arr) - 1)
-                raise ValueError(msg)
-        ##
-        ## Selecting subsample of the main catalogue
-        # Training
-        catl_train_pd = catl_pd_tot.loc[(catl_pd_tot['box_n']).between(
-                            boxes_arr[box_train_start],
-                            boxes_arr[box_train_end],
-                            inclusive=True)]
-        # Testing
-        catl_test_pd  = catl_pd_tot.loc[(
-            catl_pd_tot['box_n'] == boxes_arr[box_test_idx])]
-        ##
-        ## Shuffling if needed
-        if shuffle_opt:
-            # Train
-            catl_train_pd = skutils.shuffle(catl_train_pd,
-                                            random_state=random_state)
-            # Test
-            catl_test_pd  = skutils.shuffle(catl_test_pd,
-                                            random_state=random_state)
-        ##
-        ## `Features` and `predictions`
-        # Training
-        pred_train_arr = catl_train_pd.loc[:, predicted_cols].values
-        feat_train_arr = catl_train_pd.loc[:, features_cols ].values
-        pred_train_arr = cgu.reshape_arr_1d(pred_train_arr)
-        feat_train_arr = cgu.reshape_arr_1d(feat_train_arr)
-        # Testing
-        pred_test_arr  = catl_test_pd.loc[:, predicted_cols].values
-        feat_test_arr  = catl_test_pd.loc[:, features_cols ].values
-        pred_test_arr  = cgu.reshape_arr_1d(pred_test_arr)
-        feat_test_arr  = cgu.reshape_arr_1d(feat_test_arr)
-        ##
-        ## Scaled versions
-        feat_train_arr_scaled = cmlu.data_preprocessing(feat_train_arr,
-                                                        pre_opt=pre_opt)
-        feat_test_arr_scaled = cmlu.data_preprocessing( feat_test_arr,
-                                                        pre_opt=pre_opt)
-        ##
-        ## Assigning `training` and `testing` datasets to dictionary
-        # Training
-        train_dict = {  'X_train'   : feat_train_arr_scaled,
-                        'Y_train'   : pred_train_arr,
-                        'X_train_ns': feat_train_arr,
-                        'Y_train_ns': pred_train_arr}
-        # Testing
-        test_dict  = {  'X_test'   : feat_test_arr_scaled,
-                        'Y_test'   : pred_test_arr,
-                        'X_test_ns': feat_test_arr,
-                        'Y_test_ns': pred_test_arr}
-        ##
-        ## Saving to dictionary
-        param_dict['predicted_cols' ] = predicted_cols
-        param_dict['features_cols'  ] = features_cols
-        param_dict['feat_arr_scaled'] = feat_train_arr_scaled
-        param_dict['feat_arr'       ] = feat_train_arr
+    ## Selecting only 'feature' columns
+    catl_pd_tot = catl_pd_tot.loc[:, features_cols]
     ##
-    ## If selecting testing/training based on a `single` box
-    if (test_train_opt == 'box_sample_frac'):
-        # `box_test`
-        box_test = param_dict['box_test']
-        # List of boxes in the complete DataFrame
-        boxes_arr = num.unique(catl_pd_tot['box_n'].values)
-        # Checking for box's index
-        try:
-            assert(param_dict['box_test'] <= (len(boxes_arr) - 1))
-        except:
-            msg = '{0} `box_test` ({1}) is larger than the number '
-            msg += 'of boxes in the simulation ({2})!'
-            msg = msg.format(file_msg, box_test, len(boxes_arr) - 1)
-            raise ValueError(msg)
-        #
-        # Selecting subsample for the main catalogue
-        catl_pd = catl_pd_tot.loc[catl_pd_tot['box_n'] == boxes_arr[box_test]]
-        #
-        # Deleting `total` catalogue
-        catl_pd_tot = None
-        ##
-        ## Creating `prediction` and `features` arrays
-        pred_arr = catl_pd.loc[:, predicted_cols].values
-        feat_arr = catl_pd.loc[:, features_cols ].values
-        ## Modifying `pred_arr` and `feat_arr`
-        pred_arr = cgu.reshape_arr_1d(pred_arr)
-        feat_arr = cgu.reshape_arr_1d(feat_arr)
-        ##
-        # Scaled Feature array
-        feat_arr_scaled = cmlu.data_preprocessing(  feat_arr,
-                                                    pre_opt=pre_opt)
-        ##
-        ## Rescaling and computing training and testing datasets
-        (   train_dict,
-            test_dict ) = cmlu.train_test_dataset(  pred_arr,
-                                                    feat_arr,
-                                                    pre_opt=pre_opt,
-                                                    shuffle_opt=shuffle_opt,
-                                                    random_state=random_state,
-                                                    test_size=test_size)
-        ##
-        ## Saving to dictionary
-        param_dict['predicted_cols' ] = predicted_cols
-        param_dict['features_cols'  ] = features_cols
-        param_dict['feat_arr_scaled'] = feat_arr_scaled
-        param_dict['feat_arr'       ] = feat_arr
+    ## 
+    feat_arr = cgu.reshape_arr_1d(catl_pd_tot.values)
+    # Scaled feature array
+    feat_arr_scaled = cmlu.data_preprocessing(  feat_arr,
+                                                pre_opt=pre_opt)
+    ##
+    ## Dictionary for prediction
+    pred_dict = {   'pred_X'   : feat_arr_scaled,
+                    'pred_X_ns': feat_arr}
+    ##
+    ## Saving to dictionary
+    param_dict['predicted_cols' ] = predicted_cols
+    param_dict['features_cols'  ] = features_cols
+    param_dict['feat_arr_scaled'] = feat_arr_scaled
+    param_dict['feat_arr'       ] = feat_arr
 
-    return train_dict, test_dict, param_dict
+    return pred_dict, param_dict
 
 def train_test_save(param_dict, train_dict, test_dict):
     """
@@ -871,7 +732,7 @@ def train_test_save(param_dict, train_dict, test_dict):
 
 #### ---------------------- Main Selection --------------------------------###
 
-def main():
+def main(args):
     """
     Selects the features to analyze and saves the outputs for creating the
     training and testing datasets.
@@ -909,8 +770,7 @@ def main():
     ## Reading in `merged` catalogue and separating training and
     ## testing datasets
     if run_opt:
-        (   train_dict,
-            test_dict ,
+        (   pred_dict ,
             param_dict) = feat_selection(   param_dict,
                                             proj_dict,
                                             random_state=param_dict['seed'],
@@ -943,4 +803,4 @@ if __name__ == '__main__':
     ## Input arguments
     args = get_parser()
     # Main Function
-    main()
+    main(args)
