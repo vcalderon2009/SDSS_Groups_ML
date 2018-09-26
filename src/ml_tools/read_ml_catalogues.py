@@ -529,7 +529,7 @@ class ReadML(object):
         Parameters
         -----------
         catl_kind : {'mocks', 'data'} `str`
-            Option for which kind of catalogue to analyze            
+            Option for which kind of catalogue to analyze
 
         check_exist : `bool`, optional
             If `True`, it checks for whether or not the file exists.
@@ -576,7 +576,7 @@ class ReadML(object):
 
         return catl_feat_dir
 
-    def catl_feat_file(self, ext='p', check_exist=True):
+    def catl_feat_file(self, ext='p', check_exist=True, catl_kind='mocks'):
         """
         Path to the file that contains the `training` and `testing`
         dictionaries for the `combined` catalogue.
@@ -591,6 +591,10 @@ class ReadML(object):
             If `True`, it checks for whether or not the file exists.
             This variable is set to `True` by default.
 
+        catl_kind : {'mocks', 'data'} `str`
+            Option for which kind of catalogue to analyze. This variable is
+            set to 'mocks' by default'.
+
         Returns
         ---------
         catl_feat_filepath : `str`
@@ -598,7 +602,7 @@ class ReadML(object):
             for the `combined` version of the catalogues.
         """
         # Feature directory
-        catl_feat_dir = self.catl_feat_dir()
+        catl_feat_dir = self.catl_feat_dir(catl_kind=catl_kind)
         # Feat Pre-processing string
         feat_proc_pre_str = self._feat_proc_pre_str()
         # `catl_feat_filepath`

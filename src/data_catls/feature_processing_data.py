@@ -561,11 +561,12 @@ def directory_skeleton(param_dict, proj_dict):
     """
     ##
     ## Directory for the processed features
-    catl_feat_dir = param_dict['ml_args'].catl_feat_dir(check_exist=False)
+    catl_feat_dir = param_dict['ml_args'].catl_feat_dir(catl_kind='data',
+        check_exist=True, create_dir=True)
     ##
     ## Directory of the catalogues being analyzed - Compilation of all mocks
     catl_dir = param_dict['ml_args'].catl_merged_dir(opt='combined',
-                    check_exist=True)
+                    catl_kind='data', check_exist=True)
     ##
     ## Creating new directory
     cfutils.Path_Folder(catl_feat_dir)
