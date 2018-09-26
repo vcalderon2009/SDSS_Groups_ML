@@ -1437,6 +1437,7 @@ def merging_df_save(merged_vac_filename, memb_group_pd, param_dict, proj_dict):
     proj_dict: python dictionary
         Dictionary with current and new paths to project directories
     """
+    Prog_msg = param_dict['Prog_msg']
     ## Saving catalogue
     cfreaders.pandas_df_to_hdf5_file(memb_group_pd, merged_vac_filename,
         key='/gals_groups')
