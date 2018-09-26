@@ -768,6 +768,9 @@ def galaxy_properties(memb_ii_pd, memb_mod_pd):
                          'galtype', 'g_r'    ,\
                          'groupid', 'sersic'   ]
     gals_cols_pd_copy = (memb_ii_pd.copy())[gals_cols]
+    # Renaming column
+    cols_dict = {xx:xx.replace('galtype','g_galtype') for xx in gals_cols}
+    gals_cols_pd_copy.rename(columns=cols_dict, inplace=True)
     # Merging DataFrames
     memb_mod_pd = pd.merge(memb_mod_pd, gals_cols_pd_copy,
                     left_index=True, right_index=True)
@@ -1427,6 +1430,7 @@ def merging_df_save(merged_vac_filename, memb_group_pd, param_dict, proj_dict):
     proj_dict: python dictionary
         Dictionary with current and new paths to project directories
     """
+    Prog_msg = param_dict['Prog_msg']
     ## Saving catalogue
     cfreaders.pandas_df_to_hdf5_file(memb_group_pd, merged_vac_filename,
         key='/gals_groups')
