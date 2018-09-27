@@ -57,6 +57,8 @@ from operator import attrgetter
 from tqdm import tqdm
 
 ## Functions
+
+## ------------------------- Initial Functions ------------------------------#
 class SortingHelpFormatter(HelpFormatter):
     def add_arguments(self, actions):
         """
@@ -79,16 +81,16 @@ def _check_pos_val(val, val_min=0):
 
     Parameters
     ----------
-    val: int or float
-        value to be evaluated by `val_min`
+    val : `int` or float`
+        Value to be evaluated by `val_min`
 
-    val_min: float or int, optional (default = 0)
-        minimum value that `val` can be
+    val_min: `float` or `int`, optional
+        Minimum value that `val` can be. This variable is set to `0` by default
 
     Returns
     -------
-    ival: float
-        value if `val` is larger than `val_min`
+    ival : `float`
+        Value if `val` is larger than `val_min`
 
     Raises
     -------
@@ -450,12 +452,12 @@ def param_vals_test(param_dict):
 
     Parameters
     -----------
-    param_dict: python dictionary
-        dictionary with `project` variables
+    param_dict : `dict`
+        Dictionary with `project` variables
 
     Raises
     -----------
-    ValueError: Error
+    ValueError : Error
         This function raises a `ValueError` error if one or more of the 
         required criteria are not met
     """
@@ -551,9 +553,9 @@ def param_vals_test(param_dict):
         raise ValueError(msg)
 
 def is_tool(name):
-    """Check whether `name` is on PATH and marked as executable."""
-
-    # from whichcraft import which
+    """
+    Check whether `name` is on PATH and marked as executable.
+    """
     from shutil import which
 
     return which(name) is not None
@@ -564,13 +566,13 @@ def add_to_dict(param_dict):
 
     Parameters
     ----------
-    param_dict: python dictionary
-        dictionary with input parameters and values
+    param_dict : `dict`
+        Dictionary with input parameters and values
 
     Returns
     ----------
-    param_dict: python dictionary
-        dictionary with old and new values added
+    param_dict : `dict`
+        Dictionary with old and new values added
     """
     sample_s = param_dict['ml_args'].sample_s
     ### Sample - Mr
@@ -589,7 +591,7 @@ def add_to_dict(param_dict):
     ## Other constants
     # Speed of light - In km/s
     speed_c = ac.c.to(u.km/u.s).value
-    
+
     return param_dict
 
 def directory_skeleton(param_dict, proj_dict):
@@ -598,16 +600,16 @@ def directory_skeleton(param_dict, proj_dict):
 
     Parameters
     ----------
-    param_dict: python dictionary
+    param_dict : `dict`
         dictionary with `project` variables
 
-    proj_dict: python dictionary
+    proj_dict : `dict`
         dictionary with info of the project that uses the
         `Data Science` Cookiecutter template.
 
     Returns
     ---------
-    proj_dict: python dictionary
+    proj_dict : `dict`
         Dictionary with current and new paths to project directories
     """
     ## In here, you define the directories of your project
@@ -621,8 +623,18 @@ def directory_skeleton(param_dict, proj_dict):
 
     return proj_dict
 
+## ----------------------------- Predictions --------------------------------#
 
+def ml_predictions_data(param_dict, proj_dict):
+    """
+    Predicts the `predicted` columns of the real data and turns them
+    into a DataFrame.
 
+    Parameters
+
+    """
+
+## --------------------------- Main Function --------------------------------#
 def main(args):
     """
     Script to produce catalogues with features and predicted masses for
@@ -657,6 +669,7 @@ def main(args):
     ##
     ## -------- ML main analysis -------- ##
     ##
+    # Predicting masses
 
 
 # Main function
