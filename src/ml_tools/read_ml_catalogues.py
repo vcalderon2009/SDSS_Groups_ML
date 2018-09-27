@@ -1649,9 +1649,9 @@ class ReadML(object):
             Prefix string of the output file for SDSS data.
         """
         # ML Training prefix
-        catl_train_prefix_str = self._catl_train_prefix_str()
+        catl_app_data_str = self._catl_train_prefix_str()
         # Adding to main string
-        catl_app_data_str    += 'catl_data_out'
+        catl_app_data_str += 'catl_data_out'
 
         return catl_app_data_str
 
