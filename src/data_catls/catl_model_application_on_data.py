@@ -589,9 +589,7 @@ def add_to_dict(param_dict):
     ## Other constants
     # Speed of light - In km/s
     speed_c = ac.c.to(u.km/u.s).value
-
-
-
+    
     return param_dict
 
 def directory_skeleton(param_dict, proj_dict):

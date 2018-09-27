@@ -1683,7 +1683,7 @@ class ReadML(object):
         # Filename
         filename_str = '{0}.{1}'.format(catl_app_data_str, ext)
         # Output directory
-        catl_outfile_path = os.path.join(outdir, catl_app_data_str)
+        catl_outfile_path = os.path.join(outdir, filename_str)
         # Checking if file exists
         if check_exist:
             if not (os.path.exists(catl_outfile_path)):
