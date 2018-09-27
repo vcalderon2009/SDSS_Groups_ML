@@ -1651,7 +1651,7 @@ class ReadML(object):
         # ML Training prefix
         catl_app_data_str = self._catl_train_prefix_str()
         # Adding to main string
-        catl_app_data_str += 'catl_data_out'
+        catl_app_data_str += '_catl_data_out'
 
         return catl_app_data_str
 
