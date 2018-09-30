@@ -245,6 +245,7 @@ class ReadML(object):
         self.hod_models_n   = kwargs.get('hod_models_n', '0_1_2_3_4_5_6_7_8')
         self.include_nn     = kwargs.get('include_nn', False)
         self.dv_models_n    = kwargs.get('dv_models_n', '0.9_0.925_0.95_0.975_1.025_1.05_1.10')
+        self.chosen_ml_alg  = kwargs.get('chosen_ml_alg', 'xgboost')
         #
         # Extra variables
         self.sample_Mr      = 'Mr{0}'.format(self.sample)
@@ -1692,3 +1693,30 @@ class ReadML(object):
                 raise FileNotFoundError(msg)
 
         return catl_outfile_path
+
+    def catl_model_extract_model(self):
+        """
+        Extracts the necessary information from the desired ML model.
+
+        Returns
+        ---------
+        catl_pred_arr : `
+        """
+        # Selecting algorithms
+        if (self.chosen_ml_alg == 'xgboost'):
+            ml_alg_str = 'XGBoost'
+        elif (self.chosen_ml_alg == 'rf'):
+            ml_alg_str = 'random_forest'
+        elif (self.chosen_ml_alg == 'nn'):
+            ml_alg_str = 'neural_network'
+        # Extracting model from file
+        models_dict = self.extract_catl_alg_comp_info()[ml_alg_str]
+        # Extracting bins of mass for the `training` set
+        if (self.sample_method in ['subsample', 'normal']):
+            model_obj = models_dict['model_ii']
+        elif (self.sample_method in ['binning']):
+            # List of models for each bin of mass
+            models_arr      = models_dict['model_ii']
+            # Bins of mass from the `training` dataset.
+            train_mass_bins = models_dict['train_mass_bins']
+
