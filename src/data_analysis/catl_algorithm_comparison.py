@@ -907,6 +907,9 @@ def binning_idx(train_dict, test_dict, param_dict, mass_opt='group'):
     test_idx_bins : `numpy.ndarray`, shape [N, n_bins]
         Indices from the `test_dict` for each bin in halo mass.
 
+    train_mass_bins : `numpy.ndarray`
+        Array of bin arrays in terms of `mass_opt`.
+
     """
     # Predicted columns
     pred_cols = num.array(param_dict['ml_args']._predicted_cols())
@@ -982,6 +985,9 @@ def binning_idx(train_dict, test_dict, param_dict, mass_opt='group'):
         # Indices in each bin
         test_idx_bins = num.array([test_idx[test_digits == ii]
                             for ii in test_digits_idx])
+        #
+        # Array of bins for mass
+        train_mass_bins = train_bins
     #
     # Fixed number of bins
     if (param_dict['bin_val'] == 'nbins'):
@@ -1006,8 +1012,11 @@ def binning_idx(train_dict, test_dict, param_dict, mass_opt='group'):
         # Indices in each bin
         test_idx_bins = num.array([test_idx[test_digits == ii]
                             for ii in test_digits_idx])
+        #
+        # Array of bins for mass
+        train_mass_bins = mass_bins
 
-    return train_idx_bins, test_idx_bins
+    return train_idx_bins, test_idx_bins, train_mass_bins
 
 # General Model metrics
 def model_metrics(skem_ii, test_dict_ii, train_dict_ii, param_dict):
@@ -1298,8 +1307,9 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
     if (param_dict['sample_method'] == 'binning'):
         # Dictionaries with the indices from the `training` and `testing`
         # datasets, at each halo mass bin.
-        train_idx_bins, test_idx_bins = binning_idx(train_dict, test_dict,
-                                            param_dict)
+        (   train_idx_bins ,
+            test_idx_bins  ,
+            train_mass_bins) = binning_idx(train_dict, test_dict, param_dict)
         ##
         ## Looping over bins, and training each independently
         ml_model_dict = {}
@@ -1408,14 +1418,15 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
                             weights=[len(x) for x in train_idx_bins])
         ##
         ## -- Adding values to main dictionary
-        ml_model_dict['model_ii'      ] = models_main
-        ml_model_dict['score_all'     ] = score_main
-        ml_model_dict['mhalo_pred'    ] = mhalo_pred_main
-        ml_model_dict['mhalo_true'    ] = mhalo_true_main
-        ml_model_dict['frac_diff'     ] = frac_diff_main
-        ml_model_dict['mgroup_arr'    ] = mgroup_main
-        ml_model_dict['mdyn_arr'      ] = mdyn_main
-        ml_model_dict['feat_imp'      ] = feat_imp_mean
+        ml_model_dict['model_ii'       ] = models_main
+        ml_model_dict['score_all'      ] = score_main
+        ml_model_dict['mhalo_pred'     ] = mhalo_pred_main
+        ml_model_dict['mhalo_true'     ] = mhalo_true_main
+        ml_model_dict['frac_diff'      ] = frac_diff_main
+        ml_model_dict['mgroup_arr'     ] = mgroup_main
+        ml_model_dict['mdyn_arr'       ] = mdyn_main
+        ml_model_dict['feat_imp'       ] = feat_imp_mean
+        ml_model_dict['train_mass_bins'] = train_mass_bins
     ##
     ## -- Feature importance ranking --
     feat_imp_comb      = num.vstack(zip(feat_cols, ml_model_dict['feat_imp']))

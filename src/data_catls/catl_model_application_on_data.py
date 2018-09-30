@@ -631,8 +631,23 @@ def ml_predictions_data(param_dict, proj_dict):
     into a DataFrame.
 
     Parameters
+    -----------
+    param_dict : `dict`
+        dictionary with `project` variables
 
+    proj_dict : `dict`
+        dictionary with info of the project that uses the
+        `Data Science` Cookiecutter template + paths to files/folders used in
+        this project.
+
+    Returns
+    -----------
     """
+    # Extract trained-ML-model, from which we will evaluate new predictions.
+
+
+    models_dict = param_dict['ml_args'].extract_catl_alg_comp_info()
+
 
 ## --------------------------- Main Function --------------------------------#
 def main(args):
