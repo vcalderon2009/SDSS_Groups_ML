@@ -1546,7 +1546,6 @@ def main(args):
     param_dict = add_to_dict(param_dict)
     ##
     ## Creating Folder Structure
-    # proj_dict = cwpaths.cookiecutter_paths(__file__)
     proj_dict = param_dict['ml_args'].proj_dict
     proj_dict = directory_skeleton(param_dict, proj_dict)
     ##

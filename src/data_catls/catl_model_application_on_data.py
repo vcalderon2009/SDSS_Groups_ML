@@ -615,11 +615,11 @@ def directory_skeleton(param_dict, proj_dict):
     ## In here, you define the directories of your project
     #
     # Main output file for this script
-    catl_outpath = param_dict['ml_args'].catl_model_application_data_file(
+    catl_outfile_path = param_dict['ml_args'].catl_model_application_data_file(
         check_exist=False)
     #
     # Saving to `proj_dict`
-    proj_dict['catl_outpath'] = catl_outpath
+    proj_dict['catl_outfile_path'] = catl_outfile_path
 
     return proj_dict
 
@@ -671,7 +671,6 @@ def main(args):
     param_dict = add_to_dict(param_dict)
     ##
     ## Creating Folder Structure
-    # proj_dict = cwpaths.cookiecutter_paths(__file__)
     proj_dict = param_dict['ml_args'].proj_dict
     proj_dict  = directory_skeleton(param_dict, proj_dict)
     ##
@@ -685,6 +684,7 @@ def main(args):
     ## -------- ML main analysis -------- ##
     ##
     # Predicting masses
+    ml_predictions_data(param_dict, proj_dict)
 
 
 # Main function
