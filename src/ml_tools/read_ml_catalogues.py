@@ -1729,11 +1729,11 @@ class ReadML(object):
 
         return catl_outfile_path
 
-    def catl_model_mass_predictions(self, return_pd=True, return_arr=False):
+    def catl_model_pred_calculations(self, return_pd=True, return_arr=False):
         """
-        Extracts the necessary information from the desired ML model, and
-        computes the `predicted` array given the correct input. It
-        predicts the `predicted` values for the `real` data sample.
+        Computes the `predicted` values for the `real` data sample using the
+        already-trained ML algorithms. It returns a full DataFrame or
+        an array of the `predicted` elements.
 
         Parameters
         -----------
@@ -1841,6 +1841,89 @@ class ReadML(object):
         elif (return_pd and return_arr):
             # Returning both DataFrames and Array(s)
             return catl_pd_merged, pred_arr
+
+    def catl_model_pred_file_extract(self, return_pd=True, return_arr=False,
+        remove_file=False):
+        """
+        Extracts the information of the `predicted` elements for the `real`
+        data.
+
+        Parameters
+        -----------
+        return_pd : `bool`
+            If True, it returns the pandas DataFrame with the predicted
+            column merged into the original DataFrame. This variables is
+            set to `True` by default.
+
+        return_arr : `bool`
+            If True, it returns the `numpy.ndarray` of the predicted
+            elemeents. This variable is set to `False` by default.
+
+        remove_file : `bool`
+            If True, it removes the output file if it exists. Otherwise,
+            it creates a new file with updated information.
+
+        Returns
+        -----------
+        catl_pd_merged : `pd.DataFrame`
+            DataFrame containing the original data and the predited
+            columns. This variable is returned only when ``return_pd == True``.
+
+        pred_arr : `numpy.ndarray`
+            Array of predicted elements. This array is returned only when
+            ``return_arr == True``.
+        """
+        ## Checking input parameters
+        # `return_pd`
+        if not (isinstance(return_pd, bool)):
+            msg = '`return_pd` must be boolean! Type: `{0}`. Exiting!'
+            msg = msg.format(type(return_pd))
+            raise TypeError(msg)
+        # `return_arr`
+        if not (isinstance(return_arr, bool)):
+            msg = '`return_arr` must be boolean! Type: `{0}`. Exiting!'
+            msg = msg.format(type(return_arr))
+            raise TypeError(msg)
+        # `remove_file`
+        if not (isinstance(remove_file, bool)):
+            msg = '`remove_file` must be boolean! Type: `{0}`. Exiting!'
+            msg = msg.format(type(remove_file))
+            raise TypeError(msg)
+        ##
+        ## Filename for output DataFrame
+        catl_outfile_path = self.catl_model_application_data_file(
+            check_exist=False)
+        # Checking if file exists
+        if os.path.exists(catl_outfile_path):
+            if remove_file:
+                calc_opt = True
+            else:
+                calc_opt = False
+        else:
+            calc_opt = True
+        ##
+        ## Running calculations if necessary
+        if calc_opt:
+            # Extracting DataFrame with necessary elements
+            (   catl_pd_merged,
+                pred_arr      ) = self.catl_model_pred_calculations(
+                                        return_pd=True, return_arr=True)
+            # Saving DataFrame to file
+            cfreaders.pandas_df_to_hdf5_file(   catl_pd_merged,
+                                                catl_outfile_path)
+            # Checking if file exists
+            cfutils.File_Exists(catl_outfile_path)
+        # else:
+
+
+
+
+
+
+
+
+
+
 
 
 
