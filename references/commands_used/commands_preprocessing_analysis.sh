@@ -46,6 +46,10 @@ make HALOTYPE="so" CLF_METHOD=1 DENS_CALC="False" CPU_FRAC=0.75 TEST_TRAIN_OPT="
 # --- Original work - Data Science Symposium - Optional ---
 make HALOTYPE="so" CLF_METHOD=1 DENS_CALC="False" CPU_FRAC=0.75 TEST_TRAIN_OPT="sample_frac" SAMPLE_FRAC=0.05 REMOVE_FILES="True" DV=1.0 HOD_N=0 REMOVE_MASTER="False" data_preprocess
 #
+# --- REAL DATA - Total Sample ---
+make HALOTYPE="so" CLF_METHOD=1 DENS_CALC="False" CPU_FRAC=0.75 TEST_TRAIN_OPT="sample_frac" SAMPLE_FRAC=0.1 REMOVE_FILES="True" DV=1.0 HOD_N=0 REMOVE_MASTER="False" data_real_preprocess
+
+#
 # --- General Figures ---
 make HALOTYPE="so" CLF_METHOD=1 DENS_CALC="False" CPU_FRAC=0.75 TEST_TRAIN_OPT="sample_frac" SAMPLE_FRAC=0.1 REMOVE_FILES="True" DV=1.0 HOD_N=0 REMOVE_MASTER="False" catl_main_props
 
