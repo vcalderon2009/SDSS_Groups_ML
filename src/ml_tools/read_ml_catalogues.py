@@ -1927,7 +1927,7 @@ class ReadML(object):
             pred_arr = catl_pd_merged.loc[:, pred_colnames_arr].values
             # Reshaping if necessary
             if (pred_arr.ndim == 2) and (pred_arr.shape[1] == 1):
-                 = pred_arr.flatten()
+                pred_arr = pred_arr.flatten()
         # Returning elements
         if return_pd and (not return_arr):
             # Only returning DataFrame
