@@ -671,6 +671,7 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
     ## Dropping NaN's
     if dropna_opt:
         catl_pd_tot.dropna(how='any', inplace=True)
+
     ##
     ## Selecting only 'feature' columns
     catl_pd_tot = catl_pd_tot.loc[:, features_cols]
@@ -682,8 +683,9 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
                                                 pre_opt=pre_opt)
     ##
     ## Dictionary for prediction
-    pred_dict = {   'pred_X'   : feat_arr_scaled,
-                    'pred_X_ns': feat_arr}
+    pred_dict = {   'pred_X'     : feat_arr_scaled,
+                    'pred_X_ns'  : feat_arr,
+                    'catl_pd_tot': catl_pd_tot}
     ##
     ## Saving to dictionary
     param_dict['predicted_cols' ] = predicted_cols
