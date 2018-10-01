@@ -1948,6 +1948,8 @@ class ReadML(object):
             elif (return_pd and return_arr):
                 # Returning both DataFrames and Array(s)
                 return catl_pd_merged, pred_arr, catl_outfile_path
+            elif return_path and not (return_pd and return_arr):
+                return catl_outfile_path
         else:
             if return_pd and (not return_arr):
                 # Only returning DataFrame
