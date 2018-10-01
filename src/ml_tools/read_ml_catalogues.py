@@ -1845,7 +1845,7 @@ class ReadML(object):
             return catl_pd_merged, pred_arr
 
     def catl_model_pred_file_extract(self, return_pd=True, return_arr=False,
-        remove_file=False):
+        remove_file=False, return_path=False):
         """
         Extracts the information of the `predicted` elements for the `real`
         data.
@@ -1864,6 +1864,10 @@ class ReadML(object):
         remove_file : `bool`
             If True, it removes the output file if it exists. Otherwise,
             it creates a new file with updated information.
+
+        return_path : `bool`, optional
+            If True, the function also returns the path to the file being read.
+            This variable is set to `False` by default.
 
         Returns
         -----------
@@ -1890,6 +1894,11 @@ class ReadML(object):
         if not (isinstance(remove_file, bool)):
             msg = '`remove_file` must be boolean! Type: `{0}`. Exiting!'
             msg = msg.format(type(remove_file))
+            raise TypeError(msg)
+        # `return_path`
+        if not (isinstance(return_path, bool)):
+            msg = '`return_path` must be boolean! Type: `{0}`. Exiting!'
+            msg = msg.format(type(return_path))
             raise TypeError(msg)
         ##
         ## Filename for output DataFrame
@@ -1929,15 +1938,26 @@ class ReadML(object):
             if (pred_arr.ndim == 2) and (pred_arr.shape[1] == 1):
                 pred_arr = pred_arr.flatten()
         # Returning elements
-        if return_pd and (not return_arr):
-            # Only returning DataFrame
-            return catl_pd_merged
-        elif (return_arr) and (not return_pd):
-            # Only returning array
-            return pred_arr
-        elif (return_pd and return_arr):
-            # Returning both DataFrames and Array(s)
-            return catl_pd_merged, pred_arr
+        if return_path:
+            if return_pd and (not return_arr):
+                # Only returning DataFrame
+                return catl_pd_merged, catl_outfile_path
+            elif (return_arr) and (not return_pd):
+                # Only returning array
+                return pred_arr, catl_outfile_path
+            elif (return_pd and return_arr):
+                # Returning both DataFrames and Array(s)
+                return catl_pd_merged, pred_arr, catl_outfile_path
+        else:
+            if return_pd and (not return_arr):
+                # Only returning DataFrame
+                return catl_pd_merged
+            elif (return_arr) and (not return_pd):
+                # Only returning array
+                return pred_arr
+            elif (return_pd and return_arr):
+                # Returning both DataFrames and Array(s)
+                return catl_pd_merged, pred_arr
 
 
 
