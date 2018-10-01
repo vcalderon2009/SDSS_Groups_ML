@@ -1805,7 +1805,7 @@ class ReadML(object):
                                     left_index=True,
                                     right_index=True)
 
-        return pred_arr
+        return catl_pd_merged
 
 
 
