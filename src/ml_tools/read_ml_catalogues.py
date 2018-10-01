@@ -577,13 +577,17 @@ class ReadML(object):
 
         return catl_feat_dir
 
-    def catl_feat_file(self, ext='p', check_exist=True, catl_kind='mocks'):
+    def catl_feat_file(self, catl_kind='mocks', ext='p', check_exist=True):
         """
         Path to the file that contains the `training` and `testing`
         dictionaries for the `combined` catalogue.
 
         Parameters
         -----------
+        catl_kind : {'mocks', 'data'} `str`
+            Option for which kind of catalogue to analyze. This variable is
+            set to 'mocks' by default'.
+
         ext : `str`, optional
             Extension of the file being analyzed. This variable is set to
             `p` by default.
@@ -591,10 +595,6 @@ class ReadML(object):
         check_exist : `bool`, optional
             If `True`, it checks for whether or not the file exists.
             This variable is set to `True` by default.
-
-        catl_kind : {'mocks', 'data'} `str`
-            Option for which kind of catalogue to analyze. This variable is
-            set to 'mocks' by default'.
 
         Returns
         ---------
@@ -618,13 +618,17 @@ class ReadML(object):
 
         return catl_feat_filepath
 
-    def extract_feat_file_info(self, ext='p', return_path=False):
+    def extract_feat_file_info(self, catl_kind='mocks', ext='p',
+        return_path=False):
         """
         Extracts the information from the `features` catalogues, and returns
         a set of dictionaries.
 
         Parameters
         -----------
+        catl_kind : {'mocks', 'data'} `str`
+            Option for which kind of catalogue to analyze.
+
         ext : `str`, optional
             Extension of the file being analyzed. This variable is set to
             `p` by default.
@@ -634,34 +638,64 @@ class ReadML(object):
 
         Returns
         ---------
+        feat_dict : `dict`
+            Dictionary with the `features` arrays for the given parameters.
+            This variable is only returned if ``catl_kind == 'data'``.
+
         train_dict : `dict`
             Dictionary with the `training` arrays for the given parameters
+            This variable is only returned if ``catl_kind == 'mocks'``.
 
         test_dict : `dict`
-            Dictionary with the `training` arrays for the given parameters
+            Dictionary with the `training` arrays for the given parameters.
+            This variable is only returned if ``catl_kind == 'mocks'``.
 
-        train_test_path : `str`, optional
+        catl_feat_filepath : `str`, optional
             Path to the dictionaries being read. This is only returned when
             ``return_path == True``.
+
+        Notes
+        ---------
+        The objects returned by these functions depend on the choice of
+        `catl_kind`.
+        If:
+            - ``catl_kind == 'data'``: `feat_dict`, `catl_feat_filepath` are
+                returned.
+            - ``catl_kind == 'data'``: `train_dict`, `test_dict`, and 
+                `catl_feat_filepath` are returned.
         """
         # File containing the dictionaries
-        catl_feat_filepath = self.catl_feat_file(ext=ext,
+        catl_feat_filepath = self.catl_feat_file(ext=ext, catl_kind=catl_kind,
             check_exist=True)
         # Extracting information
         with open(catl_feat_filepath, 'rb') as feat_f:
             train_test_dict = pickle.load(feat_f)
         # Check for number of elements in the pickle file
-        if not (len(train_test_dict) == 2):
-            msg = '`train_test_dict` must have 2 elements, but it has {1}!'
-            msg = msg.format(len(train_test_dict))
-            raise ValueError(msg)
-        else:
-            (train_dict, test_dict) = train_test_dict
-
-        if return_path:
-            return train_dict, test_dict, catl_feat_filepath
-        else:
-            return train_dict, test_dict
+        if (catl_kind == 'data'):
+            if not (len(train_test_dict) == 1):
+                msg = '`train_test_dict` must have 1 elements, but it has {1}!'
+                msg = msg.format(len(train_test_dict))
+                raise ValueError(msg)
+            else:
+                feat_dict = train_test_dict[0]
+        elif (catl_kind == 'mocks'):
+            if not (len(train_test_dict) == 2):
+                msg = '`train_test_dict` must have 1 elements, but it has {1}!'
+                msg = msg.format(len(train_test_dict))
+                raise ValueError(msg)
+            else:
+                (train_dict, test_dict) = train_test_dict
+        # Returning items
+        if (catl_kind == 'data'):
+            if return_path:
+                return feat_dict, catl_feat_filepath
+            else:
+                return feat_dict
+        elif (catl_kind == 'mocks'):
+            if return_path:
+                return train_dict, test_dict, catl_feat_filepath
+            else:
+                return train_dict, test_dict
 
     def _predicted_cols(self):
         """
@@ -1694,14 +1728,22 @@ class ReadML(object):
 
         return catl_outfile_path
 
-    def catl_model_extract_model(self):
+    def catl_model_mass_predictions(self):
         """
-        Extracts the necessary information from the desired ML model.
+        Extracts the necessary information from the desired ML model, and
+        computes the `predicted` array given the correct input. It
+        predicts the `predicted` values for the `real` data sample.
 
         Returns
         ---------
         catl_pred_arr : `
         """
+        # Extracting `feature` arrays from `real` data sample.
+        feat_dict, catl_feat_filepath = self.extract_feat_file_info(
+            catl='data', return_path=True)
+
+
+
         # Selecting algorithms
         if (self.chosen_ml_alg == 'xgboost'):
             ml_alg_str = 'XGBoost'
