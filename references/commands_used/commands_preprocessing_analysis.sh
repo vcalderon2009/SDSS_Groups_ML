@@ -47,7 +47,8 @@ make HALOTYPE="so" CLF_METHOD=1 DENS_CALC="False" CPU_FRAC=0.75 TEST_TRAIN_OPT="
 make HALOTYPE="so" CLF_METHOD=1 DENS_CALC="False" CPU_FRAC=0.75 TEST_TRAIN_OPT="sample_frac" SAMPLE_FRAC=0.05 REMOVE_FILES="True" DV=1.0 HOD_N=0 REMOVE_MASTER="False" data_preprocess
 #
 # --- REAL DATA - Total Sample ---
-make HALOTYPE="so" CLF_METHOD=1 DENS_CALC="False" CPU_FRAC=0.75 TEST_TRAIN_OPT="sample_frac" SAMPLE_FRAC=0.1 REMOVE_FILES="True" DV=1.0 HOD_N=0 REMOVE_MASTER="False" data_real_preprocess
+make HALOTYPE="so" CLF_METHOD=1 DENS_CALC="False" CPU_FRAC=0.75 TEST_TRAIN_OPT="sample_frac" SAMPLE_FRAC=0.1 REMOVE_FILES="True" DV=1.0 HOD_N=0 REMOVE_MASTER="True" data_real_preprocess
+make HALOTYPE="so" CLF_METHOD=1 DENS_CALC="False" CPU_FRAC=0.75 TEST_TRAIN_OPT="boxes_n" SAMPLE_FRAC=0.1 REMOVE_FILES="True" DV=1.0 HOD_N=0 REMOVE_MASTER="True" data_real_preprocess
 
 #
 # --- General Figures ---
@@ -76,7 +77,7 @@ make ML_ANALYSIS="dv_fixed" HALOTYPE="so" CLF_METHOD=1 DENS_CALC="False" CPU_FRA
 make ML_ANALYSIS="hod_fixed" HALOTYPE="so" CLF_METHOD=1 DENS_CALC="False" CPU_FRAC=0.75 TEST_TRAIN_OPT="box_sample_frac" REMOVE_FILES="True" DV=1.0 HOD_N=0 DV_MODELS_N='0.9_0.925_0.95_0.975_1.0_1.025_1.05_1.10' SAMPLE_METHOD="binning" BIN_VAL="nbins" ml_analysis
 ##
 ## --- Fixed HOD and DV ---
-# make ML_ANALYSIS='hod_dv_fixed' HALOTYPE='so' CLF_METHOD=1 DENS_CALC="False" CPU_FRAC=0.75 TEST_TRAIN_OPT="sample_frac" SAMPLE_FRAC=0.1 REMOVE_FILES="False" DV=1.0 HOD_N=0 SAMPLE_METHOD="subsample" RESAMPLE_OPT="under" BIN_VAL="nbins" ml_analysis
+# make ML_ANALYSIS='hod_dv_fixed' HALOTYPE='so' CLF_METHOD=1 DENS_CALC="False" CPU_FRAC=0.75 TEST_TRAIN_OPT="sample_frac" SAMPLE_FRAC=0.1 REMOVE_FILES="True" DV=1.0 HOD_N=0 SAMPLE_METHOD="normal" RESAMPLE_OPT="under" BIN_VAL="nbins" ml_analysis
 # make ML_ANALYSIS='hod_dv_fixed' HALOTYPE='so' CLF_METHOD=1 DENS_CALC="False" CPU_FRAC=0.75 TEST_TRAIN_OPT="sample_frac" SAMPLE_FRAC=0.1 REMOVE_FILES="False" DV=1.0 HOD_N=0 SAMPLE_METHOD="binning" BIN_VAL="nbins" ml_analysis
 make ML_ANALYSIS='hod_dv_fixed' HALOTYPE='so' CLF_METHOD=1 DENS_CALC="False" CPU_FRAC=0.75 TEST_TRAIN_OPT="boxes_n" SAMPLE_FRAC=0.1 REMOVE_FILES="True" DV=1.0 HOD_N=0 SAMPLE_METHOD="binning" BIN_VAL="nbins" ml_analysis
 
@@ -85,5 +86,6 @@ make ML_ANALYSIS='hod_dv_fixed' HALOTYPE='so' CLF_METHOD=1 DENS_CALC="False" CPU
 ##############################################################################
 ##
 ## --- Creating Catalogues for Mr19 ---
+
 
 
