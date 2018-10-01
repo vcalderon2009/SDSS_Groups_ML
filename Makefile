@@ -14,13 +14,14 @@ PYTHON_INTERPRETER = python3
 ENVIRONMENT_FILE = environment.yml
 ENVIRONMENT_NAME = sdss_groups_ml
 
-DATA_DIR           = $(PROJECT_DIR)/data
-SRC_DIR            = $(PROJECT_DIR)/src
-SRC_DATA_DIR       = $(SRC_DIR)/data
-SRC_PREPROC_DIR    = $(SRC_DIR)/data_preprocessing
-SRC_ANALYSIS_DIR   = $(SRC_DIR)/data_analysis
-MOCKS_CATL_DIR     = $(DATA_DIR)/external/SDSS/mocks
-DATA_CATL_DIR      = $(DATA_DIR)/external/SDSS/data
+DATA_DIR             = $(PROJECT_DIR)/data
+SRC_DIR              = $(PROJECT_DIR)/src
+SRC_DATA_DIR         = $(SRC_DIR)/data
+SRC_PREPROC_DIR      = $(SRC_DIR)/data_preprocessing
+SRC_ANALYSIS_DIR     = $(SRC_DIR)/data_analysis
+SRC_PREPROC_DATA_DIR = $(SRC_DIR)/data_catls
+MOCKS_CATL_DIR       = $(DATA_DIR)/external/SDSS/mocks
+DATA_CATL_DIR        = $(DATA_DIR)/external/SDSS/data
 
 # INPUT VARIABLES
 # -- General -- #
@@ -189,7 +190,7 @@ cosmo_utils_remove:
 # PROJECT RULES                                                                 #
 #################################################################################
 
-## Preprocesses the datasets and transforms them into user-friendly versions
+## Preprocesses the mock datasets and transforms them into user-friendly versions
 data_preprocess: download_dataset
 	@python $(SRC_PREPROC_DIR)/data_preprocessing_main.py \
 	-hod_model_n $(HOD_N) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) \
@@ -275,6 +276,20 @@ ml_plots:
 	-clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) \
 	-nmin $(NMIN) -v $(VERBOSE) -pre_opt $(PRE_OPT) -sample_frac $(SAMPLE_FRAC)\
 	-score_method $(SCORE_METHOD) -clf_seed $(CLF_SEED)
+
+## Preprocesses the real datasets and transforms them into user-friendly versions
+data_real_preprocess:
+	@python $(SRC_PREPROC_DATA_DIR)/data_preprocessing_model_main.py \
+	-hod_model_n $(HOD_N) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) \
+	-dv $(DV) -clf_seed $(CLF_SEED) -sample $(SAMPLE) -abopt $(CATL_TYPE) \
+	-cosmo $(COSMO) -nmin $(NMIN) -mass_factor $(MASS_FACTOR) \
+	-remove_group $(REMOVE_GROUP) -n_predict $(N_PREDICT) \
+	-shuffle_opt $(SHUFFLE_OPT) -dropna_opt $(DROP_NA) \
+	-pre_opt $(PRE_OPT) -test_train_opt $(TEST_TRAIN_OPT) -box_idx $(BOX_IDX) \
+	-box_test $(BOX_TEST) -sample_frac $(SAMPLE_FRAC) -test_size $(TEST_SIZE) \
+	-n_feat_use $(N_FEAT_USE) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) \
+	-rm_master $(REMOVE_MASTER) -v $(VERBOSE) -perf $(PERF_OPT) \
+	-seed $(SEED) -dens_calc $(DENS_CALC)
 
 ## Run tests to see if all files (Halobias, catalogues) are in order
 test_files:

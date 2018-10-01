@@ -22,6 +22,7 @@ from cosmo_utils.utils import file_readers    as cfreaders
 from cosmo_utils.utils import work_paths      as cwpaths
 from cosmo_utils.ml    import ml_utils        as cmlu
 from cosmo_utils.mock_catalogues import catls_utils as cmcu
+from cosmo_utils.utils import gen_utils    as cgu
 
 import numpy as num
 import os
@@ -1736,14 +1737,22 @@ class ReadML(object):
 
         Returns
         ---------
-        catl_pred_arr : `
+        pred_arr : `numpy.ndarray`
+            Array of predicted elements 
         """
         # Extracting `feature` arrays from `real` data sample.
-        feat_dict, catl_feat_filepath = self.extract_feat_file_info(
-            catl='data', return_path=True)
-
-
-
+        feat_dict = self.extract_feat_file_info(catl_kind='data',
+                                                return_path=False)
+        # Selecting `non-scaled` features
+        feat_arr    = feat_dict['pred_X']
+        feat_ns_arr = feat_dict['pred_X_ns']
+        catl_pd_tot = feat_dict['catl_pd_tot']
+        # List of features used
+        feat_colnames = num.array(self._feature_cols())
+        # Extracting columns corresponding to `GG_M_group`
+        mgroup_data_arr = feat_ns_arr.T[num.where(
+                                feat_colnames == 'GG_M_group')[0]].flatten()
+        mgroup_data_idx_arr = num.arange(len(mgroup_data_arr))
         # Selecting algorithms
         if (self.chosen_ml_alg == 'xgboost'):
             ml_alg_str = 'XGBoost'
@@ -1755,10 +1764,50 @@ class ReadML(object):
         models_dict = self.extract_catl_alg_comp_info()[ml_alg_str]
         # Extracting bins of mass for the `training` set
         if (self.sample_method in ['subsample', 'normal']):
+            # Trained-ML model from synthetic catalogues
             model_obj = models_dict['model_ii']
+            # Reshaping feature if necessary
+            feat_arr_rs = feat_arr.reshape(len(feat_arr), len(feat_arr.T))
+            # Computing the predicted array(s)
+            pred_arr  = model_obj.predict(feat_arr_rs)
         elif (self.sample_method in ['binning']):
             # List of models for each bin of mass
             models_arr      = models_dict['model_ii']
             # Bins of mass from the `training` dataset.
             train_mass_bins = models_dict['train_mass_bins']
+            # Total number of bin indices
+            train_mass_idx  = num.arange(1, len(train_mass_bins))
+            # Figuring out to which mass bin each mass corresponds
+            mass_digits_bins = num.digitize(mgroup_data_arr, train_mass_bins)
+            # Computing `predicted` array
+            pred_arr = num.zeros(len(mgroup_data_arr))
+            # Looping over models for each mass bin
+            for kk, model_kk in enumerate(models_arr):
+                # Mask for given `kk`
+                mask_kk      = mass_digits_bins == (kk + 1)
+                # Predicted masses and their corresponding indices
+                mass_kk_pred = mgroup_data_arr    [mask_kk]
+                mass_kk_idx  = mgroup_data_idx_arr[mask_kk]
+                # Reshaping arrays
+                feat_arr_rs = feat_arr[mask_kk].reshape(len(mass_kk_pred),
+                                                        len(feat_arr.T))
+                # Computing `predicted` arrays
+                pred_mass_kk = models_arr[kk].predict(feat_arr_rs)
+                # Populating array
+                pred_arr[mass_kk_idx] = pred_mass_kk
+        ##
+        ## Joining predicted array(s) to DataFrame
+        pred_colnames  = num.array(self._predicted_cols())
+        pred_colnames  = num.array([xx + '_pred' for xx in pred_colnames])
+        pred_pd        = pd.DataFrame(pred_arr, columns=pred_colnames)
+        catl_pd_merged = pd.merge(  catl_pd_tot,
+                                    pred_pd,
+                                    left_index=True,
+                                    right_index=True)
+
+        return pred_arrs
+
+
+
+
 
