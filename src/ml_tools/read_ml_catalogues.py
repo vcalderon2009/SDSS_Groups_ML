@@ -1729,17 +1729,44 @@ class ReadML(object):
 
         return catl_outfile_path
 
-    def catl_model_mass_predictions(self):
+    def catl_model_mass_predictions(self, return_pd=True, return_arr=False):
         """
         Extracts the necessary information from the desired ML model, and
         computes the `predicted` array given the correct input. It
         predicts the `predicted` values for the `real` data sample.
 
+        Parameters
+        -----------
+        return_pd : `bool`
+            If True, it returns the pandas DataFrame with the predicted
+            column merged into the original DataFrame. This variables is
+            set to `True` by default.
+
+        return_arr : `bool`
+            If True, it returns the `numpy.ndarray` of the predicted
+            elemeents. This variable is set to `False` by default.
+
         Returns
-        ---------
+        -----------
+        catl_pd_merged : `pd.DataFrame`
+            DataFrame containing the original data and the predited
+            columns. This variable is returned only when ``return_pd == True``.
+
         pred_arr : `numpy.ndarray`
-            Array of predicted elements 
+            Array of predicted elements. This array is returned only when
+            ``return_arr == True``.
         """
+        ## Checking input parameters
+        # `return_pd`
+        if not (isinstance(return_pd, bool)):
+            msg = '`return_pd` must be boolean! Type: `{0}`. Exiting!'
+            msg = msg.format(type(return_pd))
+            raise TypeError(msg)
+        # `return_arr`
+        if not (isinstance(return_arr, bool)):
+            msg = '`return_arr` must be boolean! Type: `{0}`. Exiting!'
+            msg = msg.format(type(return_arr))
+            raise TypeError(msg)
         # Extracting `feature` arrays from `real` data sample.
         feat_dict = self.extract_feat_file_info(catl_kind='data',
                                                 return_path=False)
@@ -1804,8 +1831,16 @@ class ReadML(object):
                                     pred_pd,
                                     left_index=True,
                                     right_index=True)
-
-        return catl_pd_merged
+        # Returning elements
+        if return_pd and (not return_arr):
+            # Only returning DataFrame
+            return catl_pd_merged
+        elif (return_arr) and (not return_pd):
+            # Only returning array
+            return pred_arr
+        elif (return_pd and return_arr):
+            # Returning both DataFrames and Array(s)
+            return catl_pd_merged, pred_arr
 
 
 
