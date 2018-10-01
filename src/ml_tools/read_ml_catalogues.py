@@ -1774,6 +1774,8 @@ class ReadML(object):
         feat_arr    = feat_dict['pred_X']
         feat_ns_arr = feat_dict['pred_X_ns']
         catl_pd_tot = feat_dict['catl_pd_tot']
+        # Indices for `catl_pd_tot`
+        catl_pd_tot.reset_index(inplace=True)
         # List of features used
         feat_colnames = num.array(self._feature_cols())
         # Extracting columns corresponding to `GG_M_group`
@@ -1910,10 +1912,32 @@ class ReadML(object):
                                         return_pd=True, return_arr=True)
             # Saving DataFrame to file
             cfreaders.pandas_df_to_hdf5_file(   catl_pd_merged,
-                                                catl_outfile_path)
+                                                catl_outfile_path,
+                                                key='/gals')
             # Checking if file exists
             cfutils.File_Exists(catl_outfile_path)
-        # else:
+        else:
+            # Reading in input file
+            catl_pd_merged = cfreaders.read_hdf5_file_to_pandas_DF(
+                                catl_outfile_path)
+            # Figuring out `pred_arr`
+            merged_colnames   = catl_pd_merged.columns.values
+            pred_colnames_arr = [xx for xx in merged_colnames if 'pred' in xx]
+            # Selecting `predicted` columns
+            pred_arr = catl_pd_merged.loc[:, pred_colnames_arr].values
+            # Reshaping if necessary
+            if (pred_arr.ndim == 2) and (pred_arr.shape[1] == 1):
+                 = pred_arr.flatten()
+        # Returning elements
+        if return_pd and (not return_arr):
+            # Only returning DataFrame
+            return catl_pd_merged
+        elif (return_arr) and (not return_pd):
+            # Only returning array
+            return pred_arr
+        elif (return_pd and return_arr):
+            # Returning both DataFrames and Array(s)
+            return catl_pd_merged, pred_arr
 
 
 
