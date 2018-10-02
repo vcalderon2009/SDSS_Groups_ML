@@ -26,22 +26,22 @@ from cosmo_utils.utils import stats_funcs     as cstats
 from cosmo_utils.utils import geometry        as cgeom
 from cosmo_utils.mock_catalogues import catls_utils as cmcu
 
+from src.ml_tools import ReadML
+
 import numpy as num
-import math
 import os
 import sys
 import pandas as pd
-import pickle
 import matplotlib
 matplotlib.use( 'Agg' )
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-plt.rc('text', usetex=True)
+# plt.rc('text', usetex=True)
 import seaborn as sns
 #sns.set()
-from progressbar import (Bar, ETA, FileTransferSpeed, Percentage, ProgressBar,
-                        ReverseBar, RotatingMarker)
 from tqdm import tqdm
+
+from datetime import datetime
 
 # Extra-modules
 import argparse
@@ -560,14 +560,30 @@ def add_to_dict(param_dict):
     Parameters
     ----------
     param_dict : `dict`
-        dictionary with input parameters and values
+        Dictionary with input parameters and values
 
     Returns
     ----------
     param_dict : `dict`
-        dictionary with old and new values added
+        Dictionary with old and new values added
     """
-    # This is where you define `extra` parameters for adding to `param_dict`.
+    sample_s = param_dict['ml_args'].sample_s
+    ### Sample - Mr
+    sample_Mr = param_dict['ml_args'].sample_Mr
+    ## Sample volume
+    # Units (Mpc/h)**3
+    volume_sample = {   '18': 37820 / 0.01396,
+                        '19': 6046016.60311  ,
+                        '20': 2.40481e7      ,
+                        '21': 8.79151e7      }
+    vol_mr        = volume_sample[sample_s]
+    ##
+    ## Choice of Centrals and Satellites
+    cens = int(1)
+    sats = int(0)
+    ## Other constants
+    # Speed of light - In km/s
+    speed_c = ac.c.to(u.km/u.s).value
 
     return param_dict
 
@@ -597,18 +613,22 @@ def main(args):
     """
 
     """
+    start_time = datetime.now()
     ## Reading all elements and converting to python dictionary
     param_dict = vars(args)
     ## Checking for correct input
     param_vals_test(param_dict)
-    ## Adding extra variables
-    param_dict = add_to_dict(param_dict)
+    #
+    # Creating instance of `ReadML` with the input parameters
+    param_dict['ml_args'] = ReadML(**param_dict)
     ## Program message
     Prog_msg = param_dict['Prog_msg']
+    ## Adding extra variables
+    param_dict = add_to_dict(param_dict)
     ##
     ## Creating Folder Structure
-    # proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths(__file__))
-    proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths('./'))
+    proj_dict = param_dict['ml_args'].proj_dict
+    proj_dict  = directory_skeleton(param_dict, proj_dict)
     ##
     ## Printing out project variables
     print('\n'+50*'='+'\n')
@@ -616,6 +636,7 @@ def main(args):
         if key !='Prog_msg':
             print('{0} `{1}`: {2}'.format(Prog_msg, key, key_val))
     print('\n'+50*'='+'\n')
+
 
 
 # Main function
