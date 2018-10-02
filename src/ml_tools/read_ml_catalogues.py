@@ -1687,7 +1687,8 @@ class ReadML(object):
         # ML Training prefix
         catl_app_data_str = self._catl_train_prefix_str()
         # Adding to main string
-        catl_app_data_str += '_catl_data_out'
+        catl_app_data_str += '_alg_{0}_catl_data_out'.format(
+            self.chosen_ml_alg)
 
         return catl_app_data_str
 
@@ -1931,7 +1932,7 @@ class ReadML(object):
                                 catl_outfile_path)
             # Figuring out `pred_arr`
             merged_colnames   = catl_pd_merged.columns.values
-            pred_colnames_arr = [xx for xx in merged_colnames if 'pred' in xx]
+            pred_colnames_arr = [xx for xx in merged_colnames if '_pred' in xx]
             # Selecting `predicted` columns
             pred_arr = catl_pd_merged.loc[:, pred_colnames_arr].values
             # Reshaping if necessary

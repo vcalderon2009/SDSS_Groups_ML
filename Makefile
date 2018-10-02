@@ -55,24 +55,26 @@ PERF_OPT       = "False"
 SEED           = 1235
 REMOVE_MASTER  = "False"
 # -- Training -- #
-HIDDEN_LAYERS= 3
-UNIT_LAYER   = 100
-SCORE_METHOD = 'threshold'
-THRESHOLD    = 0.1
-PERC_VAL     = 0.68
-SAMPLE_METHOD= 'binning'
-BIN_VAL      = 'fixed'
-ML_ANALYSIS  = 'hod_dv_fixed'
-KF_SPLITS    = 3
+HIDDEN_LAYERS  = 3
+UNIT_LAYER     = 100
+SCORE_METHOD   = 'threshold'
+THRESHOLD      = 0.1
+PERC_VAL       = 0.68
+SAMPLE_METHOD  = 'binning'
+BIN_VAL        = 'fixed'
+ML_ANALYSIS    = 'hod_dv_fixed'
+KF_SPLITS      = 3
 # -- Algorithm Comparison --
-PLOT_OPT     = 'mgroup'
-RANK_OPT     = 'idx'
-RESAMPLE_OPT = 'under'
+PLOT_OPT       = 'mgroup'
+RANK_OPT       = 'idx'
+RESAMPLE_OPT   = 'under'
 # -- Comparing HODs
-HOD_MODELS_N = '0_1_2_3_4_5_6_7_8'
-INCLUDE_NN   = 'False'
-DV_MODELS_N  = '0.9_0.925_0.95_0.975_1.025_1.05_1.10'
-INCLUDE_NN   = "False"
+HOD_MODELS_N   = '0_1_2_3_4_5_6_7_8'
+INCLUDE_NN     = 'False'
+DV_MODELS_N    = '0.9_0.925_0.95_0.975_1.025_1.05_1.10'
+INCLUDE_NN     = "False"
+# -- Real Catalogue - Creating --
+CHOSEN_ML_ALG  = 'xgboost'
 
 
 # Checking for Anaconda
@@ -290,6 +292,20 @@ data_real_preprocess:
 	-n_feat_use $(N_FEAT_USE) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) \
 	-rm_master $(REMOVE_MASTER) -v $(VERBOSE) -perf $(PERF_OPT) \
 	-seed $(SEED) -dens_calc $(DENS_CALC)
+
+## Create output file with predicted columns on the REAL dataset
+data_real_catl_create:
+	@python $(SRC_PREPROC_DATA_DIR)/catl_model_application_on_data.py \
+	-hod_model_n $(HOD_N) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) \
+	-dv $(DV) -clf_seed $(CLF_SEED) -sample $(SAMPLE) -abopt $(CATL_TYPE) \
+	-cosmo $(COSMO) -nmin $(NMIN) -mass_factor $(MASS_FACTOR) \
+	-remove_group $(REMOVE_GROUP) -n_predict $(N_PREDICT) \
+	-shuffle_opt $(SHUFFLE_OPT) -dropna_opt $(DROP_NA) \
+	-pre_opt $(PRE_OPT) -test_train_opt $(TEST_TRAIN_OPT) -box_idx $(BOX_IDX) \
+	-box_test $(BOX_TEST) -sample_frac $(SAMPLE_FRAC) -test_size $(TEST_SIZE) \
+	-n_feat_use $(N_FEAT_USE) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) \
+	-rm_master $(REMOVE_MASTER) -v $(VERBOSE) -perf $(PERF_OPT) \
+	-seed $(SEED) -dens_calc $(DENS_CALC) -chosen_ml_alg $(CHOSEN_ML_ALG)
 
 ## Run tests to see if all files (Halobias, catalogues) are in order
 test_files:

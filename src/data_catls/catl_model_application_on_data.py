@@ -628,7 +628,8 @@ def directory_skeleton(param_dict, proj_dict):
 def ml_predictions_data(param_dict, proj_dict):
     """
     Predicts the `predicted` columns of the real data and turns them
-    into a DataFrame.
+    into a DataFrame. It extracts the trained-ML-model, from which we
+    evalute new predictions.
 
     Parameters
     -----------
@@ -643,10 +644,15 @@ def ml_predictions_data(param_dict, proj_dict):
     Returns
     -----------
     """
-    # Extract trained-ML-model, from which we will evaluate new predictions.
-
-
-    models_dict = param_dict['ml_args'].extract_catl_alg_comp_info()
+    Prog_msg = param_dict['Prog_msg']
+    ## Computing output file with `preditec` columns
+    catl_pred_path = param_dict['ml_args'].catl_model_pred_file_extract(
+                                    return_pd=False,
+                                    return_arr=False,
+                                    remove_file=param_dict['remove_files'],
+                                    return_path=True)
+    msg = '{0} File with the predicted columns can be found at: `{1}`'.format(
+                Prog_msg, catl_pred_path)
 
 
 ## --------------------------- Main Function --------------------------------#
