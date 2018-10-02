@@ -1962,6 +1962,75 @@ class ReadML(object):
                 # Returning both DataFrames and Array(s)
                 return catl_pd_merged, pred_arr
 
+    def catl_model_pred_plot_dir(self, check_exist=True, create_dir=False):
+        """
+        Path to the directory, in which the `plots` of the final *real*
+        SDSS catalogue are saved.
+
+        Parameters
+        ------------
+        check_exist : `bool`, optional
+            If `True`, it checks for whether or not the file exists.
+            This variable is set to `True` by default.
+
+        create_dir : `bool`, optional
+            If `True`, it creates the directory if it does not exist.
+
+        Returns
+        ------------
+        catl_pred_dir_path : `str`
+            Path to the directory, in which the `plots` of the final *real*
+            SDSS catalogue are saved.
+        """
+        # Check input parameters
+        # `check_exist`
+        if not (isinstance(check_exist, bool)):
+            msg = '`check_exist` ({0}) must be of `boolean` type!'.format(
+                type(check_exist))
+            raise TypeError(msg)
+        #
+        # `create_dir`
+        if not (isinstance(create_dir, bool)):
+            msg = '`create_dir` ({0}) must be of `boolean` type!'.format(
+                type(create_dir))
+            raise TypeError(msg)
+        # Catalogue Prefix
+        catl_prefix_path_data = self.catl_prefix_path(catl_kind='data')
+        # Output directory
+        catl_pred_dir_path = os.path.join(  self.proj_dict['plot_dir'],
+                                            self.ml_analysis,
+                                            catl_prefix_path_data)
+        # Creating directory if necessary
+        if create_dir:
+            cfutils.Path_Folder(catl_pred_dir_path)
+        # Check that folder exists
+        if check_exist:
+            if not (os.path.exists(catl_pred_dir_path)):
+                msg = '`catl_pred_dir_path` ({0}) was not found! '
+                msg += 'Check your path!'
+                msg = msg.format(catl_pred_dir_path)
+                raise FileNotFoundError(msg)
+
+        return catl_pred_dir_path
+
+    def catl_model_pred_prefix_str(self):
+        """
+        Prefix string for the final `plots` of the *real* data catalogue.
+
+        Returns
+        ---------
+        catl_pred_file_pre_str : `str`
+            Prefix string for the output plots of the *real* data catalogue.
+        """
+        # ML Trained Prefix - Plots
+        catl_pred_file_pre_str = self.catl_model_app_data_file_prefix_str()
+        # Added to main string
+        catl_pred_file_pre_str += '_plots'
+
+        return catl_pred_file_pre_str
+
+
+
 
 
 
