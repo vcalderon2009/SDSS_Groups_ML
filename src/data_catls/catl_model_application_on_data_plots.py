@@ -43,6 +43,9 @@ from tqdm import tqdm
 
 from datetime import datetime
 
+import astropy.constants as ac
+import astropy.units     as u
+
 # Extra-modules
 import argparse
 from argparse import ArgumentParser
@@ -51,6 +54,9 @@ from operator import attrgetter
 from tqdm import tqdm
 
 ## Functions
+
+## ------------------------- Initial Functions ------------------------------#
+
 class SortingHelpFormatter(HelpFormatter):
     def add_arguments(self, actions):
         """
@@ -605,13 +611,36 @@ def directory_skeleton(param_dict, proj_dict):
     proj_dict : `dict`
         Dictionary with current and new paths to project directories
     """
+    
+
+
     ## In here, you define the directories of your project
 
     return proj_dict
 
-def main(args):
+## ------------------------- Plotting Functions ------------------------------#
+
+def mass_pred_comparison_plot(param_dict, proj_dict):
+    """
+    Plot for comparing the ML-predicted masses to those from more, traditional
+    group mass estimations.
+
+    Parameters
+    ------------
+    param_dict : `dict`
+        Dictionary with `project` variables.
+
+    proj_dict : `dict`
+        Dictionary with the `project` paths and directories.
     """
 
+
+def main(args):
+    """
+    Script that grabs the output catalogue of the *real* SDSS data, and
+    produces sets of plots. The set of plots includes:
+        - Comparison between HAM, DYN, and predicted group masses for galaxies.
+        - Standard error as function of measured mass.
     """
     start_time = datetime.now()
     ## Reading all elements and converting to python dictionary
@@ -636,6 +665,8 @@ def main(args):
         if key !='Prog_msg':
             print('{0} `{1}`: {2}'.format(Prog_msg, key, key_val))
     print('\n'+50*'='+'\n')
+    ##
+    ## -- Creating Plots -- ##
 
 
 

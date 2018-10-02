@@ -85,7 +85,10 @@ make ML_ANALYSIS='hod_dv_fixed' HALOTYPE='so' CLF_METHOD=1 DENS_CALC="False" CPU
 ##################### -------- CATALOGUES -------- ###########################
 ##############################################################################
 ##
-## --- Creating Catalogues for Mr19 ---
+## --- Creating Catalogues for Mr19 --- ###
+make ML_ANALYSIS='hod_dv_fixed' HALOTYPE='so' CLF_METHOD=1 DENS_CALC="False" CPU_FRAC=0.75 TEST_TRAIN_OPT="boxes_n" SAMPLE_FRAC=0.1 REMOVE_FILES="True" DV=1.0 HOD_N=0 SAMPLE_METHOD="binning" BIN_VAL="nbins" CHOSEN_ML_ALG="xgboost"  data_real_catl_create
+##
+## --- Creating plots for the REAL catalogues for Mr19 --- ###
 make ML_ANALYSIS='hod_dv_fixed' HALOTYPE='so' CLF_METHOD=1 DENS_CALC="False" CPU_FRAC=0.75 TEST_TRAIN_OPT="boxes_n" SAMPLE_FRAC=0.1 REMOVE_FILES="True" DV=1.0 HOD_N=0 SAMPLE_METHOD="binning" BIN_VAL="nbins" CHOSEN_ML_ALG="xgboost"  data_real_catl_create
 
 
