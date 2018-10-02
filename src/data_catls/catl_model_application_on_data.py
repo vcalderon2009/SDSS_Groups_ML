@@ -394,7 +394,7 @@ def get_parser():
                         choices=['over', 'under'],
                         default='under')
     ## Algorithm used for the final estimation of mass
-    parser.add_argument('-chosen_alg',
+    parser.add_argument('-chosen_ml_alg',
                         dest='chosen_ml_alg',
                         help='Algorithm used for the final estimation of mass',
                         type=str,
