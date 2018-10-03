@@ -36,6 +36,9 @@ import matplotlib
 matplotlib.use( 'Agg' )
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import matplotlib.gridspec as gridspec
+from matplotlib.colors import LogNorm
+from matplotlib.ticker import NullFormatter
 # plt.rc('text', usetex=True)
 import seaborn as sns
 #sns.set()
@@ -573,6 +576,7 @@ def add_to_dict(param_dict):
     param_dict : `dict`
         Dictionary with old and new values added
     """
+    # Sample string
     sample_s = param_dict['ml_args'].sample_s
     ### Sample - Mr
     sample_Mr = param_dict['ml_args'].sample_Mr
@@ -590,6 +594,34 @@ def add_to_dict(param_dict):
     ## Other constants
     # Speed of light - In km/s
     speed_c = ac.c.to(u.km/u.s).value
+    #
+    # Catalogue prefix
+    catl_str_fig = param_dict['ml_args'].catl_model_pred_prefix_str()
+    #
+    # Plotting constants
+    plot_dict = {   'size_label':23,
+                    'size_title':25,
+                    'size_legend': 14
+                }
+    # Column names
+    mass_cols = ['GG_M_group', 'GG_mdyn_rproj']
+    mass_pred = 'M_h_pred'
+    # Mass estimates - names dict
+    mass_names_dict = { 'GG_M_group': 'Halo Abundance Matching',
+                        'GG_mdyn_rproj': 'Dynamical Mass'}
+    # Saving to dictionary
+    param_dict['sample_s'       ] = sample_s
+    param_dict['sample_Mr'      ] = sample_Mr
+    param_dict['volume_sample'  ] = volume_sample
+    param_dict['vol_mr'         ] = vol_mr
+    param_dict['cens'           ] = cens
+    param_dict['sats'           ] = sats
+    param_dict['speed_c'        ] = speed_c
+    param_dict['catl_str_fig'   ] = catl_str_fig
+    param_dict['plot_dict'      ] = plot_dict
+    param_dict['mass_cols'      ] = mass_cols
+    param_dict['mass_pred'      ] = mass_pred
+    param_dict['mass_names_dict'] = mass_names_dict
 
     return param_dict
 
@@ -611,28 +643,217 @@ def directory_skeleton(param_dict, proj_dict):
     proj_dict : `dict`
         Dictionary with current and new paths to project directories
     """
-    
-
-
-    ## In here, you define the directories of your project
+    # Main output figure directory
+    figure_dir = param_dict['ml_args'].catl_model_pred_plot_dir(
+                    check_exist=False, create_dir=True)
+    # Paper Figure directory
+    paper_fig_dir = os.path.join(   proj_dict['plot_dir'],
+                                    'Paper_Figures')
+    cfutils.Path_Folder(paper_fig_dir)
+    # Saving to `proj_dict`
+    proj_dict['figure_dir'   ] = figure_dir
+    proj_dict['paper_fig_dir'] = paper_fig_dir
 
     return proj_dict
 
 ## ------------------------- Plotting Functions ------------------------------#
 
-def mass_pred_comparison_plot(param_dict, proj_dict):
+def mass_pred_comparison_plot(catl_pd, param_dict, proj_dict, arr_len=10,
+    bin_statval='left', fig_fmt='pdf', figsize=(10,6), fig_number=1):
     """
     Plot for comparing the ML-predicted masses to those from more, traditional
     group mass estimations.
 
     Parameters
     ------------
+    catl_pd : `pd.DataFrame`
+        DataFrame containing information on the various features for each
+        galaxy, as well as the `predicted` columns.
+
     param_dict : `dict`
         Dictionary with `project` variables.
 
     proj_dict : `dict`
         Dictionary with the `project` paths and directories.
+
+    arr_len : `int`, optional
+        Minimum number of elements in bins. This variable is set to `0`
+        by default.
+
+    bin_statval : `str`, optional
+        Option for where to plot the bin values. This variable is set
+        to `average` by default.
+
+        Options:
+        - 'average': Returns the x-points at the average x-value of the bin
+        - 'left'   : Returns the x-points at the left-edge of the x-axis bin
+        - 'right'  : Returns the x-points at the right-edge of the x-axis bin
+
+    fig_fmt : `str`, optional (default = 'pdf')
+        extension used to save the figure
+
+    figsize : `tuple`, optional
+        Size of the output figure. This variable is set to `(12,15.5)` by
+        default.
+
+    fig_number : `int`, optional
+        Number of figure in the workflow. This variable is set to `1`
+        by default.
     """
+    file_msg     = param_dict['Prog_msg']
+    # Matplotlib option
+    matplotlib.rcParams['axes.linewidth'] = 2.5
+    matplotlib.rcParams['axes.edgecolor'] = 'black'
+    # Constants
+    cmap_opt  = 'Blues'
+    err_color = 'Orange'
+    vmax      = int(1) ## For the 2D Histograms
+    one_arr   = num.linspace(6, 16.05, 1000)
+    one_col   = 'k'
+    plot_dict = param_dict['plot_dict']
+    bin_width = param_dict['ml_args'].mass_bin_width
+    ## Figure name
+    fname = os.path.join(   proj_dict['figure_dir'],
+                            'Fig_{0}_{1}_masses_comparison.{2}'.format(
+                                fig_number,
+                                param_dict['catl_str_fig'],
+                                fig_fmt))
+    ##
+    ## Paper Figure
+    fname_paper = os.path.join( proj_dict['paper_fig_dir'],
+                                'Figure_12.{0}'.format(fig_fmt))
+    # Labels
+    labels_dict = { 'M_h_pred': r'\boldmath$\log M_{predicted}\left[h^{-1} M_{\odot}\right]$',
+                    'GG_M_group': r'\boldmath$\log M_{\mathrm{HAM}}\left[h^{-1} M_{\odot}\right]$',
+                    'GG_mdyn_rproj': r'\boldmath$\log M_{\mathrm{dyn}}\left[h^{-1} M_{\odot}\right]$'}
+    # Selecting only these columns
+    mass_cols = ['GG_M_group', 'GG_mdyn_rproj']
+    mass_pred = 'M_h_pred'
+    # Removing values 
+    ##
+    ## Figure details
+    plt.clf()
+    plt.close()
+    fig    = plt.figure(figsize=figsize)
+    gs     = gridspec.GridSpec(1, 2, hspace=0.1, wspace=0.0)
+    ax_arr = [[[],[]] for xx in range(2)]
+    # Figure contants
+    xlim       = (10.9, 15.2)
+    ylim       = (10.9, 15.2)
+    sigma_lims = (0.0, 0.6)
+    # Histogram bins
+    dbin      = 0.1
+    hist_bins = num.arange(xlim[0], xlim[1] + dbin*0.5, dbin)
+    # Ticks
+    xaxis_major_ticker = 1
+    xaxis_minor_ticker = 0.2
+    yaxis_major_ticker = 1
+    yaxis_minor_ticker = 0.2
+    ax_xaxis_major_loc = ticker.MultipleLocator(xaxis_major_ticker)
+    ax_xaxis_minor_loc = ticker.MultipleLocator(xaxis_minor_ticker)
+    ax_yaxis_major_loc = ticker.MultipleLocator(yaxis_major_ticker)
+    ax_yaxis_minor_loc = ticker.MultipleLocator(yaxis_minor_ticker)
+    # Sigma axis ticks
+    ax_yaxis_major_loc_sig = ticker.MultipleLocator(0.5)
+    ax_yaxis_minor_loc_sig = ticker.MultipleLocator(0.1)
+    # Looping over subplots
+    for ii, mass_ii in enumerate(mass_cols):
+        ## Labels
+        x_label = labels_dict[mass_ii]
+        y_label = labels_dict['M_h_pred']
+        # Setting up axes
+        gs_ax = gridspec.GridSpecFromSubplotSpec(2, 1, gs[ii],
+            height_ratios=[3, 1], hspace=0)
+        ax1 = plt.Subplot(fig, gs_ax[0,:], facecolor='white')
+        ax2 = plt.Subplot(fig, gs_ax[1,:], facecolor='white', sharex=ax1)
+        # Adding plots
+        fig.add_subplot(ax1)
+        fig.add_subplot(ax2)
+        plt.setp(ax1.get_xticklabels(), visible=False)
+        if ii != 0:
+            plt.setp(ax1.get_yticklabels(), visible=False)
+            plt.setp(ax2.get_yticklabels(), visible=False)
+        else:
+            ## Y-labels
+            ax1.set_ylabel(y_label, fontsize=plot_dict['size_label'])
+            ax2.set_ylabel(r'$\sigma$', fontsize=plot_dict['size_label'])
+        ax2.set_xlabel(x_label, fontsize=plot_dict['size_label'])
+        ## Ticks
+        # ax1
+        ax1.xaxis.set_major_locator(ax_xaxis_major_loc)
+        ax1.xaxis.set_minor_locator(ax_xaxis_minor_loc)
+        ax1.yaxis.set_major_locator(ax_yaxis_major_loc)
+        ax1.yaxis.set_minor_locator(ax_yaxis_minor_loc)
+        # ax2
+        ax2.yaxis.set_major_locator(ax_yaxis_major_loc_sig)
+        ax2.yaxis.set_minor_locator(ax_yaxis_minor_loc_sig)
+        # Axes limits
+        ax1.set_xlim(xlim)
+        ax1.set_ylim(ylim)
+        ax2.set_ylim(sigma_lims)
+        # Setting up x- and y-arrays
+        if (mass_ii  == 'GG_mdyn_rproj'):
+            catl_pd_mod = catl_pd.loc[catl_pd[mass_ii] != 0]
+            x_arr       = catl_pd_mod[mass_ii].values
+            y_arr       = catl_pd_mod[mass_pred].values
+        else:
+            x_arr = catl_pd[mass_ii].values
+            y_arr = catl_pd[mass_pred].values
+        # Computing statistic
+        (   mean_mass_trad_ii,
+            mean_mass_pred   ,
+            mass_pred_std    ,
+            mass_pred_std_err) = cstats.Stats_one_arr(
+                                                x_arr,
+                                                y_arr,
+                                                base=bin_width,
+                                                arr_len=arr_len,
+                                                bin_statval=bin_statval)
+        # Plotting 2D-histogram
+        if (ii == (len(mass_cols) - 1)):
+            im = ax1.hist2d(x_arr, y_arr, bins=hist_bins, norm=LogNorm(),
+                normed=True, cmap=cmap_opt, vmax=vmax)
+        else:
+            ax1.hist2d(x_arr, y_arr, bins=hist_bins, norm=LogNorm(),
+                normed=True, cmap=cmap_opt, vmax=vmax)
+        # One-One-line
+        ax1.plot(one_arr, one_arr, color=one_col, linestyle='--')
+        # Errorbar
+        ax1.errorbar(mean_mass_trad_ii, mean_mass_pred, yerr=mass_pred_std,
+            ecolor=err_color, fmt='--', color=err_color)
+        # Sigma plottting
+        ax2.plot(mean_mass_trad_ii, mass_pred_std, color=err_color,
+            linestyle='--')
+        ## Axes limits
+        ax1.set_xlim(xlim)
+        ax1.set_ylim(ylim)
+        ax2.set_xlim(xlim)
+        ax2.set_ylim(sigma_lims)
+        # Adding text
+        ax1.text(0.05, 0.9, param_dict['mass_names_dict'][mass_ii],
+            transform=ax1.transAxes, fontsize=plot_dict['size_legend'])
+    #
+    # Colorbar
+    cax  = fig.add_axes([0.92, 0.12, 0.03, 0.75])
+    cbar = fig.colorbar(im[3], cax=cax)
+    cbar.set_label('frequency', rotation=270, labelpad=15)
+    ##
+    ## Saving figure
+    if fig_fmt=='pdf':
+        plt.savefig(fname, bbox_inches='tight')
+        plt.savefig(fname_paper, bbox_inches='tight')
+    else:
+        plt.savefig(fname, bbox_inches='tight', dpi=400)
+        plt.savefig(fname_paper, bbox_inches='tight', dpi=400)
+    ##
+    ##
+    print('{0} Figure saved as: {1}'.format(file_msg, fname))
+    print('{0} Paper Figure saved as: {1}'.format(file_msg, fname_paper))
+    plt.clf()
+    plt.close()
+
+
+
 
 
 def main(args):
@@ -665,8 +886,17 @@ def main(args):
         if key !='Prog_msg':
             print('{0} `{1}`: {2}'.format(Prog_msg, key, key_val))
     print('\n'+50*'='+'\n')
+    # Loading dataset with galaxy information
+    catl_pd = param_dict['ml_args'].catl_model_pred_file_extract(
+                    return_pd=True)
+    # Cleaning sample
+    catl_pd = catl_pd.loc[catl_pd['M_h_pred'] != 0]
     ##
     ## -- Creating Plots -- ##
+    #
+    # Mass comparison
+    mass_pred_comparison_plot(catl_pd, param_dict, proj_dict, arr_len=0)
+
 
 
 
