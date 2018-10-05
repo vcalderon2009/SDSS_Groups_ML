@@ -848,8 +848,7 @@ def mass_pred_comparison_plot(catl_pd, param_dict, proj_dict, arr_len=10,
             x_label = labels_dict[mass_ii]
             y_label = labels_dict['M_h_pred']
             # Setting up axes
-            gs_ax = gridspec.GridSpecFromSubplotSpec(1, 1, gs[ii],
-                height_ratios=[3, 1], hspace=0)
+            gs_ax = gridspec.GridSpecFromSubplotSpec(1, 1, gs[ii], hspace=0)
             ax1 = plt.Subplot(fig, gs_ax[0,:], facecolor='white')
             # Adding plots
             fig.add_subplot(ax1)
