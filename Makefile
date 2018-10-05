@@ -309,7 +309,7 @@ data_real_catl_create:
 
 ## Creates the plots for the *reak* data
 data_real_catl_plots:
-	@python $(SRC_PREPROC_DATA_DIR)/catl_model_application_on_data.py \
+	@python $(SRC_PREPROC_DATA_DIR)/catl_model_application_on_data_plots.py \
 	-hod_model_n $(HOD_N) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) \
 	-dv $(DV) -clf_seed $(CLF_SEED) -sample $(SAMPLE) -abopt $(CATL_TYPE) \
 	-cosmo $(COSMO) -nmin $(NMIN) -mass_factor $(MASS_FACTOR) \
