@@ -659,7 +659,8 @@ def directory_skeleton(param_dict, proj_dict):
 ## ------------------------- Plotting Functions ------------------------------#
 
 def mass_pred_comparison_plot(catl_pd, param_dict, proj_dict, arr_len=10,
-    bin_statval='left', fig_fmt='pdf', figsize=(10,6), fig_number=1):
+    bin_statval='left', fig_fmt='pdf', figsize=(10,6), fig_number=1,
+    plot_sigma_ax=False):
     """
     Plot for comparing the ML-predicted masses to those from more, traditional
     group mass estimations.
@@ -699,6 +700,11 @@ def mass_pred_comparison_plot(catl_pd, param_dict, proj_dict, arr_len=10,
     fig_number : `int`, optional
         Number of figure in the workflow. This variable is set to `1`
         by default.
+
+    plot_sigma_ax : `bool`, optional
+        If True, a second panel is created for error in predicted mass
+        as function of traditional masses. This variable is set to
+        ``False`` by default.
     """
     file_msg     = param_dict['Prog_msg']
     # Matplotlib option
@@ -756,82 +762,149 @@ def mass_pred_comparison_plot(catl_pd, param_dict, proj_dict, arr_len=10,
     # Sigma axis ticks
     ax_yaxis_major_loc_sig = ticker.MultipleLocator(0.5)
     ax_yaxis_minor_loc_sig = ticker.MultipleLocator(0.1)
-    # Looping over subplots
-    for ii, mass_ii in enumerate(mass_cols):
-        ## Labels
-        x_label = labels_dict[mass_ii]
-        y_label = labels_dict['M_h_pred']
-        # Setting up axes
-        gs_ax = gridspec.GridSpecFromSubplotSpec(2, 1, gs[ii],
-            height_ratios=[3, 1], hspace=0)
-        ax1 = plt.Subplot(fig, gs_ax[0,:], facecolor='white')
-        ax2 = plt.Subplot(fig, gs_ax[1,:], facecolor='white', sharex=ax1)
-        # Adding plots
-        fig.add_subplot(ax1)
-        fig.add_subplot(ax2)
-        plt.setp(ax1.get_xticklabels(), visible=False)
-        if ii != 0:
-            plt.setp(ax1.get_yticklabels(), visible=False)
-            plt.setp(ax2.get_yticklabels(), visible=False)
-        else:
-            ## Y-labels
-            ax1.set_ylabel(y_label, fontsize=plot_dict['size_label'])
-            ax2.set_ylabel(r'$\sigma$', fontsize=plot_dict['size_label'])
-        ax2.set_xlabel(x_label, fontsize=plot_dict['size_label'])
-        ## Ticks
-        # ax1
-        ax1.xaxis.set_major_locator(ax_xaxis_major_loc)
-        ax1.xaxis.set_minor_locator(ax_xaxis_minor_loc)
-        ax1.yaxis.set_major_locator(ax_yaxis_major_loc)
-        ax1.yaxis.set_minor_locator(ax_yaxis_minor_loc)
-        # ax2
-        ax2.yaxis.set_major_locator(ax_yaxis_major_loc_sig)
-        ax2.yaxis.set_minor_locator(ax_yaxis_minor_loc_sig)
-        # Axes limits
-        ax1.set_xlim(xlim)
-        ax1.set_ylim(ylim)
-        ax2.set_ylim(sigma_lims)
-        # Setting up x- and y-arrays
-        if (mass_ii  == 'GG_mdyn_rproj'):
-            catl_pd_mod = catl_pd.loc[catl_pd[mass_ii] != 0]
-            x_arr       = catl_pd_mod[mass_ii].values
-            y_arr       = catl_pd_mod[mass_pred].values
-        else:
-            x_arr = catl_pd[mass_ii].values
-            y_arr = catl_pd[mass_pred].values
-        # Computing statistic
-        (   mean_mass_trad_ii,
-            mean_mass_pred   ,
-            mass_pred_std    ,
-            mass_pred_std_err) = cstats.Stats_one_arr(
-                                                x_arr,
-                                                y_arr,
-                                                base=bin_width,
-                                                arr_len=arr_len,
-                                                bin_statval=bin_statval)
-        # Plotting 2D-histogram
-        if (ii == (len(mass_cols) - 1)):
-            im = ax1.hist2d(x_arr, y_arr, bins=hist_bins, norm=LogNorm(),
-                normed=True, cmap=cmap_opt, vmax=vmax)
-        else:
-            ax1.hist2d(x_arr, y_arr, bins=hist_bins, norm=LogNorm(),
-                normed=True, cmap=cmap_opt, vmax=vmax)
-        # One-One-line
-        ax1.plot(one_arr, one_arr, color=one_col, linestyle='--')
-        # Errorbar
-        ax1.errorbar(mean_mass_trad_ii, mean_mass_pred, yerr=mass_pred_std,
-            ecolor=err_color, fmt='--', color=err_color)
-        # Sigma plottting
-        ax2.plot(mean_mass_trad_ii, mass_pred_std, color=err_color,
-            linestyle='--')
-        ## Axes limits
-        ax1.set_xlim(xlim)
-        ax1.set_ylim(ylim)
-        ax2.set_xlim(xlim)
-        ax2.set_ylim(sigma_lims)
-        # Adding text
-        ax1.text(0.05, 0.9, param_dict['mass_names_dict'][mass_ii],
-            transform=ax1.transAxes, fontsize=plot_dict['size_legend'])
+    # Plotting sigmas if needed
+    if plot_sigma_ax:
+        # Looping over subplots
+        for ii, mass_ii in enumerate(mass_cols):
+            ## Labels
+            x_label = labels_dict[mass_ii]
+            y_label = labels_dict['M_h_pred']
+            # Setting up axes
+            gs_ax = gridspec.GridSpecFromSubplotSpec(2, 1, gs[ii],
+                height_ratios=[3, 1], hspace=0)
+            ax1 = plt.Subplot(fig, gs_ax[0,:], facecolor='white')
+            ax2 = plt.Subplot(fig, gs_ax[1,:], facecolor='white', sharex=ax1)
+            # Adding plots
+            fig.add_subplot(ax1)
+            fig.add_subplot(ax2)
+            plt.setp(ax1.get_xticklabels(), visible=False)
+            if ii != 0:
+                plt.setp(ax1.get_yticklabels(), visible=False)
+                plt.setp(ax2.get_yticklabels(), visible=False)
+            else:
+                ## Y-labels
+                ax1.set_ylabel(y_label, fontsize=plot_dict['size_label'])
+                ax2.set_ylabel(r'$\sigma$', fontsize=plot_dict['size_label'])
+            ax2.set_xlabel(x_label, fontsize=plot_dict['size_label'])
+            ## Ticks
+            # ax1
+            ax1.xaxis.set_major_locator(ax_xaxis_major_loc)
+            ax1.xaxis.set_minor_locator(ax_xaxis_minor_loc)
+            ax1.yaxis.set_major_locator(ax_yaxis_major_loc)
+            ax1.yaxis.set_minor_locator(ax_yaxis_minor_loc)
+            # ax2
+            ax2.yaxis.set_major_locator(ax_yaxis_major_loc_sig)
+            ax2.yaxis.set_minor_locator(ax_yaxis_minor_loc_sig)
+            # Axes limits
+            ax1.set_xlim(xlim)
+            ax1.set_ylim(ylim)
+            ax2.set_ylim(sigma_lims)
+            # Setting up x- and y-arrays
+            if (mass_ii  == 'GG_mdyn_rproj'):
+                catl_pd_mod = catl_pd.loc[catl_pd[mass_ii] != 0]
+                x_arr       = catl_pd_mod[mass_ii].values
+                y_arr       = catl_pd_mod[mass_pred].values
+            else:
+                x_arr = catl_pd[mass_ii].values
+                y_arr = catl_pd[mass_pred].values
+            # Computing statistic
+            (   mean_mass_trad_ii,
+                mean_mass_pred   ,
+                mass_pred_std    ,
+                mass_pred_std_err) = cstats.Stats_one_arr(
+                                                    x_arr,
+                                                    y_arr,
+                                                    base=bin_width,
+                                                    arr_len=arr_len,
+                                                    bin_statval=bin_statval)
+            # Plotting 2D-histogram
+            if (ii == (len(mass_cols) - 1)):
+                im = ax1.hist2d(x_arr, y_arr, bins=hist_bins, norm=LogNorm(),
+                    normed=True, cmap=cmap_opt, vmax=vmax)
+            else:
+                ax1.hist2d(x_arr, y_arr, bins=hist_bins, norm=LogNorm(),
+                    normed=True, cmap=cmap_opt, vmax=vmax)
+            # One-One-line
+            ax1.plot(one_arr, one_arr, color=one_col, linestyle='--')
+            # Errorbar
+            ax1.errorbar(mean_mass_trad_ii, mean_mass_pred, yerr=mass_pred_std,
+                ecolor=err_color, fmt='--', color=err_color)
+            # Sigma plottting
+            ax2.plot(mean_mass_trad_ii, mass_pred_std, color=err_color,
+                linestyle='--')
+            ## Axes limits
+            ax1.set_xlim(xlim)
+            ax1.set_ylim(ylim)
+            ax2.set_xlim(xlim)
+            ax2.set_ylim(sigma_lims)
+            # Adding text
+            if (ii == 1):
+                ax1.text(0.05, 0.9, 'SDSS',
+                    transform=ax1.transAxes, fontsize=plot_dict['size_legend'])
+    else:
+        # Looping over subplots
+        for ii, mass_ii in enumerate(mass_cols):
+            ## Labels
+            x_label = labels_dict[mass_ii]
+            y_label = labels_dict['M_h_pred']
+            # Setting up axes
+            gs_ax = gridspec.GridSpecFromSubplotSpec(1, 1, gs[ii],
+                height_ratios=[3, 1], hspace=0)
+            ax1 = plt.Subplot(fig, gs_ax[0,:], facecolor='white')
+            # Adding plots
+            fig.add_subplot(ax1)
+            plt.setp(ax1.get_xticklabels(), visible=False)
+            if ii != 0:
+                plt.setp(ax1.get_yticklabels(), visible=False)
+            else:
+                ## Y-labels
+                ax1.set_ylabel(y_label, fontsize=plot_dict['size_label'])
+            ## Ticks
+            # ax1
+            ax1.xaxis.set_major_locator(ax_xaxis_major_loc)
+            ax1.xaxis.set_minor_locator(ax_xaxis_minor_loc)
+            ax1.yaxis.set_major_locator(ax_yaxis_major_loc)
+            ax1.yaxis.set_minor_locator(ax_yaxis_minor_loc)
+            # Axes limits
+            ax1.set_xlim(xlim)
+            ax1.set_ylim(ylim)
+            # Setting up x- and y-arrays
+            if (mass_ii  == 'GG_mdyn_rproj'):
+                catl_pd_mod = catl_pd.loc[catl_pd[mass_ii] != 0]
+                x_arr       = catl_pd_mod[mass_ii].values
+                y_arr       = catl_pd_mod[mass_pred].values
+            else:
+                x_arr = catl_pd[mass_ii].values
+                y_arr = catl_pd[mass_pred].values
+            # Computing statistic
+            (   mean_mass_trad_ii,
+                mean_mass_pred   ,
+                mass_pred_std    ,
+                mass_pred_std_err) = cstats.Stats_one_arr(
+                                                    x_arr,
+                                                    y_arr,
+                                                    base=bin_width,
+                                                    arr_len=arr_len,
+                                                    bin_statval=bin_statval)
+            # Plotting 2D-histogram
+            if (ii == (len(mass_cols) - 1)):
+                im = ax1.hist2d(x_arr, y_arr, bins=hist_bins, norm=LogNorm(),
+                    normed=True, cmap=cmap_opt, vmax=vmax)
+            else:
+                ax1.hist2d(x_arr, y_arr, bins=hist_bins, norm=LogNorm(),
+                    normed=True, cmap=cmap_opt, vmax=vmax)
+            # One-One-line
+            ax1.plot(one_arr, one_arr, color=one_col, linestyle='--')
+            # Errorbar
+            ax1.errorbar(mean_mass_trad_ii, mean_mass_pred, yerr=mass_pred_std,
+                ecolor=err_color, fmt='--', color=err_color)
+            ## Axes limits
+            ax1.set_xlim(xlim)
+            ax1.set_ylim(ylim)
+            # Adding text
+            if (ii == 1):
+                ax1.text(0.05, 0.9, 'SDSS',
+                    transform=ax1.transAxes, fontsize=plot_dict['size_legend'])
     #
     # Colorbar
     cax  = fig.add_axes([0.92, 0.12, 0.03, 0.75])
