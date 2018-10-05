@@ -852,12 +852,12 @@ def mass_pred_comparison_plot(catl_pd, param_dict, proj_dict, arr_len=10,
             ax1 = plt.Subplot(fig, gs_ax[0,:], facecolor='white')
             # Adding plots
             fig.add_subplot(ax1)
-            plt.setp(ax1.get_xticklabels(), visible=False)
             if ii != 0:
                 plt.setp(ax1.get_yticklabels(), visible=False)
             else:
                 ## Y-labels
                 ax1.set_ylabel(y_label, fontsize=plot_dict['size_label'])
+            ax1.set_xlabel(x_label, fontsize=plot_dict['size_label'])
             ## Ticks
             # ax1
             ax1.xaxis.set_major_locator(ax_xaxis_major_loc)
@@ -901,7 +901,7 @@ def mass_pred_comparison_plot(catl_pd, param_dict, proj_dict, arr_len=10,
             ax1.set_xlim(xlim)
             ax1.set_ylim(ylim)
             # Adding text
-            if (ii == 1):
+            if (ii == 0):
                 ax1.text(0.05, 0.9, 'SDSS',
                     transform=ax1.transAxes, fontsize=plot_dict['size_legend'])
     #
