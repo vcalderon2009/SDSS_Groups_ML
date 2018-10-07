@@ -596,7 +596,7 @@ def add_to_dict(param_dict):
     speed_c = ac.c.to(u.km/u.s).value
     #
     # Catalogue prefix
-    catl_str_fig = param_dict['ml_args'].catl_model_pred_prefix_str()
+    catl_str_fig = param_dict['ml_args'].catl_model_pred_plots_prefix_str()
     #
     # Plotting constants
     plot_dict = {   'size_label':23,

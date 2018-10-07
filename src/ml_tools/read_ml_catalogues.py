@@ -2013,7 +2013,7 @@ class ReadML(object):
 
         return catl_pred_dir_path
 
-    def catl_model_pred_prefix_str(self):
+    def catl_model_pred_plots_prefix_str(self):
         """
         Prefix string for the final `plots` of the *real* data catalogue.
 
@@ -2028,6 +2028,168 @@ class ReadML(object):
         catl_pred_file_pre_str += '_plots'
 
         return catl_pred_file_pre_str
+
+    def catl_model_pred_final_path(self check_exist=True, create_dir=False):
+        """
+        Path to the directory, in which the final version of `data_model`
+        catalogue is stored.
+
+        Parameters
+        ------------
+        check_exist : `bool`, optional
+            If `True`, it checks for whether or not the file exists.
+            This variable is set to `True` by default.
+
+        create_dir : `bool`, optional
+            If `True`, it creates the directory if it does not exist.
+
+        Returns
+        ---------
+        catl_model_final_path : `str`
+            Final path to the output `data model` catalogue
+        """
+        # Check input parameters
+        # `check_exist`
+        if not (isinstance(check_exist, bool)):
+            msg = '`check_exist` ({0}) must be of `boolean` type!'.format(
+                type(check_exist))
+            raise TypeError(msg)
+        #
+        # `create_dir`
+        if not (isinstance(create_dir, bool)):
+            msg = '`create_dir` ({0}) must be of `boolean` type!'.format(
+                type(create_dir))
+            raise TypeError(msg)
+
+        ##
+        ## Directory
+        catl_model_final_path = os.path.join(   self.proj_dict['proc_dir'],
+                                                'catl_final_output')
+        # Creating directory if necessary
+        if create_dir:
+            cfutils.Path_Folder(catl_model_final_path)
+        # Check that folder exists
+        if check_exist:
+            if not (os.path.exists(catl_model_final_path)):
+                msg = '`catl_model_final_path` ({0}) was not found! '
+                msg += 'Check your path!'
+                msg = msg.format(catl_model_final_path)
+                raise FileNotFoundError(msg)
+
+        return catl_model_final_path
+
+    def catl_model_pred_file_final_path(self, check_exist=True, ext='hdf5'):
+        """
+        Path to the final version of `data_model` catalogue, with the final
+        predicted masses.
+
+        Parameters
+        -----------
+        ext : `str`, optional
+            Extension of the file being analyzed. This variable is set to
+            `hdf5` by default.
+
+        check_exist : `bool`, optional
+            If `True`, it checks for whether or not the file exists.
+            This variable is set to `True` by default.
+
+        Returns
+        ----------
+        catl_model_final_file_path : `str`
+            Path to the final version of the catalogue being used.
+
+        Notes
+        ----------
+        This file is the catalogue that is used as the catalogue with
+        the `predicted` masses from the `best` ML algorithms, according
+        to our analysis.
+        """
+        # Catalogue output directory
+        catl_model_final_path = self.catl_model_pred_final_path(
+            check_exist=False, create_dir=True)
+        # Catalogue Prefix
+        catl_app_data_str = self.catl_model_app_data_file_prefix_str()
+        # Output file path
+        catl_model_final_file_path = os.path.join( catl_model_final_path,
+                                                '{0}_out.{1}'.format(
+                                                    catl_app_data_str,
+                                                    ext))
+        # Check that file exists
+        if check_exist:
+            if not (os.path.exists(catl_model_final_file_path)):
+                msg = '`catl_model_final_file_path` ({0}) was not found! '
+                msg += 'Check your path!'
+                msg = msg.format(catl_model_final_file_path)
+                raise FileNotFoundError(msg)
+
+        return catl_model_final_file_path
+
+    def catl_model_pred_file_final_path_save(self, remove_file=False,
+        remove_file=True):
+        """
+        Function that saves the final `data model` DataFrame into the
+        designated output directory. This catalogue is the final product
+        of the ML-trained algorithm applied to a ``real`` dataset.
+
+        Parameters
+        -----------
+        remove_file : `bool`
+            If True, it removes the output file if it exists. Otherwise,
+            it creates a new file with updated information.
+
+        return_path : `bool`, optional
+            If True, the function also returns the path to the file being read.
+            This variable is set to `False` by default.
+
+        Returns
+        -----------
+        catl_out_filepath : `str`
+            If ``return_path == True``, the path to the output file will be
+            returned.
+        """
+        ## Checking input parameters
+        # `remove_file`
+        if not (isinstance(remove_file, bool)):
+            msg = '`remove_file` must be boolean! Type: `{0}`. Exiting!'
+            msg = msg.format(type(remove_file))
+            raise TypeError(msg)
+        # `return_path`
+        if not (isinstance(return_path, bool)):
+            msg = '`return_path` must be boolean! Type: `{0}`. Exiting!'
+            msg = msg.format(type(return_path))
+            raise TypeError(msg)
+        ##
+        ## Filename for output DataFrame
+        catl_out_filepath = self.catl_model_pred_file_final_path(
+            check_exist=False)
+        # Removing file if necessary
+        if os.path.exists(catl_out_filepath):
+            if remove_file:
+                calc_opt = True
+            else:
+                calc_opt = False
+        else:
+            calc_opt = True
+        ##
+        ## Running calculations if necessary
+        if calc_opt:
+            # Extracting DataFrame
+            catl_pred_pd = self.catl_model_pred_file_extract(
+                                return_pd=True,
+                                return_arr=False,
+                                remove_file=remove_file,
+                                return_path=False)
+            # Saving to new file
+            cfreaders.pandas_df_to_hdf5_file(   catl_pred_pd,
+                                                catl_out_filepath,
+                                                key='/gals')
+            cfutils.File_Exists(catl_out_filepath)
+        # Returning elements
+        if return_path:
+            return catl_out_filepath
+
+
+
 
 
 
