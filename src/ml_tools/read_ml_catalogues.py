@@ -2029,7 +2029,7 @@ class ReadML(object):
 
         return catl_pred_file_pre_str
 
-    def catl_model_pred_final_path(self check_exist=True, create_dir=False):
+    def catl_model_pred_final_path(self, check_exist=True, create_dir=False):
         """
         Path to the directory, in which the final version of `data_model`
         catalogue is stored.
