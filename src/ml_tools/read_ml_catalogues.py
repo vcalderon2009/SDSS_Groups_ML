@@ -2125,7 +2125,7 @@ class ReadML(object):
         return catl_model_final_file_path
 
     def catl_model_pred_file_final_path_save(self, remove_file=False,
-        remove_file=True):
+        return_path=False):
         """
         Function that saves the final `data model` DataFrame into the
         designated output directory. This catalogue is the final product
