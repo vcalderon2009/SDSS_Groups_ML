@@ -653,6 +653,13 @@ def ml_predictions_data(param_dict, proj_dict):
                                     return_path=True)
     msg = '{0} File with the predicted columns can be found at: `{1}`'.format(
                 Prog_msg, catl_pred_path)
+    ## Saving output file to the `final` directory path
+    catl_fin_path = param_dict['ml_args'].catl_model_pred_file_final_path_save(
+                                    remove_file=param_dict['remove_files'],
+                                    return_path=True)
+    msg = '{0} Final version of catalogue can be found at: `{1}`'.format(
+                Prog_msg, catl_fin_path)
+
 
 
 ## --------------------------- Main Function --------------------------------#
