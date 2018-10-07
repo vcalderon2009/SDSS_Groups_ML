@@ -2108,12 +2108,12 @@ class ReadML(object):
         catl_model_final_path = self.catl_model_pred_final_path(
             check_exist=False, create_dir=True)
         # Catalogue Prefix
-        catl_app_data_str = self.catl_model_app_data_file_prefix_str()
+        catl_prefix_str = '{0}_data_model_final_out.{1}'.format(
+                                self.sample_Mr, ext)
         # Output file path
-        catl_model_final_file_path = os.path.join( catl_model_final_path,
-                                                '{0}_out.{1}'.format(
-                                                    catl_app_data_str,
-                                                    ext))
+        catl_model_final_file_path = os.path.join(
+                                        catl_model_final_path,
+                                        catl_prefix_str)
         # Check that file exists
         if check_exist:
             if not (os.path.exists(catl_model_final_file_path)):
