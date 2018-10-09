@@ -40,6 +40,7 @@ import astropy.constants as ac
 import astropy.units     as u
 
 from datetime import datetime
+from collections import Counter
 
 # Extra-modules
 import argparse
@@ -583,6 +584,15 @@ def add_to_dict(param_dict):
     ## Other constants
     # Speed of light - In km/s
     speed_c = ac.c.to(u.km/u.s).value
+    ##
+    ## Save to dictionary
+    param_dict['sample_s'     ] = sample_s
+    param_dict['sample_Mr'    ] = sample_Mr
+    param_dict['volume_sample'] = volume_sample
+    param_dict['vol_mr'       ] = vol_mr
+    param_dict['cens'         ] = cens
+    param_dict['sats'         ] = sats
+    param_dict['speed_c'      ] = speed_c
 
     return param_dict
 
@@ -607,13 +617,108 @@ def directory_skeleton(param_dict, proj_dict):
     ## In here, you define the directories of your project
     #
     # Main output file for this script
-    catl_outfile_path = param_dict['ml_args'].catl_model_application_data_file(
-        check_exist=False)
+    catl_output_dirpath = param_dict['ml_args'].catl_model_pred_plot_dir(
+        check_exist=True)
     #
     # Saving to `proj_dict`
-    proj_dict['catl_outfile_path'] = catl_outfile_path
+    proj_dict['catl_output_dirpath'] = catl_output_dirpath
 
     return proj_dict
+
+## ----------------------------- Data Extraction ----------------------------#
+
+def catl_extract_and_merge(param_dict, proj_dict, complete_groups=False,
+    min_group_ngal=1):
+    """
+    Extracts the set of catalogues and merges them into a single catalogue.
+
+    Parameters
+    ----------
+    param_dict : `dict`
+        dictionary with `project` variables
+
+    proj_dict : `dict`
+        dictionary with info of the project that uses the
+        `Data Science` Cookiecutter template.
+
+    complete_groups : `bool`, optional  
+        If True, it only looks at 'complete' galaxy groups, i.e. only
+        when all of the galaxies of the group are present. This variable
+        is set ot `False` by default.
+
+    min_group_ngal : `int`, optional    
+        Minimum number of galaxies in a galaxy group. This variable is set
+        to ``1`` by default.
+
+    Returns
+    ---------
+    catl_final_pd : `pandas.DataFrame`
+        DataFrame containing the `merged` catalogue with info about the
+        galaxy groups and their corresponding galaxies.
+    """
+    ## Catalogue with `predicted` masses
+    catl_pred_pd = param_dict['ml_args'].catl_model_pred_file_extract(
+                        return_pd=True,
+                        return_arr=False,
+                        remove_file=param_dict['remove_files'],
+                        return_path=False)
+    pred_cols_arr = ['index', 'M_h_pred', 'GG_M_group', 'GG_mdyn_rproj',
+                        'GG_ngals']
+    # Selecting only desired columns
+    catl_pred_pd_mod = catl_pred_pd.loc[:, pred_cols_arr]
+    # Renaming the 'index' column
+    catl_pred_pd_mod.rename(columns={'index': 'gal_index'}, inplace=True)
+    ## Catalogue with galaxy and group information
+    catl_data_pd = cmcu.catl_sdss_merge(    0,
+                                            catl_kind='data',
+                                            catl_type=param_dict['catl_type'],
+                                            sample_s=param_dict['sample_s'],
+                                            halotype=param_dict['halotype'],
+                                            clf_method=param_dict['clf_method'],
+                                            dv=param_dict['dv'],
+                                            hod_n=param_dict['hod_n'],
+                                            clf_seed=param_dict['clf_seed'],
+                                            perf_opt=param_dict['perf_opt'],
+                                            print_filedir=False,
+                                            return_memb_group=False)
+    catl_data_cols_arr = ['groupid']
+    # Selecting only desired columns
+    catl_data_pd_mod = catl_data_pd.loc[:, catl_data_cols_arr]
+    # Join both Datasets
+    catl_main_pd = pd.merge(catl_pred_pd_mod,
+                            catl_data_pd_mod,
+                            how='inner',
+                            left_on='gal_index',
+                            right_index=True)
+    # Removing galaxies smaller than `min_group_ngal`
+    catl_main_pd = catl_main_pd.loc[catl_main_pd['GG_ngals'] >= min_group_ngal]
+    # Checking groups that are complete
+    if complete_groups:
+        group_id_arr     = catl_main_pd['groupid'].values
+        group_id_unq_arr = num.unique(group_id_arr)
+        ngroups          = len(group_id_unq_arr)
+        # Counting galaxies per group
+        groupid_counts   = Counter(group_id_arr)
+        group_ngals_catl = num.array([groupid_counts[xx] for xx in group_id_arr])
+        catl_main_pd.loc[:, 'ngals_in_catl'] = group_ngals_catl
+        # Checking if group is complete
+        catl_main_pd.loc[:, 'group_complete'] = False
+        catl_main_pd.loc[(catl_main_pd['ngals_in_catl'] == \
+                            catl_main_pd['GG_ngals']), 'group_complete'] = True
+        # Creating new DataFrame with only `complete groups`
+        catl_main_pd_mod = catl_main_pd.loc[catl_main_pd['group_complete'] == True]
+        # Dropping columns
+        drop_cols = ['group_complete', 'ngals_in_catl']
+        catl_main_pd_final = catl_main_pd_mod.drop(drop_cols, axis=1)
+        catl_main_pd_final.reset_index(drop=True, inplace=True)
+
+    if complete_groups:
+        catl_final_pd = catl_main_pd_final
+    else:
+        catl_final_pd = catl_main_pd
+
+    return catl_final_pd
+
 
 ## ----------------------------- Predictions --------------------------------#
 
@@ -690,6 +795,9 @@ def main(args):
     ##
     ## -------- ML main analysis -------- ##
     ##
+    # Extracting datasets
+
+
     # Predicting masses
     ml_predictions_data(param_dict, proj_dict)
 
