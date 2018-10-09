@@ -22,10 +22,10 @@ tmux send -t $SESSION:0.2 "cd $PWD; conda activate $ENVNAME; cd ./data; clear" E
 #
 # Creating new windows
 tmux new-window -t $SESSION:1 -n 'misc'
-tmux send -t $SESSION:1.0 "cd $PWD; conda activate $ENVNAME; clear;" ENTER
+tmux send -t $SESSION:1.0 "cd $PWD; conda deactivate; conda activate $ENVNAME; clear;" ENTER
 # Creating new windows
 tmux new-window -t $SESSION:2 -n 'extras'
-tmux send -t $SESSION:2.0 "cd $PWD; conda activate $ENVNAME; clear;" ENTER
+tmux send -t $SESSION:2.0 "cd $PWD; conda deactivate; conda activate $ENVNAME; clear;" ENTER
 #
 # Selecting which window to start at
 tmux select-window -t $SESSION:0
