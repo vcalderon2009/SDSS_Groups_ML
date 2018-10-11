@@ -38,6 +38,7 @@ import pickle
 import matplotlib
 matplotlib.use( 'Agg' )
 import matplotlib.pyplot as plt
+plt.rc('text', usetex=True)
 import seaborn as sns
 
 
@@ -583,6 +584,8 @@ def add_to_dict(param_dict):
                         '20': 2.40481e7      ,
                         '21': 8.79151e7      }
     vol_mr        = volume_sample[sample_s]
+    # Catalogue prefix
+    catl_str_fig = param_dict['ml_args'].catl_model_pred_plots_prefix_str()
     ##
     ## Choice of Centrals and Satellites
     cens = int(1)
@@ -599,6 +602,7 @@ def add_to_dict(param_dict):
     param_dict['cens'         ] = cens
     param_dict['sats'         ] = sats
     param_dict['speed_c'      ] = speed_c
+    param_dict['catl_str_fig' ] = catl_str_fig
 
     return param_dict
 
@@ -874,7 +878,7 @@ def group_mass_scatter_plot(catl_final_pd, param_dict,
     # Constants
     label_size = 23
     ## Figure name
-    fname = os.path.join(   proj_dict['figure_dir'],
+    fname = os.path.join(   proj_dict['catl_output_dirpath'],
                             'Fig_{0}_{1}_masses_comparison.{2}'.format(
                                 fig_number,
                                 param_dict['catl_str_fig'],
@@ -885,8 +889,8 @@ def group_mass_scatter_plot(catl_final_pd, param_dict,
     plt.clf()
     plt.close()
     fig = plt.figure(figsize=figsize)
-    ax1 = fig.add_subplots(121, facecolor='white')
-    ax2 = fi.add_subplots(122, facecolor='white', sharey=ax1)
+    ax1 = fig.add_subplot(121, facecolor='white')
+    ax2 = fig.add_subplot(122, facecolor='white', sharey=ax1)
     # Deleting Y-label for 2nd axis
     plt.setp(ax2.get_yticklabels(), visible=False)
     # Labels
