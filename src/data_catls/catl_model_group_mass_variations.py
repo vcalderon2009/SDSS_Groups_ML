@@ -38,7 +38,7 @@ import pickle
 import matplotlib
 matplotlib.use( 'Agg' )
 import matplotlib.pyplot as plt
-plt.rc('text', usetex=True)
+# plt.rc('text', usetex=True)
 import seaborn as sns
 
 
