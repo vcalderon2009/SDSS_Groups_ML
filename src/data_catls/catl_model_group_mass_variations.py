@@ -820,7 +820,7 @@ def group_mass_scatter(catl_final_pd, param_dict):
         # Galaxy indices
         gals_kk_pd = catl_final_pd.loc[catl_final_pd['groupid'] == group_kk]
         # ML-Predicted masses
-        gals_pred_mass_kk = gals_kk_pd['M_h_pred'].values
+        gals_pred_mass_kk = 10**gals_kk_pd['M_h_pred'].values
         # Galaxy indices
         gals_kk_idx = gals_kk_pd.index.values
         # Normalized HAM masses
@@ -837,20 +837,18 @@ def group_mass_scatter(catl_final_pd, param_dict):
 
 ## Plotting the distributions of `predicted` masses
 
-def group_mass_scatter_plot(mham_stats_arr, mdyn_stats_arr, param_dict,
+def group_mass_scatter_plot(catl_final_pd, param_dict,
     proj_dict, fig_fmt='pdf', figsize=(10,6), fig_number=1):
     """
     Plotting of the violinplot for the scatter in the 
 
     Parameters
     ------------
-    mham_stats_arr : `numpy.ndarray`
-        Array of `statistics` for each of the group mass bins for the case of 
-        'Halo Abundance Matching'.
-
-    mdyn_stats_arr : `numpy.ndarray`
-        Array of `statistics` for each of the group mass bins for the case of 
-        'Dynamical Mass'.
+    catl_final_pd : `pandas.DataFrame`
+        DataFrame containing the `merged` catalogue with info about the
+        galaxy groups and their corresponding galaxies + info on the group
+        mass bin for each galaxy + Info on the `normalized` predicted
+        masses.
 
     fig_fmt : `str`, optional (default = 'pdf')
         extension used to save the figure
@@ -867,6 +865,8 @@ def group_mass_scatter_plot(mham_stats_arr, mdyn_stats_arr, param_dict,
     # Matplotlib option
     matplotlib.rcParams['axes.linewidth'] = 2.5
     matplotlib.rcParams['axes.edgecolor'] = 'black'
+    # Constants
+    label_size = 23
     ## Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
                             'Fig_{0}_{1}_masses_comparison.{2}'.format(
@@ -879,13 +879,27 @@ def group_mass_scatter_plot(mham_stats_arr, mdyn_stats_arr, param_dict,
     plt.clf()
     plt.close()
     fig = plt.figure(figsize=figsize)
-    ax  = fig.add_subplots(111, facecolor='white')
-
-
-
-
-
-
+    ax1 = fig.add_subplots(121, facecolor='white')
+    ax2 = fi.add_subplots(122, facecolor='white', sharey=ax1)
+    # Deleting Y-label for 2nd axis
+    plt.setp(ax2.get_yticklabels(), visible=False)
+    # Labels
+    ylabel    = r'\boldmath Normalized $\log \left[M_{pred}/ \right]$'
+    ham_label = r'\boldmath$\log M_{\mathrm{HAM}}\left[h^{-1} M_{\odot}\right]$'
+    dyn_label = r'\boldmath$\log M_{\mathrm{dyn}}\left[h^{-1} M_{\odot}\right]$'
+    ## Violin plots
+    # HAM
+    sns.violinplot( x='HAM_bin_lab', y='mpred_norm',
+                    inner='quart', data=catl_final_pd, ax=ax1)
+    # DYN
+    sns.violinplot( x='HAM_bin_lab', y='mpred_norm',
+                    inner='quart', data=catl_final_pd, ax=ax2)
+    # Adjusting spacing
+    plt.subplots_adjust(hspace=0)
+    # Axis labels
+    ax1.set_xlabel(ham_label, fontsize=label_size)
+    ax2.set_xlabel(dyn_label, fontsize=label_size)
+    ax1.set_ylabel(ylabel   , fontsize=label_size)
     ##
     ## Saving figure
     if fig_fmt=='pdf':
@@ -950,6 +964,7 @@ def main(args):
     # Scatter within groups at fixed mass
     catl_final_pd = group_mass_scatter(catl_final_pd, param_dict)
     # Plotting of the group mass scatter plot
+    group_mass_scatter_plot(catl_final_pd, param_dict, proj_dict)
 
 
 
