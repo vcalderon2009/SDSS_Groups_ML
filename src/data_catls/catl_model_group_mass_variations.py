@@ -47,7 +47,8 @@ import argparse
 from argparse import ArgumentParser
 from argparse import HelpFormatter
 from operator import attrgetter
-from tqdm import tqdm
+from tqdm import tqdm, trange
+import itertools
 
 ## Functions
 
@@ -719,45 +720,187 @@ def catl_extract_and_merge(param_dict, proj_dict, complete_groups=False,
 
     return catl_final_pd
 
+## ----------------------------- Analysis -----------------------------------#
 
-## ----------------------------- Predictions --------------------------------#
-
-def ml_predictions_data(param_dict, proj_dict):
+## Determining the bin of mass
+def mass_bin_calculation(catl_final_pd, param_dict):
     """
-    Predicts the `predicted` columns of the real data and turns them
-    into a DataFrame. It extracts the trained-ML-model, from which we
-    evalute new predictions.
+    Determines the bin of mass for each galaxy.
 
     Parameters
-    -----------
+    ------------
+    catl_final_pd : `pandas.DataFrame`
+        DataFrame containing the `merged` catalogue with info about the
+        galaxy groups and their corresponding galaxies.
+
     param_dict : `dict`
         dictionary with `project` variables
 
-    proj_dict : `dict`
-        dictionary with info of the project that uses the
-        `Data Science` Cookiecutter template + paths to files/folders used in
-        this project.
+    Returns
+    ----------
+    catl_final_pd : `pandas.DataFrame`
+        DataFrame containing the `merged` catalogue with info about the
+        galaxy groups and their corresponding galaxies + info on the group
+        mass bin for each galaxy.
+
+    param_dict : `dict`
+        dictionary with `project` variables + added info on mass bins.
+    """
+    ## Mass Bins
+    mass_cols       = ['GG_M_group', 'GG_mdyn_rproj']
+    mass_min        = catl_final_pd.loc[:, mass_cols].min().values.min()
+    mass_max        = catl_final_pd.loc[:, mass_cols].max().values.max()
+    mass_bin_width  = param_dict['ml_args'].mass_bin_width
+    mass_bins_edges = cstats.Bins_array_create( [mass_min, mass_max],
+                                                base=mass_bin_width)
+    mass_bins       = num.array([[mass_bins_edges[xx], mass_bins_edges[xx+1]] \
+                                    for xx in range(len(mass_bins_edges) - 1)])
+    # Mass bins labels
+    mass_bins_labels = num.array(['[{0:.1f}, {1:.1f})'.format(xx[0], xx[1])
+                            for xx in mass_bins])
+    # Total number of bins
+    n_mass_bins     = len(mass_bins)
+    # Centers of the bins
+    mass_bins_cent  = num.mean(mass_bins, axis=1)
+    ## Determining the bin_value
+    # HAM
+    mass_bins_ham = num.digitize(   catl_final_pd['GG_M_group'],
+                                    mass_bins_edges) - 1
+    # Dynamical
+    mass_bins_dyn = num.digitize(   catl_final_pd['GG_mdyn_rproj'],
+                                    mass_bins_edges) - 1
+    # Bin value label
+    mass_bins_labels_ham = [mass_bins_labels[xx] for xx in mass_bins_ham]
+    mass_bins_labels_dyn = [mass_bins_labels[xx] for xx in mass_bins_dyn]
+    # Saving to DataFrame
+    catl_final_pd.loc[:, 'HAM_bin_idx'] = mass_bins_ham
+    catl_final_pd.loc[:, 'DYN_bin_idx'] = mass_bins_dyn
+    catl_final_pd.loc[:, 'HAM_bin_lab'] = mass_bins_labels_ham
+    catl_final_pd.loc[:, 'DYN_bin_lab'] = mass_bins_labels_dyn 
+    # Saving group mass bins to dictionary `param_dict`
+    param_dict['mass_bins_edges' ] = mass_bins_edges
+    param_dict['mass_bins'       ] = mass_bins
+    param_dict['mass_bins_cent'  ] = mass_bins_cent
+    param_dict['n_mass_bins'     ] = n_mass_bins
+    param_dict['mass_bins_labels'] = mass_bins_labels
+
+    return catl_final_pd, param_dict
+
+# Scatter of masses within group
+def group_mass_scatter(catl_final_pd, param_dict):
+    """
+    Determines the scatter of predicted mass for distinct galaxy groups.
+
+    Parameters
+    ------------
+    catl_final_pd : `pandas.DataFrame`
+        DataFrame containing the `merged` catalogue with info about the
+        galaxy groups and their corresponding galaxies.
+
+    param_dict : `dict`
+        dictionary with `project` variables
 
     Returns
-    -----------
+    ----------
+    catl_final_pd : `pandas.DataFrame`
+        DataFrame containing the `merged` catalogue with info about the
+        galaxy groups and their corresponding galaxies + info on the group
+        mass bin for each galaxy + Info on the `normalized` predicted
+        masses.
     """
-    Prog_msg = param_dict['Prog_msg']
-    ## Computing output file with `preditec` columns
-    catl_pred_path = param_dict['ml_args'].catl_model_pred_file_extract(
-                                    return_pd=False,
-                                    return_arr=False,
-                                    remove_file=param_dict['remove_files'],
-                                    return_path=True)
-    msg = '{0} File with the predicted columns can be found at: `{1}`'.format(
-                Prog_msg, catl_pred_path)
-    print(msg)
-    ## Saving output file to the `final` directory path
-    catl_fin_path = param_dict['ml_args'].catl_model_pred_file_final_path_save(
-                                    remove_file=param_dict['remove_files'],
-                                    return_path=True)
-    msg = '{0} Final version of catalogue can be found at: `{1}`'.format(
-                Prog_msg, catl_fin_path)
-    print(msg)
+    # Group array
+    groupid_gals_arr = catl_final_pd['groupid'].values
+    groupid_unq_arr  = num.unique(groupid_gals_arr)
+    ngroups_unq      = len(groupid_unq_arr)
+    ngals            = len(catl_final_pd)
+    # Creating empty list of new values for the *normalized* masses
+    mpred_norm_gals_arr = num.zeros(ngals) * num.nan
+    # Looping over groups
+    for kk, group_kk in enumerate(tqdm(groupid_unq_arr)):
+        # Galaxy indices
+        gals_kk_pd = catl_final_pd.loc[catl_final_pd['groupid'] == group_kk]
+        # ML-Predicted masses
+        gals_pred_mass_kk = gals_kk_pd['M_h_pred'].values
+        # Galaxy indices
+        gals_kk_idx = gals_kk_pd.index.values
+        # Normalized HAM masses
+        gals_mpred_norm_kk = gals_pred_mass_kk / num.mean(gals_pred_mass_kk)
+        # Assigning to galaxies
+        mpred_norm_gals_arr[gals_kk_idx] = gals_mpred_norm_kk
+    #
+    # Assigning it to DataFrame
+    catl_final_pd.loc[:, 'mpred_norm'] = mpred_norm_gals_arr
+
+    return catl_final_pd
+
+## ----------------------------- Plotting -----------------------------------#
+
+## Plotting the distributions of `predicted` masses
+
+def group_mass_scatter_plot(mham_stats_arr, mdyn_stats_arr, param_dict,
+    proj_dict, fig_fmt='pdf', figsize=(10,6), fig_number=1):
+    """
+    Plotting of the violinplot for the scatter in the 
+
+    Parameters
+    ------------
+    mham_stats_arr : `numpy.ndarray`
+        Array of `statistics` for each of the group mass bins for the case of 
+        'Halo Abundance Matching'.
+
+    mdyn_stats_arr : `numpy.ndarray`
+        Array of `statistics` for each of the group mass bins for the case of 
+        'Dynamical Mass'.
+
+    fig_fmt : `str`, optional (default = 'pdf')
+        extension used to save the figure
+
+    figsize : `tuple`, optional
+        Size of the output figure. This variable is set to `(12,15.5)` by
+        default.
+
+    fig_number : `int`, optional
+        Number of figure in the workflow. This variable is set to `1`
+        by default.
+    """
+    file_msg     = param_dict['Prog_msg']
+    # Matplotlib option
+    matplotlib.rcParams['axes.linewidth'] = 2.5
+    matplotlib.rcParams['axes.edgecolor'] = 'black'
+    ## Figure name
+    fname = os.path.join(   proj_dict['figure_dir'],
+                            'Fig_{0}_{1}_masses_comparison.{2}'.format(
+                                fig_number,
+                                param_dict['catl_str_fig'],
+                                fig_fmt))
+    # Figure contants
+    ##
+    ## Figure details
+    plt.clf()
+    plt.close()
+    fig = plt.figure(figsize=figsize)
+    ax  = fig.add_subplots(111, facecolor='white')
+
+
+
+
+
+
+    ##
+    ## Saving figure
+    if fig_fmt=='pdf':
+        plt.savefig(fname, bbox_inches='tight')
+    else:
+        plt.savefig(fname, bbox_inches='tight', dpi=400)
+    ##
+    ##
+    print('{0} Figure saved as: {1}'.format(file_msg, fname))
+    plt.clf()
+    plt.close()
+
+
+
+
 
 
 
@@ -793,13 +936,21 @@ def main(args):
             print('{0} `{1}`: {2}'.format(Prog_msg, key, key_val))
     print('\n'+50*'='+'\n')
     ##
-    ## -------- ML main analysis -------- ##
+    ## -------- Main analysis -------- ##
     ##
     # Extracting datasets
 
 
     # Predicting masses
-    ml_predictions_data(param_dict, proj_dict)
+    catl_final_pd = catl_extract_and_merge(param_dict, proj_dict,
+        complete_groups=True)
+    # Group mass bins
+    (   catl_final_pd,
+        param_dict   ) = mass_bin_calculation(catl_final_pd, param_dict)
+    # Scatter within groups at fixed mass
+    catl_final_pd = group_mass_scatter(catl_final_pd, param_dict)
+    # Plotting of the group mass scatter plot
+
 
 
 # Main function
