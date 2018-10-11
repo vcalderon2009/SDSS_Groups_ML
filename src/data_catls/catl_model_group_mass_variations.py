@@ -35,6 +35,11 @@ import os
 import sys
 import pandas as pd
 import pickle
+import matplotlib
+matplotlib.use( 'Agg' )
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 
 import astropy.constants as ac
 import astropy.units     as u
@@ -816,7 +821,8 @@ def group_mass_scatter(catl_final_pd, param_dict):
     # Creating empty list of new values for the *normalized* masses
     mpred_norm_gals_arr = num.zeros(ngals) * num.nan
     # Looping over groups
-    for kk, group_kk in enumerate(tqdm(groupid_unq_arr)):
+    tqdm_msg = 'Normalizing predicted masses: '
+    for kk, group_kk in enumerate(tqdm(groupid_unq_arr, desc=tqdm_msg)):
         # Galaxy indices
         gals_kk_pd = catl_final_pd.loc[catl_final_pd['groupid'] == group_kk]
         # ML-Predicted masses
@@ -952,9 +958,6 @@ def main(args):
     ##
     ## -------- Main analysis -------- ##
     ##
-    # Extracting datasets
-
-
     # Predicting masses
     catl_final_pd = catl_extract_and_merge(param_dict, proj_dict,
         complete_groups=True)
