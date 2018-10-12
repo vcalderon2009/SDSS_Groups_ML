@@ -765,7 +765,9 @@ def mass_bin_calculation(catl_final_pd, param_dict):
     mass_bins       = num.array([[mass_bins_edges[xx], mass_bins_edges[xx+1]] \
                                     for xx in range(len(mass_bins_edges) - 1)])
     # Mass bins labels
-    mass_bins_labels = num.array(['[{0:.1f}, {1:.1f})'.format(xx[0], xx[1])
+    # mass_bins_labels = num.array(['[{0:.1f}, {1:.1f})'.format(xx[0], xx[1])
+    #                         for xx in mass_bins])
+    mass_bins_labels = num.array(['{0:.1f}'.format(xx[0])
                             for xx in mass_bins])
     # Total number of bins
     n_mass_bins     = len(mass_bins)
@@ -848,7 +850,7 @@ def group_mass_scatter(catl_final_pd, param_dict):
 ## Plotting the distributions of `predicted` masses
 
 def group_mass_scatter_plot(catl_final_pd, param_dict,
-    proj_dict, fig_fmt='pdf', figsize=(15,10), fig_number=1):
+    proj_dict, fig_fmt='pdf', figsize=(12,6), fig_number=1):
     """
     Plotting of the violinplot for the scatter in the 
 
