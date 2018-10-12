@@ -894,7 +894,7 @@ def group_mass_scatter_plot(catl_final_pd, param_dict,
     # Deleting Y-label for 2nd axis
     plt.setp(ax2.get_yticklabels(), visible=False)
     # Labels
-    ylabel    = r'\boldmath Normalized $\log \left[M_{pred}/ \right]$'
+    ylabel    = r'\boldmath Normalized $\log M_{pred}$'
     ham_label = r'\boldmath$\log M_{\mathrm{HAM}}\left[h^{-1} M_{\odot}\right]$'
     dyn_label = r'\boldmath$\log M_{\mathrm{dyn}}\left[h^{-1} M_{\odot}\right]$'
     ## Violin plots
