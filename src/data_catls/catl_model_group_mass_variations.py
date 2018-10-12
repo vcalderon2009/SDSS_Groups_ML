@@ -899,10 +899,10 @@ def group_mass_scatter_plot(catl_final_pd, param_dict,
     dyn_label = r'\boldmath$\log M_{\mathrm{dyn}}\left[h^{-1} M_{\odot}\right]$'
     ## Violin plots
     # HAM
-    sns.violinplot( x='HAM_bin_lab', y='NormMpred',
+    sns.boxplot( x='HAM_bin_lab', y='NormMpred',
                     inner='quart', data=catl_final_pd, ax=ax1)
     # DYN
-    sns.violinplot( x='HAM_bin_lab', y='NormMpred',
+    sns.boxplot( x='HAM_bin_lab', y='NormMpred',
                     inner='quart', data=catl_final_pd, ax=ax2)
     # Adjusting spacing
     plt.subplots_adjust(hspace=0)
