@@ -903,8 +903,10 @@ def group_mass_scatter_plot(catl_final_pd, param_dict,
     # HAM
     sns.boxplot( x='HAM_bin_lab', y='NormMpred', data=catl_final_pd, ax=ax1)
     # DYN
+    # New DataFrame
+    catl_final_pd_dyn = catl_final_pd.loc[catl_final_pd['GG_mdyn_rproj'] >= 10.0]
     sns.boxplot( x='DYN_bin_lab', y='NormMpred',
-                    data=catl_final_pd, ax=ax2)
+                    data=catl_final_pd_dyn, ax=ax2)
     # Adjusting spacing
     plt.subplots_adjust(hspace=0)
     # Axis labels
