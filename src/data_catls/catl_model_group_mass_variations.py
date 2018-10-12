@@ -848,7 +848,7 @@ def group_mass_scatter(catl_final_pd, param_dict):
 ## Plotting the distributions of `predicted` masses
 
 def group_mass_scatter_plot(catl_final_pd, param_dict,
-    proj_dict, fig_fmt='pdf', figsize=(20,12), fig_number=1):
+    proj_dict, fig_fmt='pdf', figsize=(15,10), fig_number=1):
     """
     Plotting of the violinplot for the scatter in the 
 
