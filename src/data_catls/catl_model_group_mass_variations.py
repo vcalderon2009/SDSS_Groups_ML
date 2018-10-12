@@ -912,8 +912,8 @@ def group_mass_scatter_plot(catl_final_pd, param_dict,
     ax2.set_xlabel(dyn_label, fontsize=label_size)
     ax1.set_ylabel(ylabel   , fontsize=label_size)
     # Rotation of tickmarks
-    ax1.xticks(rotation=70)
-    ax2.xticks(rotation=70)
+    plt.setp( ax1.xaxis.get_majorticklabels(), rotation=70 )
+    plt.setp( ax1.xaxis.get_majorticklabels(), rotation=70 )
     ##
     ## Saving figure
     if fig_fmt=='pdf':
