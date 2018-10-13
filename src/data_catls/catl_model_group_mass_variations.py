@@ -928,12 +928,6 @@ def group_mass_scatter_plot(catl_final_pd, param_dict,
     plt.clf()
     plt.close()
 
-
-
-
-
-
-
 ## --------------------------- Main Function --------------------------------#
 def main(args):
     """
