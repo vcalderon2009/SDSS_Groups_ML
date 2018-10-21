@@ -16,9 +16,9 @@ tmux split-window -h
 tmux select-pane -t 2
 tmux resize-pane -L 10
 # Sending commands
-tmux send -t $SESSION:0.0 "cd $PWD; conda activate $ENVNAME; clear;" ENTER
-tmux send -t $SESSION:0.1 "cd $PWD; conda activate $ENVNAME; clear; htop" ENTER
-tmux send -t $SESSION:0.2 "cd $PWD; conda activate $ENVNAME; cd ./data; clear" ENTER
+tmux send -t $SESSION:0.0 "cd $PWD; conda deactivate; conda activate $ENVNAME; clear;" ENTER
+tmux send -t $SESSION:0.1 "cd $PWD; conda deactivate; conda activate $ENVNAME; clear; htop" ENTER
+tmux send -t $SESSION:0.2 "cd $PWD; conda deactivate; conda activate $ENVNAME; cd ./data; clear" ENTER
 #
 # Creating new windows
 tmux new-window -t $SESSION:1 -n 'misc'
