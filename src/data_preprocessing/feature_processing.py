@@ -669,7 +669,6 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
     ## Dropping NaN's
     if dropna_opt:
         catl_pd_tot.dropna(how='any', inplace=True)
-
     ## Choosing which type to use for the training/testing datasets
     if test_train_opt == 'sample_frac':
         ## Fraction of the total dataset
@@ -717,7 +716,7 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
         # Checking for box's index
         for box_idx in [box_train_start, box_train_end, box_test_idx]:
             try:
-                assert(box_idx <= (len(boxes_arr) -1) )
+                assert(box_idx <= (len(boxes_arr) - 1) )
             except:
                 msg  = '{0} `box_idx` ({1}) is larger than the number of boxes '
                 msg += ' in the simulation ({2})!'
