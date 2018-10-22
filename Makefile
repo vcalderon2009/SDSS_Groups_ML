@@ -246,38 +246,38 @@ catl_main_props:
 	-cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -v $(VERBOSE) -perf $(PERF_OPT) \
 	-seed $(SEED)
 
-## Create set of `merged` catalogues, i.e. galaxy + group information
-catl_props:
-	@python $(SRC_DATA_DIR)/mocks_ml_main/catl_properties_calculations_make.py \
-	-cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) \
-	-clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) \
-	-nmin $(NMIN) -v $(VERBOSE) -clf_seed $(CLF_SEED)
+# ## Create set of `merged` catalogues, i.e. galaxy + group information
+# catl_props:
+# 	@python $(SRC_DATA_DIR)/mocks_ml_main/catl_properties_calculations_make.py \
+# 	-cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) \
+# 	-clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) \
+# 	-nmin $(NMIN) -v $(VERBOSE) -clf_seed $(CLF_SEED)
 
-## Plots the figures of the set of `merged` catalogues
-catl_props_plots:
-	@python $(SRC_DATA_DIR)/mocks_ml_main/catl_properties_plots.py -cpu $(CPU_FRAC) \
-	-remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) \
-	-hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -v $(VERBOSE) \
-	-clf_seed $(CLF_SEED)
+# ## Plots the figures of the set of `merged` catalogues
+# catl_props_plots:
+# 	@python $(SRC_DATA_DIR)/mocks_ml_main/catl_properties_plots.py -cpu $(CPU_FRAC) \
+# 	-remove $(REMOVE_FILES) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) \
+# 	-hod_model_n $(HOD_N) -sample $(SAMPLE) -nmin $(NMIN) -v $(VERBOSE) \
+# 	-clf_seed $(CLF_SEED)
 
-## Trains ML algorithms on the `merged` dataset
-ml_train:
-	@python $(SRC_DATA_DIR)/mocks_ml_main/catl_ml_main_make.py -a 'training' \
-	-cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) \
-	-clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) \
-	-nmin $(NMIN) -shuffle_opt $(SHUFFLE_OPT) -kf_splits $(KF_SPLITS) \
-	-n_predict $(N_PREDICT) -test_size $(TEST_SIZE) -sample_frac $(SAMPLE_FRAC) \
-	-dropna_opt $(DROP_NA) -v $(VERBOSE) -pre_opt $(PRE_OPT) \
-	-score_method $(SCORE_METHOD) -hidden_layers $(HIDDEN_LAYERS) \
-	-threshold $(THRESHOLD) -perc_val $(PERC_VAL) -clf_seed $(CLF_SEED)
+# ## Trains ML algorithms on the `merged` dataset
+# ml_train:
+# 	@python $(SRC_DATA_DIR)/mocks_ml_main/catl_ml_main_make.py -a 'training' \
+# 	-cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) \
+# 	-clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) \
+# 	-nmin $(NMIN) -shuffle_opt $(SHUFFLE_OPT) -kf_splits $(KF_SPLITS) \
+# 	-n_predict $(N_PREDICT) -test_size $(TEST_SIZE) -sample_frac $(SAMPLE_FRAC) \
+# 	-dropna_opt $(DROP_NA) -v $(VERBOSE) -pre_opt $(PRE_OPT) \
+# 	-score_method $(SCORE_METHOD) -hidden_layers $(HIDDEN_LAYERS) \
+# 	-threshold $(THRESHOLD) -perc_val $(PERC_VAL) -clf_seed $(CLF_SEED)
 
-## Plots the ML figures of the `trained` dataset
-ml_plots:
-	@python $(SRC_DATA_DIR)/mocks_ml_main/catl_ml_main_make.py -a 'plots' \
-	-cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) \
-	-clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) \
-	-nmin $(NMIN) -v $(VERBOSE) -pre_opt $(PRE_OPT) -sample_frac $(SAMPLE_FRAC)\
-	-score_method $(SCORE_METHOD) -clf_seed $(CLF_SEED)
+# ## Plots the ML figures of the `trained` dataset
+# ml_plots:
+# 	@python $(SRC_DATA_DIR)/mocks_ml_main/catl_ml_main_make.py -a 'plots' \
+# 	-cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -halotype $(HALOTYPE) \
+# 	-clf_method $(CLF_METHOD) -hod_model_n $(HOD_N) -sample $(SAMPLE) \
+# 	-nmin $(NMIN) -v $(VERBOSE) -pre_opt $(PRE_OPT) -sample_frac $(SAMPLE_FRAC)\
+# 	-score_method $(SCORE_METHOD) -clf_seed $(CLF_SEED)
 
 ## Preprocesses the real datasets and transforms them into user-friendly versions
 data_real_preprocess:
@@ -305,6 +305,7 @@ data_real_catl_create:
 	-box_test $(BOX_TEST) -sample_frac $(SAMPLE_FRAC) -test_size $(TEST_SIZE) \
 	-n_feat_use $(N_FEAT_USE) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) \
 	-v $(VERBOSE) -perf $(PERF_OPT) \
+	-sample_method $(SAMPLE_METHOD) -bin_val $(BIN_VAL) \
 	-seed $(SEED) -dens_calc $(DENS_CALC) -chosen_ml_alg $(CHOSEN_ML_ALG)
 
 ## Creates the plots for the *reak* data
@@ -319,6 +320,7 @@ data_real_catl_plots:
 	-box_test $(BOX_TEST) -sample_frac $(SAMPLE_FRAC) -test_size $(TEST_SIZE) \
 	-n_feat_use $(N_FEAT_USE) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) \
 	-v $(VERBOSE) -perf $(PERF_OPT) \
+	-sample_method $(SAMPLE_METHOD) -bin_val $(BIN_VAL) \
 	-seed $(SEED) -dens_calc $(DENS_CALC) -chosen_ml_alg $(CHOSEN_ML_ALG)
 	@python $(SRC_PREPROC_DATA_DIR)/catl_model_group_mass_variations.py \
 	-hod_model_n $(HOD_N) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) \
@@ -330,6 +332,7 @@ data_real_catl_plots:
 	-box_test $(BOX_TEST) -sample_frac $(SAMPLE_FRAC) -test_size $(TEST_SIZE) \
 	-n_feat_use $(N_FEAT_USE) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) \
 	-v $(VERBOSE) -perf $(PERF_OPT) \
+	-sample_method $(SAMPLE_METHOD) -bin_val $(BIN_VAL) \
 	-seed $(SEED) -dens_calc $(DENS_CALC) -chosen_ml_alg $(CHOSEN_ML_ALG)
 
 ## Run tests to see if all files (Halobias, catalogues) are in order
