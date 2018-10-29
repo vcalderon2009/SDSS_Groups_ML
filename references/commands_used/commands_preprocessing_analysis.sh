@@ -20,17 +20,19 @@
 ##############################################################################
 
 # --- 1 Box --- #
+# Run 4 at a time
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.25 DV=0.9   data_preprocess
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.25 DV=0.925 data_preprocess
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.25 DV=0.95  data_preprocess
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.25 DV=0.975 data_preprocess
-make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.25 DV=1,0   data_preprocess
+make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.25 DV=1.0   data_preprocess
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.25 DV=1.025 data_preprocess
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.25 DV=1.05  data_preprocess
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.25 DV=1.075 data_preprocess
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.25 DV=1.10  data_preprocess
 
 # --- Multiple boxes --- #
+# Run 4 at a time
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.25 DV=1.0 HOD_N=1 data_preprocess
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.25 DV=1.0 HOD_N=2 data_preprocess
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.25 DV=1.0 HOD_N=3 data_preprocess
@@ -39,15 +41,17 @@ make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.25 DV=1.0 HOD_N=6 data_preprocess
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.25 DV=1.0 HOD_N=7 data_preprocess
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.25 DV=1.0 HOD_N=8 data_preprocess
-make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.25 DV=1.0 HOD_N=9 data_preprocess
 
 # --- Total Sample for DV=1.0 and HOD_N = 0 --- #
-make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.25 DV=1.0 HOD_N=0 data_preprocess
+# Run it separately
+make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.75 DV=1.0 HOD_N=0 data_preprocess
 
 # --- REAL DATA - Total Sample ---
+# Run it separately
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.75 DV=1.0 HOD_N=0 data_real_preprocess
 
 # --- General Figures ---
+# Run it separately
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.75 DV=1.0 HOD_N=0 catl_main_props
 
 ##############################################################################
@@ -68,10 +72,10 @@ make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="
 ##############################################################################
 
 ## --- Creating Catalogues for Mr19 --- ###
-make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="True" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="hod_dv_fixed" SAMPLE_METHOD="binning" BIN_VAL="nbins" CHOSEN_ML_ALG="xgboost" data_real_catl_create
+make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="True" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="hod_dv_fixed" SAMPLE_METHOD="binning" BIN_VAL="nbins" CHOSEN_ML_ALG="xgboost"  SAMPLE_METHOD="binning" BIN_VAL="nbins" data_real_catl_create
 
 ## --- Creating plots for the REAL catalogues for Mr19 --- ###
-make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="True" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="hod_dv_fixed" SAMPLE_METHOD="binning" BIN_VAL="nbins" CHOSEN_ML_ALG="xgboost" data_real_catl_plots
+make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="True" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="hod_dv_fixed" SAMPLE_METHOD="binning" BIN_VAL="nbins" CHOSEN_ML_ALG="xgboost"  SAMPLE_METHOD="binning" BIN_VAL="nbins" data_real_catl_plots
 
 
 ##### --------------------------- 2018-09-03 --------------------------- #####
