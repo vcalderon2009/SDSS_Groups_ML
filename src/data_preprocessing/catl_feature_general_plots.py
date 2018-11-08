@@ -48,7 +48,7 @@ plt.rc('text', usetex=True)
 from astropy.visualization import astropy_mpl_style
 plt.style.use(astropy_mpl_style)
 import seaborn as sns
-#sns.set()
+sns.set(font_scale=1.5)
 
 # Extra-modules
 import argparse
