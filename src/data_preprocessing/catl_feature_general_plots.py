@@ -3,7 +3,7 @@
 
 # Victor Calderon
 # Created      : 2018-06-03
-# Last Modified: 2018-06-03
+# Last Modified: 2018-11-08
 # Vanderbilt University
 from __future__ import absolute_import, division, print_function
 __author__     = ['Victor Calderon']
@@ -1080,6 +1080,14 @@ def covariance_plot(catl_pd, param_dict, proj_dict, plot_only_feat=False,
                                 'Figure_02.{0}'.format(fig_fmt))
     ## Renaming properties
     catl_pd_copy = catl_pd.copy()
+    ## Reordering columns
+    mhalo_key = 'M_h'
+    # Saving data from Halo mass
+    gal_mhalo_arr = catl_pd_copy[mhalo_key].values
+    # Removing Halo mass
+    catl_pd_copy.drop(mhalo_key, axis=1, inplace=True)
+    # Inserting it back again to the DataFrame
+    catl_pd_copy.insert(0, mhalo_key, gal_mhalo_arr)
     # Plotting only features if applicable
     if plot_only_feat:
         feat_cols    = param_dict['ml_args']._feature_cols()
