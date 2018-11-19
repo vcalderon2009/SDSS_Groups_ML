@@ -908,7 +908,8 @@ def mass_pred_comparison_plot(catl_pd, param_dict, proj_dict, arr_len=10,
     # Colorbar
     cax  = fig.add_axes([0.92, 0.12, 0.03, 0.75])
     cbar = fig.colorbar(im[3], cax=cax)
-    cbar.set_label('frequency', rotation=270, labelpad=15)
+    cbar.set_label('frequency', rotation=270, labelpad=15, weight='bold',
+        size=20)
     ##
     ## Saving figure
     if fig_fmt=='pdf':
