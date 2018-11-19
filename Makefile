@@ -225,7 +225,7 @@ ml_analysis:
 	-resample_opt $(RESAMPLE_OPT) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) \
 	-v $(VERBOSE) -perf $(PERF_OPT) -seed $(SEED) \
 	-hod_models_n $(HOD_MODELS_N) -dv_models_n $(DV_MODELS_N) \
-	-include_nn $(INCLUDE_NN)
+	-include_nn $(INCLUDE_NN) -chosen_ml_alg $(CHOSEN_ML_ALG)
 
 ## Plots the figures of the set of `merged` catalogues - New and Improved
 catl_main_props:
