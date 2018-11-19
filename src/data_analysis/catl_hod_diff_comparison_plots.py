@@ -439,6 +439,13 @@ def get_parser():
                         type=str,
                         choices=['perc', 'idx'],
                         default='idx')
+    ## Algorithm used for the final estimation of mass
+    parser.add_argument('-chosen_ml_alg',
+                        dest='chosen_ml_alg',
+                        help='Algorithm used for the final estimation of mass',
+                        type=str,
+                        choices=['xgboost', 'rf', 'nn'],
+                        default='xgboost')
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -473,7 +480,6 @@ def get_parser():
                         type=int,
                         metavar='[0-4294967295]',
                         default=1)
-
     ## Program message
     parser.add_argument('-progmsg',
                         dest='Prog_msg',
@@ -1200,15 +1206,6 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     print('{0} Paper Figure saved as: {1}'.format(file_msg, fname_paper))
     plt.clf()
     plt.close()
-
-
-
-
-
-
-
-
-
 
 ## --------- Main Function ------------##
 

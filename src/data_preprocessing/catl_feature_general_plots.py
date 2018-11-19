@@ -853,6 +853,9 @@ def frac_diff_model(param_dict, proj_dict, plot_opt='mhalo',
         by default.
     """
     file_msg = param_dict['Prog_msg']
+    ## Matplotlib option
+    matplotlib.rcParams['axes.linewidth'] = 2.5
+    matplotlib.rcParams['axes.edgecolor'] = 'black'
     #
     # Constants
     cm           = plt.cm.get_cmap('viridis')
@@ -1168,6 +1171,9 @@ def pred_masses_halo_mass(param_dict, proj_dict,
         by default.
     """
     file_msg      = param_dict['Prog_msg']
+    ## Matplotlib option
+    matplotlib.rcParams['axes.linewidth'] = 2.5
+    matplotlib.rcParams['axes.edgecolor'] = 'black'
     # Constants
     cm            = plt.cm.get_cmap('viridis')
     plot_dict     = param_dict['plot_dict']
