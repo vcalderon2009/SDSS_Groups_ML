@@ -1021,9 +1021,6 @@ def frac_diff_model(param_dict, proj_dict, plot_opt='mhalo',
     ## Limits
     ax1.set_ylim(-20, 25)
     ##
-    ## Axes linewwidth
-    plt.setp(ax1.spines.values(), linewidth=2.5)
-    ##
     ## Saving figure
     if fig_fmt=='pdf':
         plt.savefig(fname, bbox_inches='tight')
@@ -1329,9 +1326,6 @@ def pred_masses_halo_mass(param_dict, proj_dict,
         # Legend
         ax.legend(loc='upper left', numpoints=1, frameon=False,
             prop={'size': 14})
-        ##
-        ## Axes linewidth
-        plt.setp(ax.spines.values(), linewidth=2.5)
     # Spacing
     plt.subplots_adjust(wspace=0.05)
     #
@@ -1395,13 +1389,13 @@ def main(args):
     ### ------ Figures ------ ###
     ##
     ## Comparison of estimated group masses via HAM and Dynamical Masses
-    # frac_diff_model(param_dict, proj_dict, plot_opt=param_dict['plot_opt'])
+    frac_diff_model(param_dict, proj_dict, plot_opt=param_dict['plot_opt'])
     #
     # Covariance Matrix
     covariance_plot(catl_pd, param_dict, proj_dict)
     #
     # Traditional methods for estimating masses
-    # pred_masses_halo_mass(param_dict, proj_dict)
+    pred_masses_halo_mass(param_dict, proj_dict)
     ##
     ## End time for running the catalogues
     end_time = datetime.now()
