@@ -732,8 +732,8 @@ def array_insert(arr1, arr2, axis=1):
 
 # Fractional difference
 def frac_diff_model(models_dict, param_dict, proj_dict,
-    arr_len=10, bin_statval='left', fig_fmt='pdf', figsize=(15, 8),
-    fig_number=1):
+    arr_len=10, bin_statval='left', fig_fmt='pdf', figsize_1=(8, 8),
+    figsize_2=(15, 8), fig_number=8):
     """
     Plots the fractional difference between `predicted` and `true`
     halo masses.
@@ -801,6 +801,16 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
     ## Algorithm names - Thought as indices for the plot
     ml_algs_names = num.sort(list(models_dict.keys()))
     n_ml_algs     = len(ml_algs_names)
+    ##
+    ## Only using the information for the given algorithm
+    if (param_dict['chosen_ml_alg'] == 'xgboost'):
+        ml_alg_key = 'XGBoost'
+    elif (param_dict['chosen_ml_alg'] == 'rf'):
+        ml_alg_key = 'random_forest'
+    elif (param_dict['chosen_ml_alg'] == 'nn'):
+        ml_alg_key = 'neural_network'
+    # Chosen algorithm
+    ml_algs_names = [ml_alg_key]
     # Initializing dictionary that will contain the necessary information
     # on each model
     frac_diff_dict = {}
@@ -895,12 +905,20 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
     # Y-label
     ylabel = r'Frac. Difference \boldmath$[\%]$'
     ##
+    # Figure size
+    if (n_ml_algs == 1):
+        figsize = figsize_1
+    else:
+        figsize = figsize_2
+    # Initializing figure
     plt.clf()
     plt.close()
     fig, axes = plt.subplots(nrows=1, ncols=n_ml_algs, sharey=True,
                     sharex=True, figsize=figsize, facecolor='white')
-    if len(axes) > 1:
+    if (n_ml_algs > 1):
         axes = axes.flatten()
+    else:
+        axes = [axes]
     # Color
     cm       = plt.cm.get_cmap('viridis')
     cm_arr   = [cm(kk/float(n_hod)) for kk in range(n_hod)]
