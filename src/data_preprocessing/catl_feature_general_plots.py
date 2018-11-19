@@ -856,7 +856,7 @@ def frac_diff_model(param_dict, proj_dict, plot_opt='mhalo',
     ## Matplotlib option
     matplotlib.rcParams['axes.linewidth'] = 2.5
     matplotlib.rcParams['axes.edgecolor'] = 'black'
-    #
+    ##
     # Constants
     cm           = plt.cm.get_cmap('viridis')
     plot_dict    = param_dict['plot_dict']
