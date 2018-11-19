@@ -601,7 +601,7 @@ def add_to_dict(param_dict):
     # Plotting constants
     plot_dict = {   'size_label':23,
                     'size_title':25,
-                    'size_legend': 14
+                    'size_legend': 18
                 }
     # Column names
     mass_cols = ['GG_M_group', 'GG_mdyn_rproj']
