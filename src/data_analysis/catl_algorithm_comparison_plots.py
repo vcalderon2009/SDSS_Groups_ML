@@ -614,10 +614,11 @@ def add_to_dict(param_dict):
     cpu_number = int(cpu_count() * param_dict['cpu_frac'])
     ##
     ## Plotting constants
-    plot_dict = {   'size_label':23,
-                    'size_title':25,
-                    'color_ham' :'red',
-                    'color_dyn' :'blue'}
+    plot_dict = {   'size_label' :23,
+                    'size_title' :25,
+                    'size_legend': 20,
+                    'color_ham'  :'red',
+                    'color_dyn'  :'blue'}
     ##
     ## Catalogue Prefix string
     catl_str_fig = param_dict['ml_args'].catl_alg_comp_fig_str()
@@ -985,8 +986,8 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
 
 # Ranking of each galaxy property for each different algorithm
 def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
-    fig_fmt='pdf', figsize=(15, 12), fig_number=2, stacked_opt=True,
-    rank_opt='idx'):
+    fig_fmt='pdf', figsize=(12, 8), fig_number=2, stacked_opt=True,
+    rank_opt='idx', sort_by='all'):
     """
     Plots the `ranking` of each galaxy proeperty based on the different ML
     algorithms used.
@@ -1023,6 +1024,14 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
         Options:
             - 'idx' : Shows the ranking indices for each feature.
             - ' perc' : Shows the ranking percentage for each feature.
+
+    sort_by : {'all', 'xgboost', 'rf'}, `str`, optional
+        Option for how sort the DataFrame. This variable is set to `all`
+        by default.
+        Options:
+            - 'all': Ranks the Feature importance values based sum of ranks
+            - 'xgboost' Ranks the Feature importance values based on XGBoost
+            - 'rf' : Ranks the Feature importance values based on Random Forest
     """
     file_msg = param_dict['Prog_msg']
     ## Matplotlib option
@@ -1111,7 +1120,7 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
         xlabel = r'$\leftarrow \textrm{Importance ranking}$'
     elif (rank_opt == 'perc'):
         xlabel = r'$\rightarrow \textrm{Importance ranking}$'
-    ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
+    ax1.set_xlabel(xlabel, fontsize=1.5*plot_dict['size_label'])
     # Plotting
     # Width
     if stacked_opt:
@@ -1128,12 +1137,12 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
     b.tick_params(labelsize=25)
     ## Legend
     leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
-        prop={'size':20})
+        prop={'size':plot_dict['size_legend']})
     # leg.get_frame().set_facecolor('none')
     ## Ticks
     if (rank_opt == 'idx'):
-        major_loc_val = 10
-        minor_loc_val = 5
+        major_loc_val = 5
+        minor_loc_val = 2
     elif (rank_opt == 'perc'):
         major_loc_val = 0.2
         minor_loc_val = 0.1
@@ -1262,17 +1271,18 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     fig = plt.figure(figsize=figsize)
     ax1 = fig.add_subplot(111, facecolor='white')
     # Constants
-    ml_algs_pd.plot(kind='barh',
+    ml_algs_pd.sort_values('ML', ascending=True).plot(kind='barh',
                     stacked=False,
                     ax=ax1,
                     legend=True)
     # HAM and Dynamical masses - Lines
     ax1.axvline(    x=ham_score,
                     color=plot_dict['color_ham'],
-                    label='HAM Mass')
+                    label='HAM Mass',
+                    linestyle='--')
     ax1.axvline(    x=dyn_score,
                     color=plot_dict['color_dyn'],
-                    label='Dynamical mass')
+                    label='DYN Mass')
     ## Ticks
     ax_data_minor_loc  = ticker.MultipleLocator(0.05)
     ax_data_major_loc  = ticker.MultipleLocator(0.1)
@@ -1281,13 +1291,17 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     ##
     ## Axis label
     if (score_type == 'perc'):
-        xlabel = r'$1\sigma$ error in $\Delta \log M_{halo} [\mathrm{dex}]$'
+        xlabel = r'\boldmath$1\sigma$ error in $\Delta \log M_{halo}\ [\mathrm{dex}]$'
     else:
         xlabel = 'Score'
-    ax1.set_xlabel(xlabel)
+    ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
+    ##
+    ## Increasing yticks fontsize
+    ax1.xaxis.set_tick_params(labelsize=0.7*plot_dict['size_label'])
+    ax1.yaxis.set_tick_params(labelsize=0.8*plot_dict['size_label'])
     ## Legend
     leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
-        prop={'size': 14})
+        prop={'size': plot_dict['size_legend']})
     leg.get_frame().set_facecolor('none')
     ##
     ## Saving figure
