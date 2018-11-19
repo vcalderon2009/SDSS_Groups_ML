@@ -1069,7 +1069,8 @@ def covariance_plot(catl_pd, param_dict, proj_dict, plot_only_feat=False,
         Number of figure in the workflow. This variable is set to `2`
         by default.
     """
-    file_msg = param_dict['Prog_msg']
+    file_msg  = param_dict['Prog_msg']
+    plot_dict = param_dict['plot_dict']
     ## Filename
     fname    = os.path.join(    proj_dict['figure_dir'],
                                 'Fig_{0}_{1}_feature_covariance.{2}'.format(
@@ -1109,12 +1110,13 @@ def covariance_plot(catl_pd, param_dict, proj_dict, plot_only_feat=False,
     mask[num.triu_indices_from(mask)] = True
     # Generate a custom diverging colormap
     cmap = sns.diverging_palette(220, 10, as_cmap=True)
-
     # Draw the heatmap with the mask and correct aspect ratio
     g = sns.heatmap(corr, mask=mask, cmap=cmap, vmax=1.0, vmin=-1., center=0,
                 square=True, linewidths=.5,
                 cbar_kws={"shrink": .5, 'label':r'$\Leftarrow$ Correlation $\Rightarrow$'},
                 ax=ax1)
+    # Modifying colorbar label
+    g.figure.axes[-1].yaxis.label.set_size(plot_dict['size_label'])
     ##
     ## Saving figure
     if fig_fmt=='pdf':
