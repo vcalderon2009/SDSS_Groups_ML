@@ -1021,6 +1021,9 @@ def frac_diff_model(param_dict, proj_dict, plot_opt='mhalo',
     ## Limits
     ax1.set_ylim(-20, 25)
     ##
+    ## Axes linewwidth
+    plt.setp(ax1.spines.values(), linewidth=2.5)
+    ##
     ## Saving figure
     if fig_fmt=='pdf':
         plt.savefig(fname, bbox_inches='tight')
@@ -1326,6 +1329,9 @@ def pred_masses_halo_mass(param_dict, proj_dict,
         # Legend
         ax.legend(loc='upper left', numpoints=1, frameon=False,
             prop={'size': 14})
+        ##
+        ## Axes linewidth
+        plt.setp(ax.spines.values(), linewidth=2.5)
     # Spacing
     plt.subplots_adjust(wspace=0.05)
     #
