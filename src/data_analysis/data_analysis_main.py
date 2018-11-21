@@ -1656,26 +1656,23 @@ def project_const(param_dict):
     ##
     ## Fixed HOD and DV value - Default
     if (param_dict['ml_analysis'] == 'hod_dv_fixed'):
-        window_name     = 'SDSS_ML_data_analysis_fixed_hodn_{0}_dv_{1}'.format(
+        window_name     = 'SDSS_ML_DA_fixed_hodn_{0}_dv_{1}'.format(
             param_dict['hod_n'], param_dict['dv'])
     ##
     ## Fixed DV and alternating HOD models
     if (param_dict['ml_analysis'] == 'dv_fixed'):
-        window_name     = 'SDSS_ML_data_analysis_fixed_hodn_{0}_dv_{1}'.format(
+        window_name     = 'SDSS_ML_DA_fixed_hodn_{0}_dv_{1}'.format(
             param_dict['hod_models_n'], param_dict['dv'])
-    sub_window_name = 'data_analysis'
-    file_exe_name   = 'catl_data_analysis_{0}_run.sh'.format(
-                        param_dict['ml_analysis'])
     ##
     ## Fixed HOD and alternating DV models
     if (param_dict['ml_analysis'] == 'hod_fixed'):
-        window_name     = 'SDSS_ML_data_analysis_fixed_dv_{0}_dv_{1}'.format(
+        window_name     = 'SDSS_ML_DA_fixed_dv_{0}_dv_{1}'.format(
             param_dict['dv_models_n'], param_dict['dv'])
-    sub_window_name = 'data_analysis'
-    file_exe_name   = 'catl_data_analysis_{0}_run.sh'.format(
-                        param_dict['ml_analysis'])
     ##
     ## File or files to run
+    sub_window_name = 'DA'
+    file_exe_name   = 'catl_data_analysis_{0}_run.sh'.format(
+                        param_dict['ml_analysis'])
     ##
     ## Fixed HOD and DV
     if (param_dict['ml_analysis'] == 'hod_dv_fixed'):
