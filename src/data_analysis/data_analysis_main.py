@@ -1721,7 +1721,7 @@ def file_construction_and_execution(df_arr, param_dict):
     now_str = datetime.datetime.now().strftime("%x %X")
     ##
     ## Obtain MCF strings
-    main_str_cmd = get_exec_string(df_arr, param_dict)
+    main_str_cmd = get_exec_string(df_arr, param_dict) 
     ##
     ## Parsing text that will go in file
     # Working directory
