@@ -407,6 +407,13 @@ def get_parser():
                         type=str,
                         choices=['perc', 'idx'],
                         default='idx')
+    ## Algorithm used for the final estimation of mass
+    parser.add_argument('-chosen_ml_alg',
+                        dest='chosen_ml_alg',
+                        help='Algorithm used for the final estimation of mass',
+                        type=str,
+                        choices=['xgboost', 'rf', 'nn'],
+                        default='xgboost')
     ## Type of resampling to use if necessary
     parser.add_argument('-resample_opt',
                         dest='resample_opt',
@@ -1078,6 +1085,7 @@ def get_analysis_hod_diff_params(param_dict):
                             ('include_nn'    , '-include_nn'    , False      ),
                             ('plot_opt'      , '-plot_opt'      , 'mhalo'    ),
                             ('rank_opt'      , '-rank_opt'      , 'idx'      ),
+                            ('chosen_ml_alg' , '-chosen_ml_alg' , 'xgboost'  ),
                             ('cpu_frac'      , '-cpu'           , 0.75       ),
                             ('remove_files'  , '-remove'        , False      ),
                             ('verbose'       , '-v'             , False      ),
@@ -1189,6 +1197,9 @@ def get_analysis_hod_diff_params(param_dict):
     ##
     ## Option for which type of ranking to plot
     main_plot_df = df_value_modifier(main_plot_df, 'rank_opt', param_dict)
+    ##
+    ## Option for which algorithm to plot
+    main_plot_df = df_value_modifier(main_plot_df, 'chosen_ml_alg', param_dict)
     ##
     ## Type of resampling to use if necessary
     main_plot_df = df_value_modifier(main_plot_df, 'resample_opt', param_dict)
@@ -1428,11 +1439,12 @@ def get_analysis_dv_diff_params(param_dict):
                             ('perc_val'      , '-perc_val'      , 0.68       ),
                             ('sample_method' , '-sample_method' , 'binning'  ),
                             ('bin_val'       , '-bin_val'       , 'fixed'    ),
-                            ('ml_analysis'   , '-ml_analysis'   , 'hod_fixed' ),
+                            ('ml_analysis'   , '-ml_analysis'   , 'hod_fixed'),
                             ('resample_opt'  , '-resample_opt'  , 'under'    ),
                             ('include_nn'    , '-include_nn'    , False      ),
                             ('plot_opt'      , '-plot_opt'      , 'mhalo'    ),
                             ('rank_opt'      , '-rank_opt'      , 'idx'      ),
+                            ('chosen_ml_alg' , '-chosen_ml_alg' , 'xgboost'  ),
                             ('cpu_frac'      , '-cpu'           , 0.75       ),
                             ('remove_files'  , '-remove'        , False      ),
                             ('verbose'       , '-v'             , False      ),
@@ -1544,6 +1556,9 @@ def get_analysis_dv_diff_params(param_dict):
     ##
     ## Option for which type of ranking to plot
     main_plot_df = df_value_modifier(main_plot_df, 'rank_opt', param_dict)
+    ##
+    ## Option for which ML algorithm to plot
+    main_plot_df = df_value_modifier(main_plot_df, 'chosen_ml_alg', param_dict)
     ##
     ## Type of resampling to use if necessary
     main_plot_df = df_value_modifier(main_plot_df, 'resample_opt', param_dict)
