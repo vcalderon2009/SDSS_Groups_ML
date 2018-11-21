@@ -44,6 +44,7 @@ import matplotlib
 matplotlib.use( 'Agg' )
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+from matplotlib.legend import Legend
 plt.rc('text', usetex=True)
 from astropy.visualization import astropy_mpl_style
 plt.style.use(astropy_mpl_style)
@@ -699,6 +700,81 @@ def array_insert(arr1, arr2, axis=1):
 
     return arr3
 
+## --------- Tools and related-functions ------------##
+def score_mass_regimes(true_arr, pred_arr, low_high_cut=12.5,
+    low_high_cut_opt='pred', score_method='perc', threshold=0.1,
+    perc=0.68):
+    """
+    Calculates the `mass discrepancy` score between the `true` and the
+    `predicted` masses.
+
+    Parameters
+    -----------
+    true_arr : `numpy.ndarray`, shape (N,)
+        Array of ``true`` masses, where ``N`` is the total number of galaxies
+        in the sample.
+
+    pred_arr : `numpy.ndarray`, shape (N,)
+        Array of ``predicted`` masses, where ``N`` is the total number of
+        galaxies in the sample.
+
+    low_high_cut : `float` or `int`, optional
+        Value at which to make the cut between low- and high-mass samples.
+        This variable is set to `12` by default.
+
+    low_high_cut_opt : {'pred', 'true'} `str`, optional
+        Option for which type of predicted mass to use when making the
+        cut between `low-mass` and `high-mass` galaxy systems. This variable
+        is set to ``pred`` by default.
+
+    score_method : {'perc', 'threshold', 'r2'} `str`, optional
+        Type of scoring to use when determining how well an algorithm
+        is performing. This variable is set to `perc` by default.
+        Options:
+            - 'perc' : Use percentage and rank-ordering of the values
+            - 'threshold' : Score based on diffs of `threshold` or less from true value.
+            - 'r2': R-squared statistic for error calcuation.
+
+    threshold : `float`, optional
+        Value to use when calculating error within some `threshold` value
+        from the truth. This variable is set to `0.1` by default.
+
+    perc : `float`, optional
+        Value used when determining score within some `perc`
+        percentile. The range for `perc` is [0, 1]. This variable
+        is set to `0.9` by default.
+
+    Returns
+    ---------
+    low_score : `float`
+        Score corresponding to low-mass systems.
+
+    high_score : `float`
+        Score corresponding to high-mass systems.
+    """
+    # DataFrame
+    mass_pd = pd.DataFrame({'pred': pred_arr, 'true': true_arr})
+    # Splitting low- and high-mass based on ``predicted``
+    low_pred_pd  = mass_pd.loc[mass_pd[low_high_cut_opt] <= low_high_cut]
+    high_pred_pd = mass_pd.loc[mass_pd[low_high_cut_opt] >  low_high_cut]
+    ##
+    ## Calculating score
+    # Low-mass
+    low_score = cmlu.scoring_methods(   low_pred_pd['true'].values,
+                                        pred_arr=low_pred_pd['pred'].values,
+                                        score_method=score_method,
+                                        threshold=threshold,
+                                        perc=perc)
+    # High-mass
+    high_score = cmlu.scoring_methods(  high_pred_pd['true'].values,
+                                        pred_arr=high_pred_pd['pred'].values,
+                                        score_method=score_method,
+                                        threshold=threshold,
+                                        perc=perc)
+    #
+    # Returning scores
+    return low_score, high_score
+
 ## --------- Plotting Functions ------------##
 
 
@@ -1166,6 +1242,245 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
     plt.clf()
     plt.close()
 
+def model_score_chart_1d_cut_bar(models_dict, param_dict, proj_dict,
+    fig_fmt='pdf', figsize=(10,8), fig_number=3, score_type='perc',
+    low_high_cut=12.5, perc=0.68, low_high_cut_opt='pred'):
+    """
+    Plots the overall `score` for each algorithm, and compares them to
+    the more traditional group mass estimation techniques, i.e. HAM and 
+    dynamical mass.
+
+    Parameters
+    ------------
+    models_dict : `dict`
+        Dictionary containing the results from the ML analysis.
+
+    param_dict : `dict`
+        Dictionary with input parameters and values related to this project.
+
+    proj_dict: python dictionary
+        Dictionary with current and new paths to project directories
+
+    fig_fmt : `str`, optional (default = 'pdf')
+        extension used to save the figure
+
+    figsize : `tuple`, optional
+        Size of the output figure. This variable is set to `(12,15.5)` by
+        default.
+
+    fig_number : `int`, optional
+        Number of figure in the workflow. This variable is set to `1`
+        by default.
+
+    score_type : {'perc', 'threshold', 'r2'}, `str`, optional
+        Type of scoring to plot. This variable is set to `perc` by default.
+
+        Options:
+            - 'perc' : Use percentage and rank-ordering of the values
+            - 'threshold' : Score based on diffs of `threshold` or less from true value.
+            - 'r2': R-squared statistic for error calcuation.
+
+    low_high_cut : `float` or `int`, optional
+        Value at which to make the cut between low- and high-mass samples.
+        This variable is set to `12` by default.
+
+    low_high_cut_opt : {'pred', 'true'} `str`, optional
+        Option for which type of predicted mass to use when making the
+        cut between `low-mass` and `high-mass` galaxy systems. This variable
+        is set to ``pred`` by default.
+    """
+    file_msg  = param_dict['Prog_msg']
+    plot_dict = param_dict['plot_dict']
+    ## Matplotlib option
+    matplotlib.rcParams['axes.linewidth'] = 2.5
+    matplotlib.rcParams['axes.edgecolor'] = 'black'
+    # Score
+    if (param_dict['score_method'] == 'model_score'):
+        score_type = 'r2'
+    #
+    # Figure name
+    fname = os.path.join(   proj_dict['figure_dir'],
+                            'Fig_{0}_{1}_ml_algorithms_scores_cut_b_{2}.{3}'.format(
+                                fig_number,
+                                param_dict['catl_str_fig'],
+                                score_type,
+                                fig_fmt))
+    ##
+    ## Paper Figure
+    fname_paper = os.path.join( proj_dict['paper_fig_dir'],
+                                'Figure_06b.{0}'.format(fig_fmt))
+    #
+    # Algorithms names - Thought as indices for this plot
+    ml_algs_names = num.sort(list(models_dict))
+    # Collecting scores
+    ml_alg_pd_arr       = []
+    ml_alg_score_pd_arr = []
+    ##
+    ## Extracting the data for low-mass and high-mass galaxies
+    for kk, ml_kk in enumerate(ml_algs_names):
+        # Reading in data
+        # Model dictionary
+        ml_model_kk_dict = models_dict[ml_kk]
+        # True and Predicted masses
+        mass_pred_kk = ml_model_kk_dict['mhalo_pred']
+        mass_true_kk = ml_model_kk_dict['mhalo_true']
+        # Computing differences
+        ml_mass_diff_kk = num.abs(mass_pred_kk - mass_true_kk)
+        # Renaming name of Algorithm
+        ml_alg_mod = ml_kk.replace('_', ' ').title()
+        # Creating DataFrames
+        ml_alg_pd_kk = pd.DataFrame({ml_alg_mod: ml_mass_diff_kk})
+        # Type
+        ml_alg_pd_kk.loc[:, 'Mass'] = 0
+        ml_alg_pd_kk.loc[mass_true_kk >= low_high_cut, 'Mass'] = 'High'
+        ml_alg_pd_kk.loc[mass_true_kk <  low_high_cut, 'Mass'] = 'Low'
+        # Melting Array
+        ml_alg_pd_kk_melt = ml_alg_pd_kk.melt(  id_vars=['Mass'],
+                                                var_name='groups',
+                                                value_name='vals')
+        ##
+        ## Score for each Method
+        (   ml_score_low_kk,
+            ml_score_high_kk) = score_mass_regimes( mass_true_kk,
+                                            mass_pred_kk,
+                                            low_high_cut=low_high_cut,
+                                            low_high_cut_opt=low_high_cut_opt,
+                                            score_method=score_type,
+                                            perc=perc)
+        # Creating score DataFrame
+        ml_alg_score_pd_kk = pd.DataFrame({ 'Low Mass': [ml_score_low_kk],
+                                            'High Mass': [ml_score_high_kk],
+                                            'ML': [ml_alg_mod]})
+        ml_alg_score_pd_kk_melt = ml_alg_score_pd_kk.melt(id_vars=['ML'],
+                                            var_name='Mass',
+                                            value_name='score')
+        # Appending to Array
+        ml_alg_pd_arr.append(ml_alg_pd_kk_melt)
+        ml_alg_score_pd_arr.append(ml_alg_score_pd_kk_melt)
+    ##
+    ## Calculating score for HAM and DYN
+    # HAM
+    # HAM
+    (   ham_pred,
+        ham_true) = param_dict['ml_args'].extract_trad_masses(mass_opt='ham')
+    ham_mass_diff = num.abs(ham_pred - ham_true)
+    # DYNAMICAL
+    (   dyn_pred,
+        dyn_true) = param_dict['ml_args'].extract_trad_masses(mass_opt='dyn')
+    dyn_mass_diff = num.abs(dyn_pred - dyn_true)
+    ##
+    ## Scores
+    # HAM
+    (   ham_low_score,
+        ham_high_score) = score_mass_regimes(   ham_true,
+                                            ham_pred,
+                                            low_high_cut=low_high_cut,
+                                            low_high_cut_opt=low_high_cut_opt,
+                                            score_method=score_type,
+                                            perc=perc)
+    # DYNAMICAL
+    (   dyn_low_score,
+        dyn_high_score) = score_mass_regimes(   dyn_true,
+                                            dyn_pred,
+                                            low_high_cut=low_high_cut,
+                                            low_high_cut_opt=low_high_cut_opt,
+                                            score_method=score_type,
+                                            perc=perc)
+    ##
+    ## Adding to DataFrame
+    # HAM Masses
+    ham_pd = pd.DataFrame(  {'Low' : [ham_low_score],
+                             'High': [ham_high_score]})
+    ##
+    ## Concatenating DataFrames
+    ml_alg_score_concat_pd = pd.concat(ml_alg_score_pd_arr)
+    ##
+    ## Plotting
+    plt.clf()
+    plt.close()
+    fig = plt.figure(figsize=figsize)
+    ax1 = fig.add_subplot(111, facecolor='white')
+    # Plotting violinplot
+    sns.barplot(x='score', y='ML', hue='Mass', data=ml_alg_score_concat_pd,
+        palette='Set1', ax=ax1)
+    # ML Algorithms - Legend
+    leg = ax1.legend(loc='upper right', numpoints=1, frameon=False,
+        title='ML.', prop={'size': plot_dict['size_legend']},
+        bbox_to_anchor=(1.0, 1.0))
+    leg.get_frame().set_facecolor('none')
+    leg.get_title().set_fontsize(20)
+    # Ticks
+    ax_data_minor_loc  = ticker.MultipleLocator(0.1)
+    ax_data_major_loc  = ticker.MultipleLocator(0.2)
+    ax1.xaxis.set_minor_locator(ax_data_minor_loc)
+    ax1.xaxis.set_major_locator(ax_data_major_loc)
+    ##
+    ## Axis label
+    if (score_type == 'perc'):
+        xlabel = r'Mass Discrepancy in \boldmath$\Delta \log M_{halo}\ [\mathrm{dex}]$'
+    else:
+        xlabel = 'Score'
+    ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
+    # HAM and Dynamical masses - Lines
+    ham_low_leg = ax1.axvline(    x=ham_low_score,
+                    color='red',
+                    linestyle='-',
+                    label='Low Mass')
+    dyn_low_leg = ax1.axvline(    x=dyn_low_score,
+                    color='red',
+                    linestyle='--',
+                    label='Low Mass')
+    ham_high_leg = ax1.axvline(    x=ham_high_score,
+                    color='blue',
+                    linestyle='-',
+                    label='High Mass')
+    dyn_high_leg = ax1.axvline(    x=dyn_high_score,
+                    color='blue',
+                    linestyle='--',
+                    label='High Mass')
+    ##
+    ## Increasing yticks fontsize
+    ax1.xaxis.set_tick_params(labelsize=0.7*plot_dict['size_label'])
+    ax1.yaxis.set_tick_params(labelsize=0.8*plot_dict['size_label'])
+    ##
+    ## Removing y-axis label
+    ax1.yaxis.set_label_text('')
+    ## Legend
+    # HAM
+    ham_dyn_leg_arr = [ham_low_leg, ham_high_leg]
+    ham_dyn_labels  = [xx.get_label() for xx in ham_dyn_leg_arr]
+    ham_dyn_leg     = Legend(ax1, ham_dyn_leg_arr, ham_dyn_labels,
+                        loc='center right', numpoints=1, frameon=False,
+                        prop={'size': plot_dict['size_legend']},
+                        bbox_to_anchor=(1.0, 0.62), title='HAM')
+    ham_dyn_leg.get_title().set_fontsize(20)
+    ax1.add_artist(ham_dyn_leg)
+    # DYNAMICAL
+    dyn_dyn_leg_arr = [dyn_low_leg, dyn_high_leg]
+    dyn_dyn_labels  = [xx.get_label() for xx in dyn_dyn_leg_arr]
+    dyn_dyn_leg     = Legend(ax1, dyn_dyn_leg_arr, dyn_dyn_labels,
+                        loc='center right', numpoints=1, frameon=False,
+                        prop={'size': plot_dict['size_legend']},
+                        bbox_to_anchor=(1.0, 0.35), title='DYN')
+    dyn_dyn_leg.get_title().set_fontsize(20)
+    ax1.add_artist(dyn_dyn_leg)
+    # Axes limits
+    ax1.set_xlim(0, 2)
+    ##
+    ## Saving figure
+    if fig_fmt == 'pdf':
+        plt.savefig(fname, bbox_inches='tight')
+        plt.savefig(fname_paper, bbox_inches='tight')
+    else:
+        plt.savefig(fname, bbox_inches='tight', dpi=400)
+        plt.savefig(fname_paper, bbox_inches='tight', dpi=400)
+    ##
+    ##
+    print('{0} Figure saved as: {1}'.format(file_msg, fname))
+    print('{0} Figure (Paper) saved as: {1}'.format(file_msg, fname_paper))
+    plt.clf()
+    plt.close()
+
 # Model Score - Different algorithms - Bar Chart
 def model_score_chart_1d(models_dict, param_dict, proj_dict,
     fig_fmt='pdf', figsize=(10,8), fig_number=3, score_type='perc'):
@@ -1291,7 +1606,7 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     ##
     ## Axis label
     if (score_type == 'perc'):
-        xlabel = r'\boldmath$1\sigma$ error in $\Delta \log M_{halo}\ [\mathrm{dex}]$'
+        xlabel = r'Mass Discrepancy in \boldmath$\Delta \log M_{halo}\ [\mathrm{dex}]$'
     else:
         xlabel = 'Score'
     ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
@@ -1623,16 +1938,6 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
     plt.close()
 
 
-
-
-
-
-
-
-
-
-
-
 ## --------- Main Function ------------##
 
 def main(args):
@@ -1685,6 +1990,8 @@ def main(args):
     #
     # Model Score - Different algorithms - Bar Chart
     model_score_chart_1d(models_dict, param_dict, proj_dict)
+    model_score_chart_1d_cut_bar(models_dict, param_dict, proj_dict,
+        low_high_cut=12.5, perc=0.68, low_high_cut_opt='pred')
     #
     # HAM, Dynamical, and ML masses vs `True` halo mass
     pred_masses_halo_mass(models_dict, param_dict, proj_dict)
