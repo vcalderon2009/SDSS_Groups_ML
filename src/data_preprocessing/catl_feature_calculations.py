@@ -1429,8 +1429,7 @@ def group_halo_pointing(memb_ii_pd, group_ii_pd, group_mod_pd):
     h_dict = {}
     ##
     ## -- Groups pointing to Halos -- ##
-    tq_msg = 'Groups pointing to Halos ...'
-    for ii, group_ii in enumerate(tqdm(groups_unq, desc=tq_msg)):
+    for ii, group_ii in enumerate(tqdm(groups_unq)):
         # HaloIDs of the galaxies in the given group
         haloid_arr       = memb_ii_pd.loc[memb_ii_pd[id_key] == group_ii, 'haloid']
         # Most common halo in the group
@@ -1438,8 +1437,7 @@ def group_halo_pointing(memb_ii_pd, group_ii_pd, group_mod_pd):
         # Saving most common HaloID in the galaxy group
         g_dict[group_ii] = haloid_g
     ## -- Halos pointing to Groups -- ##
-    tq_msg = 'Haloes pointing to Groups ...'
-    for kk, halo_kk in enumerate(tqdm(haloid_unq, desc=tq_msg)):
+    for kk, halo_kk in enumerate(tqdm(haloid_unq)):
         # HaloIDs of the galaxies in the given group
         groupid_arr     = memb_ii_pd.loc[memb_ii_pd['haloid'] == halo_kk, id_key]
         # Most common halo in the group
@@ -1516,8 +1514,7 @@ def group_mass_pointing(memb_ii_pd, group_ii_pd, group_mod_pd):
     g_dict['haloid'] = {}
     #
     # Looping over galaxy groups
-    tqdm_msg = 'Assigning Masses to galaxy groups'
-    for ii, group_ii in enumerate(tqdm(groups_unq, desc=tqdm_msg)):
+    for ii, group_ii in enumerate(tqdm(groups_unq)):
         # HaloIDs in group
         haloid_group_ii = memb_ii_pd.loc[memb_ii_pd[id_key] == group_ii, 'haloid']
         # Most common halo ID
