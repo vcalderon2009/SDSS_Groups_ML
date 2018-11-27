@@ -1763,7 +1763,7 @@ def file_construction_and_execution(df_arr, param_dict, str_interval=200):
             out_f.write( """SCRIPT_CMD="{0}"\n""".format(main_str_cmd).encode())
         else:
             for kk, cmd_kk in enumerate(main_str_cmd_mod):
-                out_f.write( """SCRIPT_CMD_{0}="{1}"\n""".format(kk, cmd_kk).encode())   
+                out_f.write( """SCRIPT_CMD_{0}="{1}"\n""".format(kk, cmd_kk).encode())
         out_f.write(b"""###\n""")
         out_f.write(b"""### --- Deleting previous Screen Session\n""")
         out_f.write(b"""screen -S ${WINDOW_NAME} -X quit\n""")
@@ -1781,7 +1781,7 @@ def file_construction_and_execution(df_arr, param_dict, str_interval=200):
             for kk, cmd_kk in enumerate(main_str_cmd_mod):
                 out_f.write(("""screen -S ${WINDOW_NAME} -p ${SUB_WINDOW} -X stuff $"${SCRIPT_CMD_%s}"\n""" %(kk)).encode())
         out_f.write(b"""screen -S ${WINDOW_NAME} -p ${SUB_WINDOW} -X stuff $'\\n'\n""")
-        # out_f.write(b"""\n""")
+        out_f.write(b"""\n""")
     ##
     ## Check if File exists
     if os.path.isfile(outfile_path):
