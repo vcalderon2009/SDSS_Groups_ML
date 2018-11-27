@@ -670,6 +670,12 @@ def catalogue_analysis(ii, catl_ii_name, box_n, param_dict, proj_dict,
         ## Distance to nearest cluster
         group_mod_pd = group_distance_closest_cluster(group_ii_pd, group_mod_pd,
             mass_factor=param_dict['mass_factor'])
+        ## Pointing Method - Determining 'good' and 'bad' pointings
+        group_mod_pd = group_halo_pointing(memb_ii_pd, group_ii_pd,
+            group_mod_pd)
+        ## Pointing Method - Assignment of halo masses
+        group_mod_pd = group_mass_pointing(memb_ii_pd, group_ii_pd,
+            group_mod_pd)
         ##
         ## ---- Member Galaxies - Properties---- ##
         ## Creating new 'members' DataFrame
@@ -1377,6 +1383,160 @@ def group_distance_closest_cluster(group_ii_pd, group_mod_pd, mass_factor=10):
     groups_dist_cluster_arr = groups_dist_sq_cluster_arr**(.5)
     ## Assigning to 'group_mod_pd'
     group_mod_pd.loc[:,'dist_cluster'] = groups_dist_cluster_arr
+
+    return group_mod_pd
+
+## Group Pointing
+def group_halo_pointing(memb_ii_pd, group_ii_pd, group_mod_pd):
+    """
+    Determines the set of Group-Halo "Good Pointing", i.e. it determines the
+    group, from which a Halo is mostly comprised, and vice-versa. If they
+    both are "pointing" to each other, we consider them "Good" groups.
+
+    Parameters
+    -----------
+    memb_ii_pd: pandas DataFrame
+        DataFrame with info about galaxy members
+
+    group_ii_pd: pandas DataFrame
+        DataFrame with group properties
+
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+
+    Returns
+    -----------
+    group_mod_pd: pandas DataFrame
+        DataFrame with group properties + "Pointing" information
+    """
+    # Constants
+    gal_match    = int(1)
+    gal_no_match = int(0)
+    #
+    # Generating catalogue keys
+    (   gm_key,
+        id_key,
+        galtype_key) = cmcu.catl_keys(  catl_kind='mocks', return_type='list')
+    ##
+    ## Unique Halo and Group IDs
+    haloid_unq = num.unique(memb_ii_pd['haloid'])
+    groups_unq = num.unique(memb_ii_pd[id_key])
+    n_halos    = len(haloid_unq)
+    n_groups   = len(groups_unq)
+    #
+    # Initializing dictionaries
+    g_dict = {}
+    h_dict = {}
+    ##
+    ## -- Groups pointing to Halos -- ##
+    tq_msg = 'Groups pointing to Halos ...'
+    for ii, group_ii in enumerate(tqdm(groups_unq, desc=tq_msg)):
+        # HaloIDs of the galaxies in the given group
+        haloid_arr       = memb_ii_pd.loc[memb_ii_pd[id_key] == group_ii, 'haloid']
+        # Most common halo in the group
+        haloid_g         = int(Counter(haloid_arr).most_common(1)[0][0])
+        # Saving most common HaloID in the galaxy group
+        g_dict[group_ii] = haloid_g
+    ## -- Halos pointing to Groups -- ##
+    tq_msg = 'Haloes pointing to Groups ...'
+    for kk, halo_kk in enumerate(tqdm(haloid_unq, desc=tq_msg)):
+        # HaloIDs of the galaxies in the given group
+        groupid_arr     = memb_ii_pd.loc[memb_ii_pd['haloid'] == halo_kk, id_key]
+        # Most common halo in the group
+        groupid_g       = int(Counter(groupid_arr).most_common(1)[0][0])
+        # Saving most common HaloID in the galaxy group
+        h_dict[halo_kk] = groupid_g
+    ##
+    ## Determining if the Halo and Group "point" to each other
+    match_dict = {}
+    n_match    = int(0)
+    n_nomatch  = int(0)
+    # Looping over galaxy groups
+    for ii, group_ii in enumerate(tqdm(groups_unq)):
+        # Designated haloid
+        halo_g  = g_dict[group_ii]
+        group_h = h_dict[halo_g]
+        if (group_ii == group_h):
+            match_dict[group_ii] = gal_match
+            n_match += 1
+        else:
+            match_dict[group_ii] = gal_no_match
+            n_nomatch += 1
+    #
+    # Computing statistics
+    match_frac    = 100.* (n_match / n_groups)
+    no_match_frac = 100. * (n_nomatch / n_groups)
+    # Populating final array for galaxy groups
+    match_idx_g = [[] for x in range(n_groups)]
+    # Looping over groups
+    for ii, group_ii in enumerate(tqdm(groups_unq)):
+        match_idx_g[ii] = match_dict[group_ii]
+    #
+    # Assigning it to main DataFrame
+    group_mod_pd.loc[:, 'pointing'] = match_idx_g
+
+    return group_mod_pd
+
+## Group Mass assignment from the 'pointing' method
+def group_mass_pointing(memb_ii_pd, group_ii_pd, group_mod_pd):
+    """
+    Determines the group mass of a galaxy group based on the "Pointing"
+    method, i.e. the halo that contributes the most galaxies to the galaxy
+    group.
+
+    Parameters
+    -----------
+    memb_ii_pd: pandas DataFrame
+        DataFrame with info about galaxy members
+
+    group_ii_pd: pandas DataFrame
+        DataFrame with group properties
+
+    group_mod_pd: pandas DataFrame
+        DataFrame, to which to add the group properties
+
+    Returns
+    -----------
+    group_mod_pd: pandas DataFrame
+        DataFrame with group properties + "Pointing" mass information
+    """
+    # Generating catalogue keys
+    (   gm_key,
+        id_key,
+        galtype_key) = cmcu.catl_keys(  catl_kind='mocks', return_type='list')
+    ##
+    ## Unique Halo and Group IDs
+    haloid_unq = num.unique(memb_ii_pd['haloid'])
+    groups_unq = num.unique(memb_ii_pd[id_key])
+    n_halos    = len(haloid_unq)
+    n_groups   = len(groups_unq)
+    # Determine the halo that contributes the most of the halo
+    g_dict           = {}
+    g_dict['mhalo' ] = {}
+    g_dict['haloid'] = {}
+    #
+    # Looping over galaxy groups
+    tqdm_msg = 'Assigning Masses to galaxy groups'
+    for ii, group_ii in enumerate(tqdm(groups_unq, desc=tqdm_msg)):
+        # HaloIDs in group
+        haloid_group_ii = memb_ii_pd.loc[memb_ii_pd[id_key] == group_ii, 'haloid']
+        # Most common halo ID
+        haloid_mc   = int(Counter(haloid_group_ii).most_common(1)[0][0])
+        mhalo_g     = memb_ii_pd.loc[memb_ii_pd['haloid'] == haloid_mc, 'M_h']
+        mhalo_g_unq = float(num.unique(mhalo_g))
+        # Saving to dictionaries
+        g_dict['haloid'][group_ii] = haloid_mc
+        g_dict['mhalo' ][group_ii] = mhalo_g_unq
+    ##
+    ## Assigning to `group_mod_pd`
+    haloid_g = [[] for x in range(n_groups)]
+    mhalo_g  = [[] for x in range(n_groups)]
+    for ii, group_ii in enumerate(tqdm(groups_unq)):
+        haloid_g[ii] = g_dict['haloid'][group_ii]
+        mhalo_g [ii] = g_dict['mhalo' ][group_ii]
+    # To DataFrame
+    group_mod_pd.loc[:, 'haloid_point'] = haloid_g
+    group_mod_pd.loc[:, 'mhalo_point' ] = mhalo_g
 
     return group_mod_pd
 
