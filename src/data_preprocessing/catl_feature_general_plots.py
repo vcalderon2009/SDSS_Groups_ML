@@ -1083,6 +1083,9 @@ def covariance_plot(catl_pd, param_dict, proj_dict, plot_only_feat=False,
                                 'Figure_02.{0}'.format(fig_fmt))
     ## Renaming properties
     catl_pd_copy = catl_pd.copy()
+    ## Dropping columns
+    cols_drop = ['GG_pointing', 'GG_haloid_point', 'GG_mhalo_point']
+    catl_pd_copy.drop(cols_drop, axis=1, inplace=True)
     ## Reordering columns
     mhalo_key = 'M_h'
     # Saving data from Halo mass
