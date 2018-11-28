@@ -44,6 +44,8 @@ import matplotlib
 matplotlib.use( 'Agg' )
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
+from mpl_toolkits.axes_grid1.colorbar import colorbar
 plt.rc('text', usetex=True)
 from astropy.visualization import astropy_mpl_style
 plt.style.use(astropy_mpl_style)
@@ -1106,20 +1108,25 @@ def covariance_plot(catl_pd, param_dict, proj_dict, plot_only_feat=False,
     plt.close()
     fig = plt.figure(figsize=figsize)
     ax1 = fig.add_subplot(111, facecolor='white')
-    # Correlation
+    fig.subplots_adjust(bottom=0.1, top=0.9, left=0.1, right=0.8,
+                        wspace=0.02, hspace=0.02)
+    cax = fig.add_axes([0.30, 0.85, 0.30, 0.05])
+    ## Correlation
     corr = catl_pd_copy.corr()
     # Generate a mask for the upper triangle
     mask = num.zeros_like(corr, dtype=num.bool)
     mask[num.triu_indices_from(mask)] = True
     # Generate a custom diverging colormap
     cmap = sns.diverging_palette(220, 10, as_cmap=True)
-    # Draw the heatmap with the mask and correct aspect ratio
+    # Draw the heatmat with the mask and correct aspect ratio
     g = sns.heatmap(corr, mask=mask, cmap=cmap, vmax=1.0, vmin=-1., center=0,
-                square=True, linewidths=.5,
-                cbar_kws={"shrink": .5, 'label':r'$\Leftarrow$ Correlation $\Rightarrow$'},
-                ax=ax1)
-    # Modifying colorbar label
-    g.figure.axes[-1].yaxis.label.set_size(plot_dict['size_label'])
+        square=True, linewidths=0.5, cbar=False, ax=ax1)
+    cbar = fig.colorbar(g.get_children()[0], cax=cax, orientation='horizontal')
+    cbar.set_label(r'$\Leftarrow$ Correlation $\Rightarrow$',
+        fontsize=plot_dict['size_label'])
+    cbar.ax.tick_params(labelsize=20)
+    g.yaxis.set_tick_params(labelsize=25)
+    g.xaxis.set_tick_params(labelsize=25)
     ##
     ## Saving figure
     if fig_fmt=='pdf':
