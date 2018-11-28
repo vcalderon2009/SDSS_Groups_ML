@@ -387,7 +387,7 @@ def get_parser():
                         help='Type of binning to use for the mass',
                         type=str,
                         choices=['fixed', 'nbins'],
-                        default='fixed')
+                        default='nbins')
     ## Type of analysis to perform.
     parser.add_argument('-ml_analysis',
                         dest='ml_analysis',
@@ -401,7 +401,7 @@ def get_parser():
                         help='Option for which variable to plot on x-axis',
                         type=str,
                         choices=['mgroup', 'mhalo'],
-                        default='mhalo')
+                        default='mgroup')
     ## Which axes to plot
     parser.add_argument('-rank_opt',
                         dest='rank_opt',
@@ -1347,6 +1347,237 @@ def pred_masses_halo_mass(param_dict, proj_dict,
     plt.clf()
     plt.close()
 
+## Error in conventional methods - Galaxy Groups
+def frac_diff_groups_model(param_dict, proj_dict, plot_opt='mhalo',
+    nlim_min=5, nlim_threshold=False, arr_len=10, bin_statval='left',
+    fig_fmt='pdf', figsize=(10, 8), fig_number=1):
+    """
+    Plots the fractional difference between `predicted` and `true`
+    halo masses for galaxy GROUPS.
+
+    Parameters
+    -----------
+    param_dict : `dict`
+        Dictionary with input parameters and values related to this project.
+
+    proj_dict: python dictionary
+        Dictionary with current and new paths to project directories
+
+    plot_opt : {'mgroup', 'mhalo'} `str`, optional  
+        Option to which property to plot on the x-axis. This variable is set
+        to `mhalo` by default.
+
+    nlim_min : `int`, optional
+        Minimum number of elements in a group, to show as part of the
+        catalogue. This variable is set to `5` by default.
+
+    nlim_threshold: `bool`, optional
+        If `True`, only groups with number of members larger than
+        `nlim_min` are included as part of the catalogue.
+
+    arr_len : `int`, optional
+        Minimum number of elements in bins. This variable is set to `0`
+        by default.
+
+    bin_statval : `str`, optional
+        Option for where to plot the bin values. This variable is set
+        to `average` by default.
+
+        Options:
+        - 'average': Returns the x-points at the average x-value of the bin
+        - 'left'   : Returns the x-points at the left-edge of the x-axis bin
+        - 'right'  : Returns the x-points at the right-edge of the x-axis bin
+
+    fig_fmt : `str`, optional (default = 'pdf')
+        extension used to save the figure
+
+    figsize : `tuple`, optional
+        Size of the output figure. This variable is set to `(12,15.5)` by
+        default.
+
+    fig_number : `int`, optional
+        Number of figure in the workflow. This variable is set to `1`
+        by default.
+    """
+    file_msg = param_dict['Prog_msg']
+    ## Matplotlib option
+    matplotlib.rcParams['axes.linewidth'] = 2.5
+    matplotlib.rcParams['axes.edgecolor'] = 'black'
+    ##
+    # Constants
+    cm           = plt.cm.get_cmap('viridis')
+    plot_dict    = param_dict['plot_dict']
+    ham_color    = 'red'
+    alpha        = 0.6
+    alpha_mass   = 0.2
+    zorder_mass  = 10
+    zorder_shade = zorder_mass - 1
+    zorder_ml    = zorder_mass + 1
+    bin_width    = param_dict['ml_args'].mass_bin_width
+    ##
+    ## Figure name
+    fname = os.path.join(   proj_dict['figure_dir'],
+                            'Fig_{0}a_{1}_group_mass_comparison.{2}'.format(
+                                fig_number,
+                                param_dict['catl_str_fig'],
+                                fig_fmt))
+    ##
+    ## Paper Figure
+    fname_paper = os.path.join( proj_dict['paper_fig_dir'],
+                                'Figure_01a.{0}'.format(fig_fmt))
+    ##
+    ## Reading in 'master' combined catalogue
+    catl_pd_tot = param_dict['ml_args'].extract_merged_catl_info(
+        opt='combined')
+    ##
+    ## Only selecting groups with `nlim_min` galaxies or larger
+    if nlim_threshold:
+        catl_pd_tot = catl_pd_tot.loc[(catl_pd_tot['GG_ngals'] >= nlim_min)]
+    ##
+    ## Temporarily fixing `GG_mdyn_rproj`
+    # catl_pd_tot.loc[:, 'GG_mdyn_rproj'] /= 0.96
+    ##
+    ## Dropping NaN's
+    catl_pd_tot.dropna(how='any', inplace=True)
+    ##
+    ## Selecting only 'Good' groups
+    good_p_opt    = int(1)
+    catl_cols_arr = ['GG_pointing', 'GG_mhalo_point', 'GG_M_group',
+                        'GG_mdyn_rproj', 'groupid']
+    catl_pd_tot_mod = catl_pd_tot.loc[catl_pd_tot['GG_pointing'] == good_p_opt,
+                        catl_cols_arr].drop_duplicates().reset_index(drop=True)
+    ##
+    ## Selecting Masses
+    # - HAM Mass -
+    ham_cols = ['GG_M_group', 'GG_mhalo_point']
+    (   ham_pred,
+        ham_true) = catl_pd_tot_mod.loc[:, ham_cols].values.T
+    ham_frac_diff = 100. * (ham_pred - ham_true) / ham_true
+    # - DYN Mass -
+    dyn_cols = ['GG_mdyn_rproj', 'GG_mhalo_point']
+    (   dyn_pred,
+        dyn_true) = catl_pd_tot_mod.loc[
+                        catl_pd_tot_mod['GG_mdyn_rproj'] >= 11.0,
+                            dyn_cols].values.T
+    dyn_frac_diff = 100. * (dyn_pred - dyn_true) / dyn_true
+    ##
+    ## Choosing which mass to plot
+    if (plot_opt == 'mgroup'):
+        ham_x = ham_pred
+        dyn_x = dyn_pred
+    elif (plot_opt == 'mhalo'):
+        ham_x = ham_true
+        dyn_x = dyn_true
+    ##
+    ## Binning the data
+    ## -- HAM --
+    (   x_stat_ham   ,
+        y_stat_ham   ,
+        y_std_ham    ,
+        y_std_err_ham) = cstats.Stats_one_arr(  ham_x,
+                                                ham_frac_diff,
+                                                base=bin_width,
+                                                arr_len=arr_len,
+                                                bin_statval=bin_statval)
+    y1_ham = y_stat_ham - y_std_ham
+    y2_ham = y_stat_ham + y_std_ham
+    ## -- DYN --
+    (   x_stat_dyn   ,
+        y_stat_dyn   ,
+        y_std_dyn    ,
+        y_std_err_dyn) = cstats.Stats_one_arr(  dyn_x,
+                                                dyn_frac_diff,
+                                                base=bin_width,
+                                                arr_len=arr_len,
+                                                bin_statval=bin_statval)
+    y1_dyn = y_stat_dyn - y_std_dyn
+    y2_dyn = y_stat_dyn + y_std_dyn
+    ## Figure details
+    # Labels
+    # X-label
+    if (plot_opt == 'mgroup'):
+        xlabel = r'\boldmath$\log M_{predicted}  \textrm{ - Groups}\left[ h^{-1} M_{\odot}\right]$'
+    elif (plot_opt == 'mhalo'):
+        xlabel = r'\boldmath$\log M_{halo,\textrm{true}} \textrm{ - Groups}\left[ h^{-1} M_{\odot}\right]$'
+    # Y-label
+    ylabel = r'Frac. Difference - Groups \boldmath$[\%]$'
+    ##
+    plt.clf()
+    plt.close()
+    fig = plt.figure(figsize=figsize)
+    ax1 = fig.add_subplot(111, facecolor='white')
+    ## Horizontal line
+    ax1.axhline(y=0, color='black', linestyle='--', zorder=10)
+    ##
+    ## HAM Masses
+    ax1.plot(   x_stat_ham,
+                y_stat_ham,
+                color=plot_dict['color_ham'],
+                linestyle='-',
+                marker='o',
+                zorder=zorder_mass)
+    ax1.fill_between(   x_stat_ham,
+                        y1_ham,
+                        y2_ham, 
+                        color=plot_dict['color_ham'],
+                        alpha=alpha_mass,
+                        label='HAM',
+                        zorder=zorder_shade)
+    ## Dynamical Masses
+    ax1.plot(   x_stat_dyn,
+                y_stat_dyn,
+                color=plot_dict['color_dyn'],
+                linestyle='-',
+                marker='o',
+                zorder=zorder_mass)
+    ax1.fill_between(   x_stat_dyn,
+                        y1_dyn,
+                        y2_dyn, 
+                        color=plot_dict['color_dyn'],
+                        alpha=alpha_mass,
+                        label='Dynamical',
+                        zorder=zorder_shade)
+    ## Legend
+    leg = ax1.legend(loc='upper left', numpoints=1, frameon=False,
+        prop={'size':14})
+    leg.get_frame().set_facecolor('none')
+    ## Ticks
+    # Y-axis
+    xaxis_major_ticker = 1
+    xaxis_minor_ticker = 0.2
+    ax_xaxis_major_loc = ticker.MultipleLocator(xaxis_major_ticker)
+    ax_xaxis_minor_loc = ticker.MultipleLocator(xaxis_minor_ticker)
+    ax1.xaxis.set_major_locator(ax_xaxis_major_loc)
+    ax1.xaxis.set_minor_locator(ax_xaxis_minor_loc)
+    # Y-axis
+    yaxis_major_ticker = 5
+    yaxis_minor_ticker = 2
+    ax_yaxis_major_loc = ticker.MultipleLocator(yaxis_major_ticker)
+    ax_yaxis_minor_loc = ticker.MultipleLocator(yaxis_minor_ticker)
+    ax1.yaxis.set_major_locator(ax_yaxis_major_loc)
+    ax1.yaxis.set_minor_locator(ax_yaxis_minor_loc)
+    ## Labels
+    ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
+    ax1.set_ylabel(ylabel, fontsize=plot_dict['size_label'])
+    ##
+    ## Limits
+    ax1.set_ylim(-10, 10)
+    ##
+    ## Saving figure
+    if fig_fmt=='pdf':
+        plt.savefig(fname, bbox_inches='tight')
+        plt.savefig(fname_paper, bbox_inches='tight')
+    else:
+        plt.savefig(fname, bbox_inches='tight', dpi=400)
+        plt.savefig(fname_paper, bbox_inches='tight', dpi=400)
+    ##
+    ##
+    print('{0} Figure saved as: {1}'.format(file_msg, fname))
+    print('{0} Paper Figure saved as: {1}'.format(file_msg, fname_paper))
+    plt.clf()
+    plt.close()
+
+
 ## --------- Main Function ------------##
 
 def main(args):
@@ -1398,6 +1629,10 @@ def main(args):
     #
     # Traditional methods for estimating masses
     pred_masses_halo_mass(param_dict, proj_dict)
+    #
+    # Fractional Difference plots vs True mass of galaxy GROUPS
+    frac_diff_groups_model(param_dict, proj_dict,
+        plot_opt=param_dict['plot_opt'])
     ##
     ## End time for running the catalogues
     end_time = datetime.now()
