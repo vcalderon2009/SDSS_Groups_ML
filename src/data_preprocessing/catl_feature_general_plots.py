@@ -1096,6 +1096,15 @@ def covariance_plot(catl_pd, param_dict, proj_dict, plot_only_feat=False,
     catl_pd_copy.drop(mhalo_key, axis=1, inplace=True)
     # Inserting it back again to the DataFrame
     catl_pd_copy.insert(0, mhalo_key, gal_mhalo_arr)
+    ##
+    ## Rearranging columns
+    df_cols_new = [ 'M_h','dist_centre_group', 'M_r', 'logssfr', 'g_galtype',
+                    'g_r', 'sersic', 'GG_mr_brightest', 'GG_mr_ratio',
+                    'GG_M_r', 'GG_logssfr', 'GG_shape', 'GG_ngals',
+                    'GG_rproj', 'GG_r_tot', 'GG_r_med', 'GG_sigma_v',
+                    'GG_sigma_v_rmed', 'GG_M_group', 'GG_mdyn_rproj',
+                    'GG_dist_cluster']
+    catl_pd_copy = catl_pd_copy.loc[:, df_cols_new]
     # Plotting only features if applicable
     if plot_only_feat:
         feat_cols    = param_dict['ml_args']._feature_cols()
