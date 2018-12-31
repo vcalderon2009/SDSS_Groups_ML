@@ -652,8 +652,8 @@ def catalogue_analysis(ii, catl_ii_name, box_n, param_dict, proj_dict,
         group_mod_pd = group_shape(memb_ii_pd, group_ii_pd, group_mod_pd, 
             group_gals_dict, param_dict, nmin=param_dict['nmin'])
         ## Total and median radius of the group
-        group_mod_pd = group_radii(memb_ii_pd, group_ii_pd, group_mod_pd, 
-            group_gals_dict, nmin=param_dict['nmin'])
+        group_mod_pd, memb_ii_pd = group_radii(memb_ii_pd, group_ii_pd,
+            group_mod_pd, group_gals_dict, nmin=param_dict['nmin'])
         ## Abundance matched mass of group
         group_mod_pd = group_general_prop(group_ii_pd, group_mod_pd)
         ## Velocity dispersion
@@ -756,7 +756,6 @@ def galaxy_dist_centre(memb_ii_pd, group_ii_pd, group_mod_pd,
             memb_dist_sq_arr = 0.
         ## Assigning to each galaxy
         gals_group_dist_sq_arr[group_idx] = memb_dist_sq_arr
-
     ##
     ## Distance square root
     gals_group_dist_arr = gals_group_dist_sq_arr**(0.5)
@@ -1058,10 +1057,14 @@ def group_radii(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
     ------------
     group_mod_pd: pandas DataFrame
         DataFrame, to which to add the group properties
+
+    memb_ii_pd : `pandas.DataFrame`
+        DataFrame with info about galaxy members
     """
     # Constants
     pi_180 = num.pi / 180.
     ## Array for total and median radii of galaxy group
+    gals_rp_arr     = num.zeros(len(memb_ii_pd))
     group_tot_r_arr = num.zeros(len(group_ii_pd))
     group_med_r_arr = num.zeros(len(group_ii_pd))
     group_rms_r_arr = num.zeros(len(group_ii_pd))
@@ -1126,6 +1129,8 @@ def group_radii(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
             group_rms_r_arr[group_kk] = r_rms
             group_med_r_arr[group_kk] = r_med
             group_tot_r_arr[group_kk] = r_tot
+            # Galaxy's projected distances
+            gals_rp_arr[group_idx] = rp_arr
         ## - Three-dimensional distances - ##
         if (dist_opt == '3D'):
             ## Galaxies in group
@@ -1149,8 +1154,11 @@ def group_radii(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
     group_mod_pd.loc[:,'r_rms'] = group_rms_r_arr
     group_mod_pd.loc[:,'r_med'] = group_med_r_arr
     group_mod_pd.loc[:,'r_tot'] = group_tot_r_arr
+    # Projected distances - Galaxies
+    if (dist_opt == 'proj'):
+        memb_ii_pd.loc[:, 'rp'] = gals_rp_arr
     
-    return group_mod_pd
+    return group_mod_pd, memb_ii_pd
 
 ## General properties for groups
 def group_general_prop(group_ii_pd, group_mod_pd):
@@ -1195,7 +1203,7 @@ def group_general_prop(group_ii_pd, group_mod_pd):
 
 ## Total and median radii of galaxy group
 def group_sigma_rmed(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict, 
-    param_dict, nmin=2):
+    param_dict, nmin=2, dist_opt='proj'):
     """
     Determines the total and median radii of the galaxy groups with 
     group richness of "ngal > `nmin`"
@@ -1220,52 +1228,87 @@ def group_sigma_rmed(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
     nmin: int, optional (default = 2)
         minimum number of galaxies in the galaxy group
 
+    dist_opt : {'proj', '3D'} `str`, optional
+        Option for which type of distance to use. This variable is set to
+        ``proj`` by default.
+
+        Options:
+            - ``'proj'``: It computes the *projected* distances
+            - ``'3D'`` : Computes the three-dimensional distances.
+
     Returns
     ------------
     group_mod_pd: pandas DataFrame
         DataFrame, to which to add the group properties
     """
-    ## Array for total and median radii of galaxy group
+    ## Array for the velocity dispersion at `r_med`
     group_sigma_rmed_arr = num.zeros(len(group_ii_pd))
     ## Groups with number of galaxies larger than `nmin`
     groups_nmin_arr = group_ii_pd.loc[group_ii_pd['GG_ngals']>=nmin,'groupid']
     groups_nmin_arr = groups_nmin_arr.values
-    ## Median radius of groups
-    group_rmed_arr_sq  = group_mod_pd['r_med'].values**2
-    # Galaxy columns
-    gals_cols    = ['cz','x','y','z']
-    memb_coords  = memb_ii_pd[gals_cols].values
-    # Group Columns
-    group_cols   = ['GG_cen_cz', 'GG_ngals', 'GG_x', 'GG_y', 'GG_z']
-    group_coords = group_ii_pd[group_cols].values
+    ## Galaxy columns
+    if (dist_opt == 'proj'):
+        gals_cols  = ['cz', 'rp']
+        group_cols = ['GG_cen_cz', 'GG_ngals']
+    elif (dist_opt == '3D'):
+        gals_cols         = ['cz','x','y','z']
+        group_cols        = ['GG_cen_cz', 'GG_ngals', 'GG_x', 'GG_y', 'GG_z']
+    ##
+    ## Selecting only chosen columns
+    group_rmed_arr    = group_mod_pd['r_med'].values
+    group_rmed_arr_sq = group_rmed_arr**2
+    memb_coords       = memb_ii_pd[gals_cols].values
+    group_coords      = group_ii_pd[group_cols].values
     ## Looping over all groups
     tq_msg = 'Group Sigma: '
     for group_kk in tqdm(groups_nmin_arr, desc=tq_msg):
         ## Group indices
         group_idx    = group_gals_dict[group_kk]
-        ## Galaxies in group
-        memb_gals_kk = memb_coords [group_idx]
-        group_kk_pd  = group_coords[group_kk ]
-        ## Cartesian Coordinates
-        memb_cart_arr  = memb_gals_kk[:,1:]
-        group_cart_rsh = group_kk_pd[2:].reshape(1,3)
-        ## If within `r_med`
-        memb_dist_sq_arr = num.sum((memb_cart_arr - group_cart_rsh)**2,axis=1)
-        ## Selecting dispersion of galaxies
-        memb_rmed_mask = (memb_dist_sq_arr <= group_rmed_arr_sq[group_kk])
-        ## Calculating velocity dispersion
-        memb_rmed_kk = memb_gals_kk[memb_rmed_mask]
-        # Checking if more than 1 galaxy is in the `r_med` range
-        ## Velocity dispersion of galaxies within group's `r_med`
-        if len(memb_rmed_kk) > 1:
-            memb_dz2   = num.sum((memb_rmed_kk[:,0] - group_kk_pd[0])**2)
-            czdisp_num = (memb_dz2/(memb_rmed_kk.shape[0] - 1))**(.5)
-            czdisp_den = 1. + (group_kk_pd[0]/param_dict['speed_c'])
-            czdisp_rmed = czdisp_num / czdisp_den
-        else:
-            czdisp_rmed = 0.
-        ## Saving to array
-        group_sigma_rmed_arr[group_kk] = czdisp_rmed
+        ##
+        ## -- Projected distance -- ##
+        if (dist_opt == 'proj'):
+            # Galaxies in group
+            memb_gals_kk = memb_coords [group_idx].T
+            group_kk_pd  = group_coords[group_kk ].T
+            # If within `r_med`
+            memb_rmed_mask = (memb_gals_kk[1] <= group_rmed_arr[group_kk])
+            # Calculating velocity dispersion
+            memb_rmed_kk = memb_gals_kk.T[memb_rmed_mask].T
+            # Checking if more than 1 galaxy is in the `r_med` range
+            if len(memb_rmed_kk.T) > 1:
+                memb_dz2 = num.sum((memb_rmed_kk[0] - group_kk_pd[0])**2)
+                czdisp_num = (memb_dz2/(memb_rmed_kk.T.shape[0] - 1))**(.5)
+                czdisp_den = 1. + (group_kk_pd[0]/param_dict['speed_c'])
+                czdisp_rmed = czdisp_num / czdisp_den
+            else:
+                czdisp_rmed = 0.
+            ## Saving to array
+            group_sigma_rmed_arr[group_kk] = czdisp_rmed
+        ## -- 3D distance -- ##
+        if (dist_opt == '3D'):
+            ## Galaxies in group
+            memb_gals_kk = memb_coords [group_idx]
+            group_kk_pd  = group_coords[group_kk ]
+            ## Cartesian Coordinates
+            memb_cart_arr  = memb_gals_kk[:,1:]
+            group_cart_rsh = group_kk_pd[2:].reshape(1,3)
+            ## If within `r_med`
+            memb_dist_sq_arr = num.sum((memb_cart_arr - group_cart_rsh)**2,axis=1)
+            ## Selecting dispersion of galaxies
+            memb_rmed_mask = (memb_dist_sq_arr <= group_rmed_arr_sq[group_kk])
+            ## Calculating velocity dispersion
+            memb_rmed_kk = memb_gals_kk[memb_rmed_mask]
+            # Checking if more than 1 galaxy is in the `r_med` range
+            ## Velocity dispersion of galaxies within group's `r_med`
+            if len(memb_rmed_kk) > 1:
+                memb_dz2   = num.sum((memb_rmed_kk[:,0] - group_kk_pd[0])**2)
+                czdisp_num = (memb_dz2/(memb_rmed_kk.shape[0] - 1))**(.5)
+                czdisp_den = 1. + (group_kk_pd[0]/param_dict['speed_c'])
+                czdisp_rmed = czdisp_num / czdisp_den
+            else:
+                czdisp_rmed = 0.
+            ## Saving to array
+            group_sigma_rmed_arr[group_kk] = czdisp_rmed
     ##
     ## Assigning it to DataFrame
     group_mod_pd.loc[:,'sigma_v_rmed'] = group_sigma_rmed_arr
