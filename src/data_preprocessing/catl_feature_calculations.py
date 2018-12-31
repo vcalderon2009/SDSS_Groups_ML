@@ -691,7 +691,7 @@ def catalogue_analysis(ii, catl_ii_name, box_n, param_dict, proj_dict,
         ## ---- Combining Member and Group Properties ---- ##
         ## Merging group and galaxy DataFrames
         memb_group_pd = memb_group_merging(memb_mod_pd, group_mod_pd)
-        ## Assigns the `box_n` variable to the dataframe
+        ## Assigns the `box_n` variable to the dataframe 
         memb_group_pd.loc[:,'box_n'] = box_n
         ## Saving DataFrames
         merging_df_save(merged_vac_filename, memb_group_pd, param_dict, 
