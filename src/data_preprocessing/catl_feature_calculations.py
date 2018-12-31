@@ -1027,7 +1027,7 @@ def group_shape(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
 
 ## Total and median radii of galaxy group
 def group_radii(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict, 
-    nmin=2):
+    nmin=2, dist_opt='proj'):
     """
     Determines the total and median radii of the galaxy groups with 
     group richness of "ngal > `nmin`"
@@ -1046,45 +1046,110 @@ def group_radii(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
     group_gals_dict: python dictionary
         dictionary with indices of galaxies for each galaxy group
 
+    dist_opt : {'proj', '3D'} `str`, optional
+        Option for which type of distance to use. This variable is set to
+        ``proj`` by default.
+
+        Options:
+            - ``'proj'``: It computes the *projected* distances
+            - ``'3D'`` : Computes the three-dimensional distances.
+    
     Returns
     ------------
     group_mod_pd: pandas DataFrame
         DataFrame, to which to add the group properties
     """
+    # Constants
+    pi_180 = num.pi / 180.
     ## Array for total and median radii of galaxy group
     group_tot_r_arr = num.zeros(len(group_ii_pd))
     group_med_r_arr = num.zeros(len(group_ii_pd))
+    group_rms_r_arr = num.zeros(len(group_ii_pd))
     ## Groups with number of galaxies larger than `nmin`
     groups_nmin_arr = group_ii_pd.loc[group_ii_pd['GG_ngals']>=nmin,'groupid']
     groups_nmin_arr = groups_nmin_arr.values
     ## Coordinates
-    memb_coords     = memb_ii_pd[['x','y','z']].values
-    group_coords    = group_ii_pd[['GG_x','GG_y','GG_z']].values
+    memb_cart_coords     = memb_ii_pd[['x','y','z']].values
+    group_cart_coords    = group_ii_pd[['GG_x','GG_y','GG_z']].values
+    ## Angular coordinates
+    memb_coords     = memb_ii_pd[['ra', 'dec', 'cz']].values
+    group_coords    = group_ii_pd[['GG_cen_ra', 'GG_cen_dec']].values
     ## Looping over all groups
     tq_msg = 'Group Radii: '
     for group_kk in tqdm(groups_nmin_arr, desc=tq_msg):
         ## Group indices
         group_idx    = group_gals_dict[group_kk]
-        ## Galaxies in group
-        memb_gals_kk = memb_coords [group_idx]
-        group_kk_pd  = group_coords[group_kk ]
-        # Reshaped `group_kk_pd`
-        group_kk_pd_rsh = group_kk_pd.reshape(1,3)
-        ## Calculating total and median distances
-        # Distances
-        gals_cen_dist_sq = num.sum((memb_gals_kk - group_kk_pd_rsh)**2, axis=1)
-        gals_cen_dist    = gals_cen_dist_sq**(.5)
-        # Total distance
-        r_tot = num.max(gals_cen_dist)
-        r_med = num.median(gals_cen_dist)
-        ## Saving to array
-        group_tot_r_arr[group_kk] = r_tot
-        group_med_r_arr[group_kk] = r_med
+        ## Constants
+        inv_members = 1./group_idx.shape[0]
+        ##
+        ## - Projected distances - ##
+        if (dist_opt == 'proj'):
+            ## Galaxies in group
+            memb_gals_kk = memb_coords [group_idx].T
+            group_kk_pd  = group_coords[group_kk ].T
+            # SkyCoord objects for member galaxies and group centre
+            # c1 = SkyCoord(  ra=memb_gals_kk[0] * u.deg,
+            #                 dec=memb_gals_kk[1] * u.deg,
+            #                 frame='icrs')
+            # c2 = SkyCoord(  ra=group_kk_pd[0] * u.deg,
+            #                 dec=group_kk_pd[1] * u.deg,
+            #                 frame='icrs')
+            # rp_arr = 0.01 * memb_gals_kk[2] * c1.separation(c2).to(u.rad).value
+            # # -- RMS    -- #
+            # r_rms = (inv_members * num.sum(rp_arr**2))**0.5
+            # # -- Median -- #
+            # r_med = num.median(rp_arr)
+            # # -- Total  -- #
+            # r_tot = num.max(rp_arr)
+            ## Saving to array
+            # group_rms_r_arr[group_kk] = r_rms
+            # group_med_r_arr[group_kk] = r_med
+            # group_tot_r_arr[group_kk] = r_tot
+            ##
+            ## Different method
+            num1  = num.cos(num.radians(group_kk_pd[1]))
+            num1 *= num.cos(num.radians(memb_gals_kk[1]))
+            num2  = num.sin(num.radians(group_kk_pd[1]))
+            num2 *= num.sin(num.radians(memb_gals_kk[1]))
+            num2 *= num.cos(num.radians(group_kk_pd[0] - memb_gals_kk[0]))
+            # Projected distance
+            cosDps = num1 + num2
+            sinDps = (1. - cosDps**2)**0.5
+            rp_arr = sinDps * memb_gals_kk[2] * 0.01
+            # -- RMS    -- #
+            r_rms = (inv_members * num.sum(rp_arr**2))**0.5
+            # -- Median -- #
+            r_med = num.median(rp_arr)
+            # -- Total  -- #
+            r_tot = num.max(rp_arr)
+            ## Saving to array
+            group_rms_r_arr[group_kk] = r_rms
+            group_med_r_arr[group_kk] = r_med
+            group_tot_r_arr[group_kk] = r_tot
+        ## - Three-dimensional distances - ##
+        if (dist_opt == '3D'):
+            ## Galaxies in group
+            memb_gals_kk = memb_cart_coords [group_idx]
+            group_kk_pd  = group_cart_coords[group_kk ]
+            # Reshaped `group_kk_pd`
+            group_kk_pd_rsh = group_kk_pd.reshape(1,3)
+            ## Calculating total and median distances
+            # Distances
+            gals_cen_dist_sq = num.sum((memb_gals_kk - group_kk_pd_rsh)**2, axis=1)
+            gals_cen_dist    = gals_cen_dist_sq**(.5)
+            # Total distance
+            r_tot = num.max(gals_cen_dist)
+            r_med = num.median(gals_cen_dist)
+            ## Saving to array
+            group_tot_r_arr[group_kk] = r_tot
+            group_med_r_arr[group_kk] = r_med
     ##
     ## Assigning it to DataFrame
-    group_mod_pd.loc[:,'r_tot'] = group_tot_r_arr
+    # group_mod_pd.loc[:, 'rrms_old'] = group_ii_pd['GG_rproj'].values
+    group_mod_pd.loc[:,'r_rms'] = group_rms_r_arr
     group_mod_pd.loc[:,'r_med'] = group_med_r_arr
-
+    group_mod_pd.loc[:,'r_tot'] = group_tot_r_arr
+    
     return group_mod_pd
 
 ## General properties for groups
