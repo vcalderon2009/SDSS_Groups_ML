@@ -728,13 +728,34 @@ class ReadML(object):
         # Choosing names for the different features
         if (self.n_feat_use == 'all'):
             # Opening up a catalogue
-            catl_pd = self.extract_merged_catl_info()
+            # catl_pd = self.extract_merged_catl_info()
             # List of columns in `catl_pd`
-            catl_cols = catl_pd.columns.values
+            # catl_cols = catl_pd.columns.values
             # List of predicted columns
-            pred_cols = self._predicted_cols()
+            # pred_cols = self._predicted_cols()
             # List of features used
-            features_cols = [s for s in catl_cols if s not in pred_cols]
+            # features_cols = [s for s in catl_cols if s not in pred_cols]
+            # List of features used
+            features_cols = [   'dist_centre_group',
+                                'M_r',
+                                'logssfr',
+                                'g_galtype',
+                                'g_r',
+                                'sersic',
+                                'GG_mr_brightest',
+                                'GG_mr_ratio',
+                                'GG_M_r',
+                                'GG_logssfr',
+                                'GG_shape',
+                                'GG_ngals',
+                                'GG_rproj',
+                                'GG_r_tot',
+                                'GG_r_med',
+                                'GG_sigma_v',
+                                'GG_sigma_v_rmed',
+                                'GG_M_group',
+                                'GG_mdyn_rproj',
+                                'GG_dist_cluster']
         # A subsample of columns
         if (self.n_feat_use == 'sub'):
             features_cols = [   'M_r',
