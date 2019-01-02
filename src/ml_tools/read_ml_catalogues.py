@@ -758,15 +758,28 @@ class ReadML(object):
                                 'GG_dist_cluster']
         # A subsample of columns
         if (self.n_feat_use == 'sub'):
+            ## Old set of features
+            # features_cols = [   'M_r',
+            #                     'GG_mr_brightest',
+            #                     'g_r',
+            #                     'GG_rproj',
+            #                     'GG_sigma_v',
+            #                     'GG_M_r',
+            #                     'GG_ngals',
+            #                     'GG_M_group',
+            #                     'GG_mdyn_rproj']
+            ## New set of features - After training on *all*, and choosing
+            ## top 9 features
             features_cols = [   'M_r',
                                 'GG_mr_brightest',
                                 'g_r',
-                                'GG_rproj',
-                                'GG_sigma_v',
-                                'GG_M_r',
-                                'GG_ngals',
-                                'GG_M_group',
-                                'GG_mdyn_rproj']
+                                'logssfr',
+                                'sersic',
+                                'GG_logssfr',
+                                'GG_r_med',
+                                'GG_dist_cluster',
+                                'GG_sigma_v']
+
 
         return features_cols
 

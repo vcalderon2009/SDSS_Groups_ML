@@ -521,14 +521,15 @@ def test_feat_file(param_dict, proj_dict):
     ## Saving
     ##
     ## Checking if to run or not
-    if os.path.exists(filepath):
-        if param_dict['remove_files']:
-            os.remove(filepath)
-            run_opt = True
-        else:
-            run_opt = False
-    else:
-        run_opt = True
+    run_opt = True
+    # if os.path.exists(filepath):
+    #     if param_dict['remove_files']:
+    #         os.remove(filepath)
+    #         run_opt = True
+    #     else:
+    #         run_opt = False
+    # else:
+    #     run_opt = True
     ##
     ## Saving name to dictionary
     param_dict['filepath'    ] = filepath
