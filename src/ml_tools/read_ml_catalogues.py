@@ -781,8 +781,7 @@ class ReadML(object):
                                 'GG_sigma_v',
                                 'GG_mdyn_rproj',
                                 'GG_M_group']
-
-
+        
         return features_cols
 
     ## -- Traditional mass estimates extraction --
