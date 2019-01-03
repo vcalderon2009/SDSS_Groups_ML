@@ -1124,8 +1124,13 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
                                 fig_fmt))
     ##
     ## Paper Figure
-    fname_paper = os.path.join( proj_dict['paper_fig_dir'],
-                                'Figure_05.{0}'.format(fig_fmt))
+    if (sort_by == 'all'):
+        fname_paper = os.path.join( proj_dict['paper_fig_dir'],
+                                    'Figure_05.{0}'.format(fig_fmt))
+    else:
+        fname_paper = os.path.join( proj_dict['paper_fig_dir'],
+                                    'Figure_05_sb_{0}.{1}'.format(sort_by,
+                                        fig_fmt))
     #
     # Constants
     feat_cols_dict = param_dict['ml_args'].feat_cols_names_dict()
@@ -1170,7 +1175,12 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
     feat_rank_pd.loc[:,'rank_sum'] = feat_rank_pd.sum(axis=1)
     ##
     ## Ordering by rank
-    feat_rank_pd.sort_values('rank_sum', ascending=True, inplace=True)
+    if (sort_by == 'all'):
+        feat_rank_pd.sort_values('rank_sum', ascending=True, inplace=True)
+    elif (sort_by == 'rf'):
+        feat_rank_pd.sort_values('random_forest', ascending=True, inplace=True)
+    elif (sort_by == 'xgboost'):
+        feat_rank_pd.sort_values('XGBoost', ascending=True, inplace=True)
     ##
     ## Renaming columns
     feat_rank_pd.rename(index=feat_cols_dict, inplace=True)
@@ -1986,7 +1996,11 @@ def main(args):
     feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
         rank_opt='perc')
     feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
-        rank_opt='idx')
+        rank_opt='idx', sort_by='all')
+    feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
+        rank_opt='idx', sort_by='rf')
+    feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
+        rank_opt='idx', sort_by='xgboost')
     #
     # Model Score - Different algorithms - Bar Chart
     model_score_chart_1d(models_dict, param_dict, proj_dict)
