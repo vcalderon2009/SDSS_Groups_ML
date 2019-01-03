@@ -741,7 +741,7 @@ class ReadML(object):
                                 'logssfr',
                                 'g_galtype',
                                 'g_r',
-                                'sersic',
+                                # 'sersic',
                                 'GG_mr_brightest',
                                 'GG_mr_ratio',
                                 'GG_M_r',
