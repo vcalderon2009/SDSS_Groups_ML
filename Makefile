@@ -51,7 +51,6 @@ BOX_TEST       = 0
 SAMPLE_FRAC    = 0.01
 TEST_SIZE      = 0.25
 N_FEAT_USE     = "sub"
-# N_FEAT_USE     = "all"
 PERF_OPT       = "False"
 SEED           = 1235
 REMOVE_MASTER  = "False"
