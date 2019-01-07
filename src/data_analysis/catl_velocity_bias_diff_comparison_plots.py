@@ -1161,14 +1161,14 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     # HAM
     (   ham_pred,
         ham_true,
-        ham_score) = param_dict['ml_args'].extract_trad_masses(
+        ham_score) = param_dict['ml_args'].extract_trad_masses_alt(
                                                     mass_opt='ham',
                                                     return_score=True,
                                                     score_method=score_type)
     # DYNAMICAL
     (   dyn_pred,
         dyn_true,
-        dyn_score) = param_dict['ml_args'].extract_trad_masses(
+        dyn_score) = param_dict['ml_args'].extract_trad_masses_alt(
                                                     mass_opt='dyn',
                                                     return_score=True,
                                                     score_method=score_type)
