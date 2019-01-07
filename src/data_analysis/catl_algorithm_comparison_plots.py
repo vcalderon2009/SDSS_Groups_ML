@@ -1063,7 +1063,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
 # Ranking of each galaxy property for each different algorithm
 def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
     fig_fmt='pdf', figsize=(12, 8), fig_number=2, stacked_opt=True,
-    rank_opt='idx', sort_by='all'):
+    rank_opt='idx', sort_by='all', keep_top=10):
     """
     Plots the `ranking` of each galaxy proeperty based on the different ML
     algorithms used.
@@ -1108,6 +1108,11 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
             - 'all': Ranks the Feature importance values based sum of ranks
             - 'xgboost' Ranks the Feature importance values based on XGBoost
             - 'rf' : Ranks the Feature importance values based on Random Forest
+
+    keep_top : `int`, optional
+        Number of features to keep. This variable is set to ``10`` by default.
+        If `keep_top` is larger than the total number of features, then
+        all features will be shown in the figure.
     """
     file_msg = param_dict['Prog_msg']
     ## Matplotlib option
@@ -1184,6 +1189,10 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
     ##
     ## Renaming columns
     feat_rank_pd.rename(index=feat_cols_dict, inplace=True)
+    ##
+    ## Only keeping the `keep_top`
+    if (keep_top <= len(feat_rank_pd)):
+        feat_rank_pd = feat_rank_pd.iloc[:keep_top]
     ##
     ## Excluding `rank_sum` column
     feat_rank_col_exclude = feat_rank_pd.columns.difference(['rank_sum'])
@@ -1992,15 +2001,17 @@ def main(args):
     frac_diff_model(models_dict, param_dict, proj_dict,
             plot_opt=param_dict['plot_opt'])
     #
-    # Feature ranking
-    feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
-        rank_opt='perc')
-    feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
-        rank_opt='idx', sort_by='all')
-    feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
-        rank_opt='idx', sort_by='rf')
-    feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
-        rank_opt='idx', sort_by='xgboost')
+    ## Feature ranking
+    # - Only running if `n_feat_use` == 'all'
+    if (param_dict['n_feat_use'] == 'all'):
+        feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
+            rank_opt='perc')
+        feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
+            rank_opt='idx', sort_by='all')
+        feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
+            rank_opt='idx', sort_by='rf')
+        feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
+            rank_opt='idx', sort_by='xgboost')
     #
     # Model Score - Different algorithms - Bar Chart
     model_score_chart_1d(models_dict, param_dict, proj_dict)
