@@ -267,7 +267,7 @@ def get_parser():
                         """,
                         type=str,
                         choices=['sample_frac', 'boxes_n', 'box_sample_frac'],
-                        default='sample_frac')
+                        default='boxes_n')
     ## Initial and final indices of the simulation boxes to use for the
     ## testing and training datasets.
     parser.add_argument('-box_idx',
@@ -279,7 +279,7 @@ def get_parser():
                         Example: 0_4_5 >>> This will use from 0th to 4th box
                         for training, and the 5th box for testing.""",
                         type=str,
-                        default='0_4_5')
+                        default='0_3_4')
     ## Index of the simulation box to use for the `training` and `testing
     parser.add_argument('-box_test',
                         dest='box_test',
