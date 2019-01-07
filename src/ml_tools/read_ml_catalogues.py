@@ -773,7 +773,7 @@ class ReadML(object):
             features_cols = [   'M_r',
                                 'GG_mr_brightest',
                                 'g_r',
-                                'logssfr'
+                                'logssfr',
                                 'GG_logssfr',
                                 'GG_r_med',
                                 'GG_dist_cluster',
