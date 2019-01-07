@@ -720,7 +720,7 @@ def project_const(param_dict):
 
     return param_dict
 
-def file_construction_and_execution(df_arr, param_dict):
+def file_construction_and_execution(df_arr, param_dict, str_interval=200):
     """
     1) Creates file that has shell commands to run executable
     2) Executes the file, which creates a screen session with the executables
@@ -733,6 +733,9 @@ def file_construction_and_execution(df_arr, param_dict):
     param_dict: python dictionary
         dictionary with project variables
 
+    str_interval : `float`, optional
+        Maximum length of the string to send at once. This variable is set to
+        `200` by default.
     """
     ##
     ## Getting today's date
@@ -747,6 +750,12 @@ def file_construction_and_execution(df_arr, param_dict):
     ## Obtaining path to file
     outfile_name = param_dict['file_exe_name']
     outfile_path = os.path.join(working_dir, outfile_name)
+    ##
+    ## Splitting main command
+    if len(main_str_cmd) > str_interval:
+        main_str_cmd_mod = [main_str_cmd[i:i+str_interval] for i in range(0, len(main_str_cmd), str_interval)]
+    else:
+        main_str_cmd_mod = [main_str_cmd]
     ##
     ## Opening file
     with open(outfile_path, 'wb') as out_f:
@@ -771,7 +780,11 @@ def file_construction_and_execution(df_arr, param_dict):
         out_f.write(b"""source activate ${ENV_NAME}\n""")
         out_f.write(b"""###\n""")
         out_f.write(b"""### --- Python Strings\n""")
-        out_f.write( """SCRIPT_CMD="{0}"\n""".format(main_str_cmd).encode())
+        if (len(main_str_cmd_mod)== 1):
+            out_f.write( """SCRIPT_CMD="{0}"\n""".format(main_str_cmd).encode())
+        else:
+            for kk, cmd_kk in enumerate(main_str_cmd_mod):
+                out_f.write( """SCRIPT_CMD_{0}="{1}"\n""".format(kk, cmd_kk).encode())
         out_f.write(b"""###\n""")
         out_f.write(b"""### --- Deleting previous Screen Session\n""")
         out_f.write(b"""screen -S ${WINDOW_NAME} -X quit\n""")
@@ -783,7 +796,11 @@ def file_construction_and_execution(df_arr, param_dict):
         out_f.write(b"""screen -S ${WINDOW_NAME} -p ${SUB_WINDOW} -X stuff $"conda deactivate;"\n""")
         out_f.write(b"""screen -S ${WINDOW_NAME} -p ${SUB_WINDOW} -X stuff $'\\n'\n""")
         out_f.write(b"""screen -S ${WINDOW_NAME} -p ${SUB_WINDOW} -X stuff $"conda activate ${ENV_NAME};"\n""")
-        out_f.write(b"""screen -S ${WINDOW_NAME} -p ${SUB_WINDOW} -X stuff $"${SCRIPT_CMD}"\n""")
+        if (len(main_str_cmd_mod)== 1):
+            out_f.write(b"""screen -S ${WINDOW_NAME} -p ${SUB_WINDOW} -X stuff $"${SCRIPT_CMD}"\n""")
+        else:
+            for kk, cmd_kk in enumerate(main_str_cmd_mod):
+                out_f.write(("""screen -S ${WINDOW_NAME} -p ${SUB_WINDOW} -X stuff $"${SCRIPT_CMD_%s}"\n""" %(kk)).encode())
         out_f.write(b"""screen -S ${WINDOW_NAME} -p ${SUB_WINDOW} -X stuff $'\\n'\n""")
         out_f.write(b"""\n""")
     ##
