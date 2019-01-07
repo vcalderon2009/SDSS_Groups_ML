@@ -635,8 +635,8 @@ def catalogue_analysis(ii, catl_ii_name, box_n, param_dict, proj_dict,
         group_mod_pd = group_shape(memb_ii_pd, group_ii_pd, group_mod_pd, 
             group_gals_dict, param_dict, nmin=param_dict['nmin'])
         ## Total and median radius of the group
-        group_mod_pd = group_radii(memb_ii_pd, group_ii_pd, group_mod_pd, 
-            group_gals_dict, nmin=param_dict['nmin'])
+        group_mod_pd, memb_ii_pd = group_radii(memb_ii_pd, group_ii_pd,
+            group_mod_pd, group_gals_dict, nmin=param_dict['nmin'])
         ## Abundance matched mass of group
         group_mod_pd = group_general_prop(group_ii_pd, group_mod_pd)
         ## Velocity dispersion
@@ -1038,6 +1038,9 @@ def group_radii(memb_ii_pd, group_ii_pd, group_mod_pd, group_gals_dict,
     ------------
     group_mod_pd: pandas DataFrame
         DataFrame, to which to add the group properties
+
+    memb_ii_pd : `pandas.DataFrame`
+        DataFrame with info about galaxy members
     """
     # Constants
     pi_180 = num.pi / 180.
