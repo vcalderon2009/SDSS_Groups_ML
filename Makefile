@@ -244,7 +244,7 @@ catl_main_props:
 	-threshold $(THRESHOLD) -perc_val $(PERC_VAL) \
 	-sample_method $(SAMPLE_METHOD) -bin_val $(BIN_VAL) \
 	-ml_analysis $(ML_ANALYSIS) -plot_opt $(PLOT_OPT) -rank_opt $(RANK_OPT) \
-	-cpu $(CPU_FRAC) -remove $(REMOVE_FILES) -v $(VERBOSE) -perf $(PERF_OPT) \
+	-cpu $(CPU_FRAC) -v $(VERBOSE) -perf $(PERF_OPT) \
 	-seed $(SEED)
 
 # ## Create set of `merged` catalogues, i.e. galaxy + group information

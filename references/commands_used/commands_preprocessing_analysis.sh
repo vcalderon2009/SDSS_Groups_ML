@@ -52,7 +52,7 @@ make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="
 
 # --- General Figures ---
 # Run it separately
-make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.75 DV=1.0 HOD_N=0 catl_main_props
+make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" CPU_FRAC=0.75 DV=1.0 HOD_N=0 catl_main_props
 
 ##############################################################################
 ##################### -------- ANALYSIS -------- #############################

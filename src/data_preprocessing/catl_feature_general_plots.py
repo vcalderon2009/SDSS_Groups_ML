@@ -417,15 +417,6 @@ def get_parser():
                         help='Fraction of total number of CPUs to use',
                         type=float,
                         default=0.75)
-    ## Option for removing file
-    parser.add_argument('-remove',
-                        dest='remove_files',
-                        help="""
-                        Delete files from previous analyses with same
-                        parameters
-                        """,
-                        type=_str2bool,
-                        default=False)
     ## Verbose
     parser.add_argument('-v', '--verbose',
                         dest='verbose',
