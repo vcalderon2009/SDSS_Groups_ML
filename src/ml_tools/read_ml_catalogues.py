@@ -773,15 +773,15 @@ class ReadML(object):
             features_cols = [   'M_r',
                                 'GG_mr_brightest',
                                 'g_r',
-                                'logssfr',
-                                'sersic',
+                                'logssfr'
                                 'GG_logssfr',
                                 'GG_r_med',
                                 'GG_dist_cluster',
                                 'GG_sigma_v',
-                                'GG_mdyn_rproj',
-                                'GG_M_group']
-        
+                                'GG_M_r',
+                                'GG_M_group',
+                                'GG_mdyn_rproj']
+
         return features_cols
 
     ## -- Traditional mass estimates extraction --
