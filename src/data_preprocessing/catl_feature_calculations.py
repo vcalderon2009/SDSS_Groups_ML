@@ -26,6 +26,8 @@ from cosmo_utils.utils import geometry        as cgeom
 from cosmo_utils.mock_catalogues import catls_utils as cmcu
 from cosmo_utils.mock_catalogues import mags_calculations as cmag
 
+from src.ml_tools import ReadML
+
 import numpy as num
 import math
 import os
@@ -1884,6 +1886,8 @@ def main(args):
     num.random.seed(param_dict['seed'])
     ## Checking for correct input
     param_vals_test(param_dict)
+    # Creating instance of `ReadML` with the input parameters
+    param_dict['ml_args'] = ReadML(**param_dict)
     ## ---- Adding to `param_dict` ---- 
     param_dict = add_to_dict(param_dict)
     ## Program message
@@ -1891,7 +1895,8 @@ def main(args):
     ##
     ## Creating Folder Structure
     # proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths(__file__))
-    proj_dict  = directory_skeleton(param_dict, cwpaths.cookiecutter_paths('./'))
+    proj_dict = param_dict['ml_args'].proj_dict
+    proj_dict  = directory_skeleton(param_dict, proj_dict)
     ## Choosing cosmological model
     cosmo_model = cosmo_create(cosmo_choice=param_dict['cosmo_choice'])
     # Assigning the cosmological model to `param_dict`
