@@ -1100,7 +1100,7 @@ def covariance_plot(catl_pd, param_dict, proj_dict, plot_only_feat=False,
     ##
     ## Rearranging columns
     df_cols_new = [ 'M_h','dist_centre_group', 'M_r', 'logssfr', 'g_galtype',
-                    'g_r', 'sersic', 'GG_mr_brightest', 'GG_mr_ratio',
+                    'g_r', 'GG_mr_brightest', 'GG_mr_ratio',
                     'GG_M_r', 'GG_logssfr', 'GG_shape', 'GG_ngals',
                     'GG_rproj', 'GG_r_tot', 'GG_r_med', 'GG_sigma_v',
                     'GG_sigma_v_rmed', 'GG_M_group', 'GG_mdyn_rproj',
