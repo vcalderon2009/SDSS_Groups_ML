@@ -779,8 +779,7 @@ class ReadML(object):
                                 'GG_dist_cluster',
                                 'GG_sigma_v',
                                 'GG_M_r',
-                                'GG_M_group',
-                                'GG_mdyn_rproj']
+                                'GG_M_group']
 
         return features_cols
 
