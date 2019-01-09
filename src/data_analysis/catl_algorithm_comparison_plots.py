@@ -1261,6 +1261,7 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
     plt.clf()
     plt.close()
 
+# Model Score - Different algorithms - Bar Chart
 def model_score_chart_1d_cut_bar(models_dict, param_dict, proj_dict,
     fig_fmt='pdf', figsize=(10,8), fig_number=3, score_type='perc',
     low_high_cut=12.5, perc=0.68, low_high_cut_opt='pred'):
@@ -1625,7 +1626,7 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     ##
     ## Axis label
     if (score_type == 'perc'):
-        xlabel = r'Mass Discrepancy in \boldmath$\Delta \log M_{halo}\ [\mathrm{dex}]$'
+        xlabel = r'Mass Discrepancy \boldmath$(\Delta\mathrm{log}M)_{68}\ [\mathrm{dex}]$'
     else:
         xlabel = 'Score'
     ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
