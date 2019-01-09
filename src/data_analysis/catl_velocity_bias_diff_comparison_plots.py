@@ -991,7 +991,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
                                 y1, y2,
                                 color=cm_arr[zz],
                                 alpha=alpha,
-                                label=r'$f_\mathrm{vb}$: {0}'.format(dv_zz),
+                                label=r'$f_\mathrm{vb}$' + '{0}'.format(dv_zz),
                                 zorder=zorder_ml)
         ##
         ## HAM and Dynamical Masses
