@@ -32,7 +32,7 @@ make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.10 DV=1.10  data_preprocess
 
 # --- Multiple boxes --- #
-# Run 4 at a time
+# Run all at the same time for 32 cores
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.15 DV=1.0 HOD_N=1 data_preprocess
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.15 DV=1.0 HOD_N=2 data_preprocess
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.15 DV=1.0 HOD_N=3 data_preprocess
@@ -73,10 +73,10 @@ make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="
 ##############################################################################
 
 ## --- Creating Catalogues for Mr19 --- ###
-make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="False" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="hod_dv_fixed" SAMPLE_METHOD="binning" BIN_VAL="nbins" CHOSEN_ML_ALG="xgboost"  SAMPLE_METHOD="binning" BIN_VAL="nbins" data_real_catl_create
+make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="True" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="hod_dv_fixed" SAMPLE_METHOD="binning" BIN_VAL="nbins" CHOSEN_ML_ALG="xgboost"  SAMPLE_METHOD="binning" BIN_VAL="nbins" data_real_catl_create
 
 ## --- Creating plots for the REAL catalogues for Mr19 --- ###
-make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="False" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="hod_dv_fixed" SAMPLE_METHOD="binning" BIN_VAL="nbins" CHOSEN_ML_ALG="xgboost"  SAMPLE_METHOD="binning" BIN_VAL="nbins" data_real_catl_plots
+make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="True" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="hod_dv_fixed" SAMPLE_METHOD="binning" BIN_VAL="nbins" CHOSEN_ML_ALG="xgboost"  SAMPLE_METHOD="binning" BIN_VAL="nbins" data_real_catl_plots
 
 
 ##### --------------------------- 2018-09-03 --------------------------- #####

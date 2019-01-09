@@ -902,7 +902,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
     dv_arr = list(models_dict[list(models_dict.keys())[0]].keys())
     n_hod   = len(dv_arr)
     # Labels
-    xlabel = r'\boldmath$\log M_{predicted}\left[ h^{-1} M_{\odot}\right]$'
+    xlabel = r'\boldmath$\log M_{\textrm{predicted}}\left[ h^{-1} M_{\odot}\right]$'
     # Y-label
     ylabel = r'Frac. Difference \boldmath$[\%]$'
     ##
