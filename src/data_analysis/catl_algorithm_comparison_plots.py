@@ -2013,11 +2013,12 @@ def main(args):
             rank_opt='idx', sort_by='rf')
         feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
             rank_opt='idx', sort_by='xgboost')
-    #
-    # Model Score - Different algorithms - Bar Chart
-    model_score_chart_1d(models_dict, param_dict, proj_dict)
-    model_score_chart_1d_cut_bar(models_dict, param_dict, proj_dict,
-        low_high_cut=12.5, perc=0.68, low_high_cut_opt='pred')
+    if (param_dict['n_feat_use'] == 'sub'):
+        #
+        # Model Score - Different algorithms - Bar Chart
+        model_score_chart_1d(models_dict, param_dict, proj_dict)
+        model_score_chart_1d_cut_bar(models_dict, param_dict, proj_dict,
+            low_high_cut=12.5, perc=0.68, low_high_cut_opt='pred')
     #
     # HAM, Dynamical, and ML masses vs `True` halo mass
     pred_masses_halo_mass(models_dict, param_dict, proj_dict)
