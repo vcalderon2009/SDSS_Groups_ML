@@ -1437,7 +1437,7 @@ def model_score_chart_1d_cut_bar(models_dict, param_dict, proj_dict,
     ##
     ## Axis label
     if (score_type == 'perc'):
-        xlabel = r'Mass Discrepancy in \boldmath$\Delta \log M_{halo}\ [\mathrm{dex}]$'
+        xlabel = r'Mass Discrepancy \boldmath$(\Delta\mathrm{log}M)_{68}\ [\mathrm{dex}]$'
     else:
         xlabel = 'Score'
     ax1.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
