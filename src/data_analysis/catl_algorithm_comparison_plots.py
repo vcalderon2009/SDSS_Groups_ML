@@ -1997,31 +1997,29 @@ def main(args):
     ##
     ## Feature keys
     param_dict['feat_cols_dict'] = param_dict['ml_args'].feat_cols_names_dict()
-    ##
-    ## Fractional difference of `predicted` and `truth`
-    frac_diff_model(models_dict, param_dict, proj_dict,
-            plot_opt=param_dict['plot_opt'])
     #
     ## Feature ranking
     # - Only running if `n_feat_use` == 'all'
     if (param_dict['n_feat_use'] == 'all'):
-        feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
-            rank_opt='perc')
+        # feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
+        #     rank_opt='perc')
         feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
             rank_opt='idx', sort_by='all')
-        feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
-            rank_opt='idx', sort_by='rf')
-        feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
-            rank_opt='idx', sort_by='xgboost')
+        # feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
+        #     rank_opt='idx', sort_by='rf')
+        # feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
+        #     rank_opt='idx', sort_by='xgboost')
     if (param_dict['n_feat_use'] == 'sub'):
-        #
         # Model Score - Different algorithms - Bar Chart
-        model_score_chart_1d(models_dict, param_dict, proj_dict)
+        # model_score_chart_1d(models_dict, param_dict, proj_dict)
         model_score_chart_1d_cut_bar(models_dict, param_dict, proj_dict,
             low_high_cut=12.5, perc=0.68, low_high_cut_opt='pred')
-    #
-    # HAM, Dynamical, and ML masses vs `True` halo mass
-    pred_masses_halo_mass(models_dict, param_dict, proj_dict)
+        #
+        # HAM, Dynamical, and ML masses vs `True` halo mass
+        pred_masses_halo_mass(models_dict, param_dict, proj_dict)
+        ## Fractional difference of `predicted` and `truth`
+        frac_diff_model(models_dict, param_dict, proj_dict,
+                plot_opt=param_dict['plot_opt'])
     ##
     ## End time for running the catalogues
     end_time = datetime.now()
