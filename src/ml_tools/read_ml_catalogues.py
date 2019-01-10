@@ -388,7 +388,7 @@ class ReadML(object):
 
             Options:
                 - 'catls' : Directory of the individuals merged catls
-                - 'all' : Directory of all the catalogues combined.
+                - 'combined' : Directory of all the catalogues combined.
 
         catl_kind : {'mocks', 'data'} `str`
             Option for which kind of catalogue to analyze
@@ -1913,6 +1913,10 @@ class ReadML(object):
         pred_arr : `numpy.ndarray`
             Array of predicted elements. This array is returned only when
             ``return_arr == True``.
+
+        catl_outfile_path : `str`
+            Path to the output DataFrame. This variable is only returned when
+            ``return_path == True``.
         """
         ## Checking input parameters
         # `return_pd`

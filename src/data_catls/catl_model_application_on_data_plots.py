@@ -925,10 +925,52 @@ def mass_pred_comparison_plot(catl_pd, param_dict, proj_dict, arr_len=10,
     plt.clf()
     plt.close()
 
+## Checks for missing mass columns
+def catl_pd_missing_info(catl_pd, param_dict):
+    """
+    Checks whether or not the columns for masses are present in `catl_pd`
+    or not. If not, it add them as part of the DataFrame.
 
+    Parameters
+    ------------
+    catl_pd : `pandas.DataFrame`
+        DataFrame containing information on the various features for each
+        galaxy, as well as the `predicted` columns.
 
+    param_dict : `dict`
+        Dictionary with `project` variables.
 
+    Returns
+    ---------
+    catl_merged_pd_mod : `pandas.DataFrame`
+        Modified version of the DataFrame containing information on the
+        various features for each galaxy, as well as the `predicted` columns.
+        It contains `missing` mass columns.
+    """
+    # Column names of `catl_pd`
+    catl_pd_cols = catl_pd.columns.values
+    # Keys for HAM and DYN Masses
+    mass_arr = ['GG_M_group', 'GG_mdyn_rproj']
+    # Check if keys are part of the columns of `catl_pd`
+    if not set(mass_arr).issubset(set(catl_pd.columns.tolist())):
+        # Loads `merged` catalogue
+        catl_merged_pd = param_dict['ml_args'].extract_merged_catl_info(
+            catl_kind='data', opt='combined', return_path=False)
+        # Making copy of `catl_pd`
+        catl_merged_pd_mod = catl_pd.copy()
+        # Looping over `mass_arr`
+        for kk, mass_ii in enumerate(mass_arr):
+            if not (mass_ii in catl_pd_cols):
+                catl_merged_pd_mod = pd.merge(  catl_merged_pd_mod,
+                                                catl_merged_pd[mass_ii].to_frame(),
+                                                left_on='index',
+                                                right_index=True)
+    else:
+        catl_merged_pd_mod = catl_pd.copy()
 
+    return catl_merged_pd_mod
+
+## Main function
 def main(args):
     """
     Script that grabs the output catalogue of the *real* SDSS data, and
@@ -962,6 +1004,8 @@ def main(args):
     # Loading dataset with galaxy information
     catl_pd = param_dict['ml_args'].catl_model_pred_file_extract(
                     return_pd=True)
+    # Joining Dynamical Mass and HAM Mass if necessary
+    catl_pd = catl_pd_missing_info(catl_pd, param_dict)
     # Cleaning sample
     catl_pd = catl_pd.loc[catl_pd['M_h_pred'] != 0]
     ##
@@ -969,9 +1013,6 @@ def main(args):
     #
     # Mass comparison
     mass_pred_comparison_plot(catl_pd, param_dict, proj_dict, arr_len=0)
-
-
-
 
 # Main function
 if __name__=='__main__':
