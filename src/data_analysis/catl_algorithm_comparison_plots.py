@@ -954,7 +954,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     #     xlabel = r'\boldmath$\log M_{group}\left[ h^{-1} M_{\odot}\right]$'
     # elif (plot_opt == 'mhalo'):
     #     xlabel = r'\boldmath$\log M_{halo,\textrm{true}}\left[ h^{-1} M_{\odot}\right]$'
-    xlabel = r'\boldmath$\log M_{predicted}\left[ h^{-1} M_{\odot}\right]$'
+    xlabel = r'\boldmath$\log M_{\mathrm{predicted}}\left[ h^{-1} M_{\odot}\right]$'
     # Y-label
     ylabel = r'Frac. Difference \boldmath$[\%]$'
     ##
@@ -1809,7 +1809,7 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
     ml_algs_names_dict = {x: x.replace('_',' ').title() for x in ml_algs_names}
     # Axes labels
     # X-axis
-    xlabel = r'\boldmath$\log M_{predicted}\left[h^{-1} M_{\odot}\right]$'
+    xlabel = r'\boldmath$\log M_{\mathrm{predicted}}\left[h^{-1} M_{\odot}\right]$'
     # Y-axis
     ylabel = r'\boldmath$\log M_{\textrm{halo}}\left[h^{-1} M_{\odot}\right]$'
     # Initializing color schemes
