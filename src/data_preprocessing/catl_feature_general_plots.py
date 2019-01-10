@@ -1642,8 +1642,8 @@ def main(args):
     # pred_masses_halo_mass(param_dict, proj_dict)
     #
     # Fractional Difference plots vs True mass of galaxy GROUPS
-    frac_diff_groups_model(param_dict, proj_dict,
-        plot_opt=param_dict['plot_opt'])
+    # frac_diff_groups_model(param_dict, proj_dict,
+    #     plot_opt=param_dict['plot_opt'])
     ##
     ## End time for running the catalogues
     end_time = datetime.now()

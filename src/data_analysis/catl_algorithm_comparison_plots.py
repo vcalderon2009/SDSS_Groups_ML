@@ -2016,7 +2016,7 @@ def main(args):
             low_high_cut=12.5, perc=0.68, low_high_cut_opt='pred')
         #
         # HAM, Dynamical, and ML masses vs `True` halo mass
-        pred_masses_halo_mass(models_dict, param_dict, proj_dict)
+        # pred_masses_halo_mass(models_dict, param_dict, proj_dict)
         ## Fractional difference of `predicted` and `truth`
         frac_diff_model(models_dict, param_dict, proj_dict,
                 plot_opt=param_dict['plot_opt'])

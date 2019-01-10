@@ -1269,7 +1269,7 @@ def main(args):
     frac_diff_model(models_dict, param_dict, proj_dict)
     #
     # Model Score - Different algorithms - Bar Chart
-    model_score_chart_1d(models_dict, param_dict, proj_dict)
+    # model_score_chart_1d(models_dict, param_dict, proj_dict)
     ##
     ## End time for running the catalogues
     end_time = datetime.now()
