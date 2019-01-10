@@ -672,7 +672,7 @@ def catl_extract_and_merge(param_dict, proj_dict, complete_groups=False,
                         return_arr=False,
                         remove_file=param_dict['remove_files'],
                         return_path=False)
-    pred_cols_arr = ['index', 'M_h_pred', 'GG_M_group', 'GG_mdyn_rproj',
+    pred_cols_arr = ['index', 'M_h_pred', 'GG_M_group', #'GG_mdyn_rproj',
                         'GG_ngals']
     # Selecting only desired columns
     catl_pred_pd_mod = catl_pred_pd.loc[:, pred_cols_arr]
