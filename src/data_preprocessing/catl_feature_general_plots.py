@@ -1639,7 +1639,7 @@ def main(args):
     covariance_plot(catl_pd, param_dict, proj_dict)
     #
     # Traditional methods for estimating masses
-    pred_masses_halo_mass(param_dict, proj_dict)
+    # pred_masses_halo_mass(param_dict, proj_dict)
     #
     # Fractional Difference plots vs True mass of galaxy GROUPS
     frac_diff_groups_model(param_dict, proj_dict,
