@@ -168,6 +168,15 @@ def get_parser():
                         type=int,
                         choices=[1, 2, 3],
                         default=1)
+    # Value for the scatter in log(L) for central galaxies in the CLF
+    parser.add_argument('-sigma_clf_c',
+                        dest='sigma_clf_c',
+                        help="""
+                        Value for the scatter in log(L) for central galaxies
+                        in the CLF
+                        """,
+                        type=_check_pos_val,
+                        default=0.1417)
     ## Random Seed for CLF
     parser.add_argument('-clf_seed',
                         dest='clf_seed',
@@ -968,7 +977,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     ## Horizontal line
     ax1.axhline(y=0, color='black', linestyle='--', zorder=10)
     ##
-    ## Plotttin ML relations
+    ## Plotting ML relations
     for kk, model_kk in enumerate(ml_algs_names):
         ## ML algorithm name
         ml_alg_kk_name = model_kk.replace('_',' ').title()

@@ -167,6 +167,15 @@ def get_parser():
                         type=int,
                         choices=[1, 2, 3],
                         default=1)
+    # Value for the scatter in log(L) for central galaxies in the CLF
+    parser.add_argument('-sigma_clf_c',
+                        dest='sigma_clf_c',
+                        help="""
+                        Value for the scatter in log(L) for central galaxies
+                        in the CLF
+                        """,
+                        type=_check_pos_val,
+                        default=0.1417)
     ## Random Seed for CLF
     parser.add_argument('-clf_seed',
                         dest='clf_seed',
@@ -1225,15 +1234,6 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     print('{0} Paper Figure saved as: {1}'.format(file_msg, fname_paper))
     plt.clf()
     plt.close()
-
-
-
-
-
-
-
-
-
 
 ## --------- Main Function ------------##
 

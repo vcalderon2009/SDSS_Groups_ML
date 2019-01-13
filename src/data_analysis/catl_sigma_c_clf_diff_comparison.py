@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Victor Calderon
-# Created      : 2018-06-03
-# Last Modified: 2018-06-03
+# Created      : 2018-06-12
+# Last Modified: 2018-06-12
 # Vanderbilt University
 from __future__ import absolute_import, division, print_function
 __author__     = ['Victor Calderon']
@@ -15,12 +15,16 @@ Script that uses a set of ML algorithms to try to predict galaxy and
 group properties by using a set of calculated `features` from synthetic
 galaxy/group catalogues.
 
-In here, we probe the algorithms:
-    - Random Forest
+In here, we probe:
+    - The difference in predictions if we train the ML algorithm on
+      a given set of sigma_c's, while keeping the HOD parameters fixed.
+
+We make use of three different ML algorithms:
     - XGBoost
+    - Random Forest
     - Neural Network
 
-We also employ different ways of subsampling/binning the data, in order
+We also employ different ways of sub-sampling/binning the data, in order
 to improve the accuracy of the results. These include:
     - Binning the group mass and training models for each bin
     - Subsample the masses
@@ -40,6 +44,7 @@ import numpy as num
 import os
 import pandas as pd
 import pickle
+import copy
 
 # Extra-modules
 import argparse
@@ -131,7 +136,7 @@ def get_parser():
     ##      mock catalogues to create
     parser.add_argument('-hod_model_n',
                         dest='hod_n',
-                        help="Number of distinct HOD model to use.",
+                        help="HOD Model to use as training.",
                         type=int,
                         choices=range(0, 10),
                         metavar='[0-10]',
@@ -141,7 +146,7 @@ def get_parser():
                         dest='halotype',
                         help='Type of the DM halo.',
                         type=str,
-                        choices=['so', 'fof'],
+                        choices=['so'],
                         default='so')
     ## CLF/CSMF method of assigning galaxy properties
     parser.add_argument('-clf_method',
@@ -184,6 +189,15 @@ def get_parser():
                         """,
                         type=_check_pos_val,
                         default=1.0)
+    ## Values of distinct CLF scatter for central galaxies in log(L)
+    parser.add_argument('-sigma_c_models_n',
+                        dest='sigma_c_models_n',
+                        help="""
+                        Models for the scatter in log(L) for central galaxies
+                        in the conditional luminosity function model.
+                        """,
+                        type=str,
+                        default='0.10_0.12_0.14_0.1417_0.16_0.18_0.20_0.22_0.24_0.26_0.28_0.30')
     ## Luminosity sample to analyze
     parser.add_argument('-sample',
                         dest='sample',
@@ -241,8 +255,7 @@ def get_parser():
                         """,
                         type=_str2bool,
                         default=True)
-    ## Option for Shuffling dataset when separating `training` and `testing`
-    ## sets
+    ## Option for Shuffling dataset when separing `training` and `testing` sets
     parser.add_argument('-dropna_opt',
                         dest='dropna_opt',
                         help="""
@@ -278,7 +291,7 @@ def get_parser():
                         Initial and final indices of the simulation boxes to
                         use for the `training` datasets.
                         And the index of the boxes used for `testing`.
-                        Example: 0_3_4 >>> This will use from 0th to 4th box
+                        Example: 0_4_5 >>> This will use from 0th to 4th box
                         for training, and the 5th box for testing.""",
                         type=str,
                         default='0_3_4')
@@ -397,8 +410,8 @@ def get_parser():
                         dest='ml_analysis',
                         help='Type of analysis to perform.',
                         type=str,
-                        choices=['hod_dv_fixed'],
-                        default='hod_dv_fixed')
+                        choices=['hod_fixed'],
+                        default='hod_fixed')
     ## Type of resampling to use if necessary
     parser.add_argument('-resample_opt',
                         dest='resample_opt',
@@ -406,6 +419,14 @@ def get_parser():
                         type=str,
                         choices=['over', 'under'],
                         default='under')
+    ## Option to include results from Neural Network or Not include_nn
+    parser.add_argument('-include_nn',
+                        dest='include_nn',
+                        help="""
+                        Option to include results from Neural network or not.
+                        """,
+                        type=_str2bool,
+                        default=False)
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -485,16 +506,6 @@ def param_vals_test(param_dict):
         msg += 'input parameters.\n\t\t'
         msg += 'Exiting...'
         msg = msg.format(file_msg)
-        raise ValueError(msg)
-    ##
-    ## Checking that `hod_model_n` is set to zero for FoF-Halos
-    if (param_dict['halotype'] == 'fof') and (param_dict['hod_n'] != 0):
-        msg = '{0} The `halotype`==`{1}` and `hod_n`==`{2}` are no compatible '
-        msg += 'input parameters.\n\t\t'
-        msg += 'Exiting...'
-        msg = msg.format(   file_msg,
-                            param_dict['halotype'],
-                            param_dict['hod_n'])
         raise ValueError(msg)
     ##
     ## Checking input different types of `test_train_opt`
@@ -603,6 +614,22 @@ def add_to_dict(param_dict):
     ##
     ## Dictionary of ML Regressors
     skem_dict = sklearns_models(param_dict, cpu_number)
+    #
+    # Dictionary with the models from the different HOD's
+    sigma_c_n_dict = {}
+    # Array of distinct `sigma_c` (CLF) models used
+    # Array of distinct HOD models used
+    sigma_c_n_arr = num.array(param_dict['sigma_c_models_n'].split('_')).astype(float)
+    # Instances for the different HOD models
+    for kk, model_kk in enumerate(sigma_c_n_arr):
+        # Integer for the model
+        model_kk = float(model_kk)
+        # Copy of main `param_dict`
+        param_dict_copy = copy.deepcopy(param_dict)
+        # Modifying sigma_c model number
+        param_dict_copy['sigma_clf_c'] = model_kk
+        # Saving as part of dictionary
+        sigma_c_n_dict[model_kk] = ReadML(**param_dict_copy)
     ##
     ## Saving to `param_dict`
     param_dict['sample_s'  ] = sample_s
@@ -613,6 +640,8 @@ def add_to_dict(param_dict):
     param_dict['speed_c'   ] = speed_c
     param_dict['cpu_number'] = cpu_number
     param_dict['skem_dict' ] = skem_dict
+    param_dict['sigma_c_n_arr'  ] = sigma_c_n_arr
+    param_dict['sigma_c_n_dict' ] = sigma_c_n_dict
 
     return param_dict
 
@@ -636,7 +665,7 @@ def directory_skeleton(param_dict, proj_dict):
     """
     #
     # Main output file for this script
-    out_dir = param_dict['ml_args'].catl_train_alg_comp_dir(check_exist=True,
+    out_dir = param_dict['ml_args'].catl_train_sigma_c_diff_dir(check_exist=True,
                 create_dir=True)
     #
     # Adding to `proj_dict`
@@ -674,18 +703,20 @@ def sklearns_models(param_dict, cpu_number):
     skem_dict['XGBoost'] = xgboost.XGBRegressor(
                             n_jobs=cpu_number,
                             random_state=param_dict['seed'])
-    # Neural Network
-    if (param_dict['hidden_layers'] == 1):
-        hidden_layer_obj = (param_dict['unit_layer'],)
-    elif (param_dict['hidden_layers'] > 1):
-        hidden_layers = param_dict['hidden_layers']
-        unit_layer    = param_dict['unit_layer']
-        hidden_layer_obj = tuple([unit_layer for x in range(hidden_layers)])
-    skem_dict['neural_network'] = skneuro.MLPRegressor(
-                                    random_state=param_dict['seed'],
-                                    solver='adam',
-                                    hidden_layer_sizes=hidden_layer_obj,
-                                    warm_start=True)
+    # Choosing to include NN or not:
+    if param_dict['include_nn']:
+        # Neural Network
+        if (param_dict['hidden_layers'] == 1):
+            hidden_layer_obj = (param_dict['unit_layer'],)
+        elif (param_dict['hidden_layers'] > 1):
+            hidden_layers = param_dict['hidden_layers']
+            unit_layer    = param_dict['unit_layer']
+            hidden_layer_obj = tuple([unit_layer for x in range(hidden_layers)])
+        skem_dict['neural_network'] = skneuro.MLPRegressor(
+                                        random_state=param_dict['seed'],
+                                        solver='adam',
+                                        hidden_layer_sizes=hidden_layer_obj,
+                                        warm_start=True)
 
     return skem_dict
 
@@ -917,9 +948,6 @@ def binning_idx(train_dict, test_dict, param_dict, mass_opt='group'):
     test_idx_bins : `numpy.ndarray`, shape [N, n_bins]
         Indices from the `test_dict` for each bin in halo mass.
 
-    train_mass_bins : `numpy.ndarray`
-        Array of bin arrays in terms of `mass_opt`.
-
     """
     # Predicted columns
     pred_cols = num.array(param_dict['ml_args']._predicted_cols())
@@ -995,9 +1023,6 @@ def binning_idx(train_dict, test_dict, param_dict, mass_opt='group'):
         # Indices in each bin
         test_idx_bins = num.array([test_idx[test_digits == ii]
                             for ii in test_digits_idx])
-        #
-        # Array of bins for mass
-        train_mass_bins = train_bins
     #
     # Fixed number of bins
     if (param_dict['bin_val'] == 'nbins'):
@@ -1022,11 +1047,8 @@ def binning_idx(train_dict, test_dict, param_dict, mass_opt='group'):
         # Indices in each bin
         test_idx_bins = num.array([test_idx[test_digits == ii]
                             for ii in test_digits_idx])
-        #
-        # Array of bins for mass
-        train_mass_bins = mass_bins
 
-    return train_idx_bins, test_idx_bins, train_mass_bins
+    return train_idx_bins, test_idx_bins
 
 # General Model metrics
 def model_metrics(skem_ii, test_dict_ii, train_dict_ii, param_dict):
@@ -1188,17 +1210,62 @@ def ml_models_training(models_dict, param_dict, proj_dict):
     file_msg = param_dict['Prog_msg']
     ##
     ## Preparing the data
-    train_dict, test_dict = param_dict['ml_args'].extract_feat_file_info()
+    train_test_dict = train_test_sigma_c_diff_dict_processing(param_dict)
     # List of the different ML models
     skem_keys_arr = num.sort(list(param_dict['skem_dict'].keys()))
     # Looping over each ML algorithm
     for zz, skem_ii in tqdm(enumerate(skem_keys_arr)):
         print('{0} Analyzing: `{1}`'.format(file_msg, skem_ii))
         # Training datset
-        models_dict[skem_ii] = ml_analysis(skem_ii, train_dict, test_dict,
-                                    param_dict, proj_dict)
+        models_dict[skem_ii] = {}
+        # Looping over different HOD models
+        for hod_kk in list(train_test_dict['test'].keys()):
+            print('{0} Running sigma_c = `{1}`'.format(file_msg, hod_kk))
+            # Running analysis
+            models_dict[skem_ii][hod_kk] = ml_analysis(
+                                            skem_ii,
+                                            train_test_dict['train']['train_dict'],
+                                            train_test_dict['test'][hod_kk],
+                                            param_dict,
+                                            proj_dict)
 
     return models_dict
+
+def train_test_sigma_c_diff_dict_processing(param_dict):
+    """
+    Extracts the information from each of the different `sigma_c` models, i.e.
+    `training` and `testing` datasets, and saves them into a common
+    dictionary.
+
+    Parameters
+    -----------
+    param_dict : `dict`
+        Dictionary with input parameters and values related to this project.
+
+    Returns
+    ----------
+    train_test_sigma_c_diff_dict : `dict`
+        Dictionary with the different `training` and `testing` dictionaries
+        from each of the different `Sigma_C` models.
+    """
+    # Initializing main dictionary
+    train_test_sigma_c_diff_dict = {'train': {}, 'test': {}}
+    # Training
+    (   train_dict_main,
+        test_dict_main) = param_dict['ml_args'].extract_feat_file_info()
+    # Assigning as main `training` dataset
+    train_test_sigma_c_diff_dict['train']['train_dict'] = train_dict_main
+    # Testing
+    # Looping over the different HOD models
+    for kk, sigma_c_n_key in enumerate(param_dict['sigma_c_n_arr']):
+        # Loading parameters for this model
+        model_kk = param_dict['sigma_c_n_dict'][sigma_c_n_key]
+        # Reading in `training` and `testing` datasets.
+        train_dict_kk, test_dict_kk = model_kk.extract_feat_file_info()
+        # Saving them as part of the main dictionary
+        train_test_sigma_c_diff_dict['test'][sigma_c_n_key] = test_dict_kk
+
+    return train_test_sigma_c_diff_dict
 
 # Main Analysis for fixed HOD and DV
 def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
@@ -1317,9 +1384,8 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
     if (param_dict['sample_method'] == 'binning'):
         # Dictionaries with the indices from the `training` and `testing`
         # datasets, at each halo mass bin.
-        (   train_idx_bins ,
-            test_idx_bins  ,
-            train_mass_bins) = binning_idx(train_dict, test_dict, param_dict)
+        train_idx_bins, test_idx_bins = binning_idx(train_dict, test_dict,
+                                            param_dict)
         ##
         ## Looping over bins, and training each independently
         ml_model_dict = {}
@@ -1428,15 +1494,14 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
                             weights=[len(x) for x in train_idx_bins])
         ##
         ## -- Adding values to main dictionary
-        ml_model_dict['model_ii'       ] = models_main
-        ml_model_dict['score_all'      ] = score_main
-        ml_model_dict['mhalo_pred'     ] = mhalo_pred_main
-        ml_model_dict['mhalo_true'     ] = mhalo_true_main
-        ml_model_dict['frac_diff'      ] = frac_diff_main
-        ml_model_dict['mgroup_arr'     ] = mgroup_main
-        ml_model_dict['mdyn_arr'       ] = mdyn_main
-        ml_model_dict['feat_imp'       ] = feat_imp_mean
-        ml_model_dict['train_mass_bins'] = train_mass_bins
+        ml_model_dict['model_ii'      ] = models_main
+        ml_model_dict['score_all'     ] = score_main
+        ml_model_dict['mhalo_pred'    ] = mhalo_pred_main
+        ml_model_dict['mhalo_true'    ] = mhalo_true_main
+        ml_model_dict['frac_diff'     ] = frac_diff_main
+        ml_model_dict['mgroup_arr'    ] = mgroup_main
+        ml_model_dict['mdyn_arr'      ] = mdyn_main
+        ml_model_dict['feat_imp'      ] = feat_imp_mean
     ##
     ## -- Feature importance ranking --
     feat_imp_comb      = num.vstack(zip(feat_cols, ml_model_dict['feat_imp']))
@@ -1453,7 +1518,7 @@ def ml_analysis(skem_ii, train_dict, test_dict, param_dict, proj_dict):
 
 ## --------- Saving Data ------------##
 
-def test_alg_comp_file(param_dict, proj_dict):
+def test_sigma_c_diff_file(param_dict, proj_dict):
     """
     Determines whether or not to run the calculations.
 
@@ -1477,7 +1542,7 @@ def test_alg_comp_file(param_dict, proj_dict):
     ## Filename, under which to save all of the information
     ##
     ## Path to output file
-    filepath = param_dict['ml_args'].catl_train_alg_comp_file(
+    filepath = param_dict['ml_args'].catl_train_sigma_c_diff_file(
                     check_exist=False)
     ## Saving
     ##
@@ -1517,7 +1582,7 @@ def saving_data(models_dict, param_dict, proj_dict, ext='p'):
     """
     file_msg = param_dict['Prog_msg']
     # Filename
-    filepath = param_dict['ml_args'].catl_train_alg_comp_file(
+    filepath = param_dict['ml_args'].catl_train_sigma_c_diff_file(
                     check_exist=False)
     # Elements to be saved
     obj_arr = [models_dict]
@@ -1556,6 +1621,7 @@ def main(args):
     param_dict = add_to_dict(param_dict)
     ##
     ## Creating Folder Structure
+    # proj_dict = cwpaths.cookiecutter_paths(__file__)
     proj_dict = param_dict['ml_args'].proj_dict
     proj_dict = directory_skeleton(param_dict, proj_dict)
     ##
@@ -1570,7 +1636,7 @@ def main(args):
     ##
     ## Testing of whether or not to run the analysis
     (   run_opt   ,
-        param_dict) = test_alg_comp_file(param_dict, proj_dict)
+        param_dict) = test_sigma_c_diff_file(param_dict, proj_dict)
     # Analysis
     if run_opt:
         # Dictionary for storing outputs

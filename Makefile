@@ -30,6 +30,7 @@ REMOVE_FILES   = "False"
 HOD_N          = 0
 HALOTYPE       = 'so'
 CLF_METHOD     = 1
+SIGMA_CLF_C    = 0.1417
 CLF_SEED       = 1235
 DV             = 1.0
 SAMPLE         = "19"
@@ -73,6 +74,7 @@ RESAMPLE_OPT   = 'under'
 HOD_MODELS_N   = '0_1_2_3_4_5_6_7_8'
 INCLUDE_NN     = 'False'
 DV_MODELS_N    = '0.9_0.925_0.95_0.975_1.025_1.05_1.10'
+SIGMA_C_MOD_N  = '0.10_0.12_0.14_0.1417_0.16_0.18_0.20_0.22_0.24_0.26_0.28_0.30'
 INCLUDE_NN     = "False"
 # -- Real Catalogue - Creating --
 CHOSEN_ML_ALG  = 'xgboost'
@@ -205,7 +207,7 @@ data_preprocess: download_dataset
 	-box_test $(BOX_TEST) -sample_frac $(SAMPLE_FRAC) -test_size $(TEST_SIZE) \
 	-n_feat_use $(N_FEAT_USE) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) \
 	-rm_master $(REMOVE_MASTER) -v $(VERBOSE) -perf $(PERF_OPT) \
-	-seed $(SEED) -dens_calc $(DENS_CALC)
+	-seed $(SEED) -dens_calc $(DENS_CALC) -sigma_clf_c ${SIGMA_CLF_C}
 
 ## ML analysis of the preprocessed data and plots the necessary figures.
 ml_analysis:
@@ -226,7 +228,8 @@ ml_analysis:
 	-resample_opt $(RESAMPLE_OPT) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) \
 	-v $(VERBOSE) -perf $(PERF_OPT) -seed $(SEED) \
 	-hod_models_n $(HOD_MODELS_N) -dv_models_n $(DV_MODELS_N) \
-	-include_nn $(INCLUDE_NN) -chosen_ml_alg $(CHOSEN_ML_ALG)
+	-include_nn $(INCLUDE_NN) -chosen_ml_alg $(CHOSEN_ML_ALG) \
+	-sigma_c_models_n $(SIGMA_C_MOD_N) -sigma_clf_c ${SIGMA_CLF_C}
 
 ## Plots the figures of the set of `merged` catalogues - New and Improved
 catl_main_props:
@@ -345,7 +348,7 @@ download_dataset:
 	@python $(SRC_PREPROC_DIR)/download_dataset.py \
 	-hod_model_n $(HOD_N) -halotype $(HALOTYPE) -clf_method $(CLF_METHOD) \
 	-dv $(DV) -sample $(SAMPLE) -abopt $(CATL_TYPE) -clf_seed $(CLF_SEED) \
-	-perf $(PERF_OPT) -v $(VERBOSE)
+	-sigma_clf_c ${SIGMA_CLF_C} -perf $(PERF_OPT) -v $(VERBOSE) \
 
 ## Delete existing `mock` catalogues
 delete_mock_catls:

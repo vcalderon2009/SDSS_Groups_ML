@@ -144,19 +144,6 @@ def get_parser():
                         choices=range(0, 10),
                         metavar='[0-10]',
                         default=0)
-    ## Number of HOD's to create. Dictates how many different types of
-    ##      mock catalogues to create
-    parser.add_argument('-hod_models_n',
-                        dest='hod_models_n',
-                        help="""
-                        HOD models to use for this analysis. The values in the
-                        string consist of the `first` HOD model, which will be
-                        used for the `training` dataset, while, the next
-                        set of HOD numbers will be use to validate the
-                        `training` of the ML algorithm.
-                        """,
-                        type=str,
-                        default='0_1_2_3_4_5_6_7_8')
     ## Type of dark matter halo to use in the simulation
     parser.add_argument('-halotype',
                         dest='halotype',
@@ -205,6 +192,15 @@ def get_parser():
                         """,
                         type=_check_pos_val,
                         default=1.0)
+    ## Values of distinct CLF scatter for central galaxies in log(L)
+    parser.add_argument('-sigma_c_models_n',
+                        dest='sigma_c_models_n',
+                        help="""
+                        Models for the scatter in log(L) for central galaxies
+                        in the conditional luminosity function model.
+                        """,
+                        type=str,
+                        default='0.10_0.12_0.14_0.1417_0.16_0.18_0.20_0.22_0.24_0.26_0.28_0.30')
     ## Luminosity sample to analyze
     parser.add_argument('-sample',
                         dest='sample',
@@ -417,8 +413,8 @@ def get_parser():
                         dest='ml_analysis',
                         help='Type of analysis to perform.',
                         type=str,
-                        choices=['dv_fixed'],
-                        default='dv_fixed')
+                        choices=['hod_fixed'],
+                        default='hod_fixed')
     ## Type of resampling to use if necessary
     parser.add_argument('-resample_opt',
                         dest='resample_opt',
@@ -489,6 +485,7 @@ def get_parser():
                         type=int,
                         metavar='[0-4294967295]',
                         default=1)
+
     ## Program message
     parser.add_argument('-progmsg',
                         dest='Prog_msg',
@@ -657,7 +654,7 @@ def add_to_dict(param_dict):
                     'color_dyn' : 'blue'}
     ##
     ## Catalogue Prefix string
-    catl_str_fig = param_dict['ml_args'].catl_alg_comp_fig_str()
+    catl_str_fig = param_dict['ml_args'].catl_sigma_c_diff_fig_str()
     ##
     ## Saving to `param_dict`
     param_dict['sample_s'    ] = sample_s
@@ -694,7 +691,7 @@ def directory_skeleton(param_dict, proj_dict):
     catl_prefix_path = param_dict['ml_args'].catl_prefix_path()
     # Figure directory
     figure_dir = os.path.join(proj_dict['plot_dir'],
-                                'ml_hod_diff_comparison',
+                                'ml_sigma_c_diff_comparison',
                                 catl_prefix_path,
                                 'sf_{0}'.format(param_dict['sample_frac']),
                                 param_dict['pre_opt'])
@@ -742,7 +739,7 @@ def array_insert(arr1, arr2, axis=1):
 # Fractional difference
 def frac_diff_model(models_dict, param_dict, proj_dict,
     arr_len=10, bin_statval='left', fig_fmt='pdf', figsize_1=(8, 8),
-    figsize_2=(15, 8), fig_number=8):
+    figsize_2=(15, 8), fig_number=10):
     """
     Plots the fractional difference between `predicted` and `true`
     halo masses.
@@ -800,13 +797,13 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
     ##
     ## Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
-                            'Fig_{0}_{1}_frac_diff_predicted_HOD.pdf'.format(
+                            'Fig_{0}_{1}_frac_diff_predicted_sigma_c.pdf'.format(
                                 fig_number,
                                 param_dict['catl_str_fig']))
     ##
     ## Paper Figure
     fname_paper = os.path.join( proj_dict['paper_fig_dir'],
-                                'Figure_08.{0}'.format(fig_fmt))
+                                'Figure_10.{0}'.format(fig_fmt))
     ## Algorithm names - Thought as indices for the plot
     ml_algs_names = num.sort(list(models_dict.keys()))
     n_ml_algs     = len(ml_algs_names)
@@ -820,6 +817,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
         ml_alg_key = 'neural_network'
     # Chosen algorithm
     ml_algs_names = [ml_alg_key]
+
     # Initializing dictionary that will contain the necessary information
     # on each model
     frac_diff_dict = {}
@@ -830,11 +828,11 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
         # Dictionary to save results
         frac_diff_dict[model_kk] = {}
         # Looping over different HOD models
-        for ii, hod_ii in enumerate(model_kk_data.keys()):
+        for ii, sigma_c_ii in enumerate(model_kk_data.keys()):
             # New X-axis
-            model_kk_x = model_kk_data[hod_ii]['mhalo_pred']
+            model_kk_x = model_kk_data[sigma_c_ii]['mhalo_pred']
             # Y-axis
-            model_kk_y = model_kk_data[hod_ii]['frac_diff']
+            model_kk_y = model_kk_data[sigma_c_ii]['frac_diff']
             # Calculating error in bins
             (   x_stat_arr,
                 y_stat_arr,
@@ -845,12 +843,12 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
                                                     arr_len=arr_len,
                                                     bin_statval=bin_statval)
             # Saving to dictionary
-            frac_diff_dict[model_kk][hod_ii] = {}
-            frac_diff_dict[model_kk][hod_ii]['x_val' ] = model_kk_x
-            frac_diff_dict[model_kk][hod_ii]['y_val' ] = model_kk_y
-            frac_diff_dict[model_kk][hod_ii]['x_stat'] = x_stat_arr
-            frac_diff_dict[model_kk][hod_ii]['y_stat'] = y_stat_arr
-            frac_diff_dict[model_kk][hod_ii]['y_err' ] = y_std_arr
+            frac_diff_dict[model_kk][sigma_c_ii] = {}
+            frac_diff_dict[model_kk][sigma_c_ii]['x_val' ] = model_kk_x
+            frac_diff_dict[model_kk][sigma_c_ii]['y_val' ] = model_kk_y
+            frac_diff_dict[model_kk][sigma_c_ii]['x_stat'] = x_stat_arr
+            frac_diff_dict[model_kk][sigma_c_ii]['y_stat'] = y_stat_arr
+            frac_diff_dict[model_kk][sigma_c_ii]['y_err' ] = y_std_arr
     ## Abundance matched mass
     # HAM
     (   ham_pred,
@@ -907,8 +905,8 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
     # Number of algorithms
     n_ml_algs = len(ml_algs_names)
     # Number of HOD
-    hod_arr = list(models_dict[list(models_dict.keys())[0]].keys())
-    n_hod   = len(hod_arr)
+    sigma_c_arr = list(models_dict[list(models_dict.keys())[0]].keys())
+    n_hod   = len(sigma_c_arr)
     # Labels
     xlabel = r'\boldmath$\log M_{\textrm{predicted}}\left[ h^{-1} M_{\odot}\right]$'
     # Y-label
@@ -919,7 +917,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
         figsize = figsize_1
     else:
         figsize = figsize_2
-    # Initializing figure
+    ##
     plt.clf()
     plt.close()
     fig, axes = plt.subplots(nrows=1, ncols=n_ml_algs, sharey=True,
@@ -961,18 +959,18 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
         ## Horizontal line
         ax.axhline(y=0, color='black', linestyle='--', zorder=10)
         # Looping over HOD models
-        for zz, hod_zz in enumerate(hod_arr):
+        for zz, sigma_c_zz in enumerate(sigma_c_arr):
             # Plotting x- and y-arrays
-            x_stat = frac_diff_dict[ml_kk][hod_zz]['x_stat']
-            y_stat = frac_diff_dict[ml_kk][hod_zz]['y_stat']
-            y_err  = frac_diff_dict[ml_kk][hod_zz]['y_err' ]
+            x_stat = frac_diff_dict[ml_kk][sigma_c_zz]['x_stat']
+            y_stat = frac_diff_dict[ml_kk][sigma_c_zz]['y_stat']
+            y_err  = frac_diff_dict[ml_kk][sigma_c_zz]['y_err' ]
             # Fill-between variables
             y1 = y_stat - y_err
             y2 = y_stat + y_err
             #
             # - Plotting
             # Relation
-            if (hod_zz == param_dict['hod_n']):
+            if (sigma_c_zz == param_dict['sigma_clf_c']):
                 ax.plot(x_stat,
                         y_stat,
                         color='black',
@@ -989,17 +987,17 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
                                 zorder=zorder_ml)
             else:
                 ax.plot(x_stat,
-                        y_stat,
-                        color=cm_arr[zz],
-                        linestyle='-',
-                        marker='o',
-                        zorder=zorder_ml)
+                            y_stat,
+                            color=cm_arr[zz],
+                            linestyle='-',
+                            marker='o',
+                            zorder=zorder_ml)
                 # Fill-between
                 ax.fill_between(x_stat,
                                 y1, y2,
                                 color=cm_arr[zz],
                                 alpha=alpha,
-                                label='Model {0}'.format(hod_zz),
+                                label=r'\boldmath$f_\mathrm{vb}$: ' + '{0}'.format(sigma_c_zz),
                                 zorder=zorder_ml)
         ##
         ## HAM and Dynamical Masses
@@ -1121,7 +1119,7 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     #
     # Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
-                        'Fig_{0}_{1}_ml_algorithms_scores_{2}_HOD.{3}'.format(
+                        'Fig_{0}_{1}_ml_algorithms_scores_{2}_sigma_c.{3}'.format(
                             fig_number,
                             param_dict['catl_str_fig'],
                             score_type,
@@ -1129,13 +1127,13 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     ##
     ## Paper Figure
     fname_paper = os.path.join( proj_dict['paper_fig_dir'],
-                                'Figure_09.{0}'.format(fig_fmt))
+                                'Figure_11.{0}'.format(fig_fmt))
     #
     # Algorithms names - Thought as indices for this plot
     ml_algs_names = num.sort(list(models_dict))
     # Number of HOD
-    hod_arr = list(models_dict[list(models_dict.keys())[0]].keys())
-    n_hod   = len(hod_arr)
+    sigma_c_arr = list(models_dict[list(models_dict.keys())[0]].keys())
+    n_sigma_c   = len(sigma_c_arr)
     #
     # Initializing DataFrame
     zero_arr = num.zeros(len(ml_algs_names))
@@ -1146,17 +1144,17 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     # Reading in data
     for kk, ml_kk in enumerate(ml_algs_names):
         # Looping over different HOD models
-        for zz, hod_zz in enumerate(hod_arr):
+        for zz, sigma_c_zz in enumerate(sigma_c_arr):
             # Reading data
             # Model dictionary
-            if (hod_zz != param_dict['hod_n']):
-                ml_model_kk_dict = models_dict[ml_kk][hod_zz]
+            if (sigma_c_zz != param_dict['sigma_clf_c']):
+                ml_model_kk_dict = models_dict[ml_kk][sigma_c_zz]
                 # Score
                 model_score = ml_model_kk_dict['score_{0}'.format(score_type)]
                 # Assigning to DataFrame
-                ml_algs_pd.loc[kk, 'HOD {0}'.format(hod_zz)] = model_score
+                ml_algs_pd.loc[kk, 'sigma_c {0}'.format(sigma_c_zz)] = model_score
             else:
-                ml_model_kk_dict = models_dict[ml_kk][hod_zz]
+                ml_model_kk_dict = models_dict[ml_kk][sigma_c_zz]
                 # Score
                 model_score = ml_model_kk_dict['score_{0}'.format(score_type)]
                 # Assigning to DataFrame
@@ -1269,7 +1267,7 @@ def main(args):
     print('\n'+50*'='+'\n')
     ##
     ## Reading in catalogue
-    models_dict = param_dict['ml_args'].extract_catl_hod_diff_info()
+    models_dict = param_dict['ml_args'].extract_catl_sigma_c_diff_info()
     ##
     ## Feature keys
     param_dict['feat_cols_dict'] = param_dict['ml_args'].feat_cols_names_dict()

@@ -154,6 +154,15 @@ def get_parser():
                         type=int,
                         choices=[1,2,3],
                         default=1)
+    # Value for the scatter in log(L) for central galaxies in the CLF
+    parser.add_argument('-sigma_clf_c',
+                        dest='sigma_clf_c',
+                        help="""
+                        Value for the scatter in log(L) for central galaxies
+                        in the CLF
+                        """,
+                        type=_check_pos_val,
+                        default=0.1417)
     ## Random Seed for CLF
     parser.add_argument('-clf_seed',
                         dest='clf_seed',
@@ -408,6 +417,7 @@ def directory_skeleton(param_dict, proj_dict):
                                     'hod_model_{0}'.format(param_dict['hod_n']),
                                     'clf_seed_{0}'.format(param_dict['clf_seed']),
                                     'clf_method_{0}'.format(param_dict['clf_method']),
+                                    'sigma_c_{0}'.format(param_dict['sigma_clf_c']),
                                     param_dict['catl_type'],
                                     param_dict['sample_Mr'],
                                     'dens_{0}'.format(param_dict['dens_calc']))
@@ -625,6 +635,7 @@ def catalogue_analysis(ii, catl_ii_name, box_n, param_dict, proj_dict,
                                                 halotype=param_dict['halotype'],
                                                 clf_method=param_dict['clf_method'],
                                                 dv=param_dict['dv'],
+                                                sigma_clf_c=param_dict['sigma_clf_c'],
                                                 hod_n=param_dict['hod_n'],
                                                 clf_seed=param_dict['clf_seed'],
                                                 perf_opt=param_dict['perf_opt'],
@@ -1785,6 +1796,7 @@ def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
                         param_dict['hod_n'],
                         param_dict['dv'],
                         param_dict['clf_method'],
+                        param_dict['sigma_clf_c'],
                         param_dict['clf_seed'],
                         param_dict['catl_type'],
                         param_dict['cosmo_choice'],
@@ -1792,9 +1804,9 @@ def catl_df_merging(param_dict, proj_dict, ext='hdf5'):
                         param_dict['mass_factor'],
                         param_dict['perf_opt'],
                         ext]
-    file_str  = '{0}_halo_{1}_hodn_{2}_dv_{3}_clfm_{4}_clfseed_{5}_'
-    file_str += 'ctype_{6}_cosmo_{7}_nmin_{8}_massf_{9}_perf_{10}_'
-    file_str += 'merged_vac_all.{11}'
+    file_str  = '{0}_halo_{1}_hodn_{2}_dv_{3}_clfm_{4}_sigma_c_{5}_'
+    file_str += 'clfseed_{6}_ctype_{7}_cosmo_{8}_nmin_{9}_massf_{10}_'
+    file_str += 'perf_{11}_merged_vac_all.{12}'
     filename  = file_str.format(*file_str_arr)
     ## Saving to file
     filepath = os.path.join(proj_dict['merged_gal_all_dir'],
@@ -1918,6 +1930,7 @@ def main(args):
                                         halotype=param_dict['halotype'],
                                         dv=param_dict['dv'],
                                         clf_method=param_dict['clf_method'],
+                                        sigma_clf_c=param_dict['sigma_clf_c'],
                                         hod_n=param_dict['hod_n'],
                                         clf_seed=param_dict['clf_seed'],
                                         return_len=True,

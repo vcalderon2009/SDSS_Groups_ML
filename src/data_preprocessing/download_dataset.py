@@ -131,6 +131,15 @@ def get_parser():
                         type=int,
                         choices=[1,2,3],
                         default=3)
+    # Value for the scatter in log(L) for central galaxies in the CLF
+    parser.add_argument('-sigma_clf_c',
+                        dest='sigma_clf_c',
+                        help="""
+                        Value for the scatter in log(L) for central galaxies
+                        in the CLF
+                        """,
+                        type=_check_pos_val,
+                        default=0.1417)
     ## Difference between galaxy and mass velocity profiles (v_g-v_c)/(v_m-v_c)
     parser.add_argument('-dv',
                         dest='dv',
@@ -292,6 +301,7 @@ def directory_skeleton(param_dict, proj_dict):
                                         'hod_model_{0}'.format(param_dict['hod_n']),
                                         'clf_seed_{0}'.format(param_dict['clf_seed']),
                                         'clf_method_{0}'.format(param_dict['clf_method']),
+                                        'sigma_c_{0}'.format(param_dict['sigma_clf_c']),
                                         param_dict['catl_type'],
                                         param_dict['sample_Mr'])
         ##
@@ -359,6 +369,7 @@ def download_directory(param_dict, proj_dict):
                 'hod_model_{0}'.format(param_dict['hod_n']),
                 'clf_seed_{0}'.format(param_dict['clf_seed']),
                 'clf_method_{0}'.format(param_dict['clf_method']),
+                'sigma_c_{0}'.format(param_dict['sigma_clf_c']),
                 param_dict['catl_type'],
                 param_dict['sample_Mr'])
             # Number of directories to cut/skip

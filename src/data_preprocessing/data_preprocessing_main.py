@@ -140,6 +140,15 @@ def get_parser():
                         type=int,
                         choices=[1, 2, 3],
                         default=1)
+    # Value for the scatter in log(L) for central galaxies in the CLF
+    parser.add_argument('-sigma_clf_c',
+                        dest='sigma_clf_c',
+                        help="""
+                        Value for the scatter in log(L) for central galaxies
+                        in the CLF
+                        """,
+                        type=_check_pos_val,
+                        default=0.1417)
     ## Difference between galaxy and mass velocity profiles (v_g-v_c)/(v_m-v_c)
     parser.add_argument('-dv',
                         dest='dv',
@@ -425,6 +434,7 @@ def get_analysis_params(param_dict):
                             ('hod_n'       , '-hod_model_n' , 0         ),
                             ('halotype'    , '-halotype'    , 'so'      ),
                             ('clf_method'  , '-clf_method'  , 1         ),
+                            ('sigma_clf_c' , '-sigma_clf_c' , 0.1417    ),
                             ('dv'          , '-dv'          , 1.0       ),
                             ('clf_seed'    , '-clf_seed'    , 1235      ),
                             ('sample'      , '-sample'      , '19'      ),
@@ -457,6 +467,9 @@ def get_analysis_params(param_dict):
     ##
     ## CLF Method for assigning galaxy properties
     catl_feat_df = df_value_modifier(catl_feat_df, 'clf_method', param_dict)
+    ##
+    ## Value of the scatter in log(L) for central galaxies in the CLF.
+    catl_feat_df = df_value_modifier(catl_feat_df, 'sigma_clf_c', param_dict)
     ##
     ## Random seed used during the CLF assignment
     catl_feat_df = df_value_modifier(catl_feat_df, 'clf_seed', param_dict)
@@ -510,6 +523,7 @@ def get_analysis_params(param_dict):
                             ('hod_n'         , '-hod_model_n'   , 0         ),
                             ('halotype'      , '-halotype'      , 'so'      ),
                             ('clf_method'    , '-clf_method'    , 1         ),
+                            ('sigma_clf_c'   , '-sigma_clf_c'   , 0.1417    ),
                             ('dv'            , '-dv'            , 1.0       ),
                             ('clf_seed'      , '-clf_seed'      , 1235      ),
                             ('sample'        , '-sample'        , '19'      ),
@@ -549,6 +563,9 @@ def get_analysis_params(param_dict):
     ##
     ## CLF Method for assigning galaxy properties
     feat_proc_df = df_value_modifier(feat_proc_df, 'clf_method', param_dict)
+    ##
+    ## Scatter in log(L) for central galaxies in the CLF.
+    feat_proc_df = df_value_modifier(feat_proc_df, 'sigma_clf_c', param_dict)
     ##
     ## Random seed used during the CLF assignment
     feat_proc_df = df_value_modifier(feat_proc_df, 'clf_seed', param_dict)

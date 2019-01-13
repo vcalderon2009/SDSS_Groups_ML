@@ -57,6 +57,10 @@ class ReadML(object):
                 - 2 :   (g-r) decides active/passive designation and draws values independently.
                 - 3 :   (g-r) decides active/passive designation, and assigns other galaxy properties for that given galaxy.
 
+        sigma_clf_c : `float`, optional
+            Value of the scatter in log(L) for central galaxies in the CLF.
+            This variable is set to ``0.1417`` by default.
+
         clf_seed : `int`
             Random seed to be used for CLF.
             This variable is set to `1235` by default.
@@ -210,43 +214,45 @@ class ReadML(object):
         """
         super().__init__()
         # Assigning variables
-        self.hod_n          = kwargs.get('hod_n', 0)
-        self.halotype       = kwargs.get('halotype', 'so')
-        self.clf_method     = kwargs.get('clf_method', 1)
-        self.clf_seed       = kwargs.get('clf_seed', 1235)
-        self.dv             = kwargs.get('dv', 1.0)
-        self.sample         = kwargs.get('sample', '19')
-        self.catl_type      = kwargs.get('catl_type', 'mr')
-        self.cosmo_choice   = kwargs.get('cosmo_choice', 'LasDamas')
-        self.nmin           = kwargs.get('nmin', 2)
-        self.mass_factor    = kwargs.get('mass_factor', 10)
-        self.n_predict      = kwargs.get('n_predict', 1)
-        self.shuffle_opt    = kwargs.get('shuffle_opt', True)
-        self.dropna_opt     = kwargs.get('dropna_opt', False)
-        self.pre_opt        = kwargs.get('pre_opt', 'standard')
-        self.test_train_opt = kwargs.get('test_train_opt', 'boxes_n')
-        self.box_idx        = kwargs.get('box_idx', '0_3_4')
-        self.box_test       = kwargs.get('box_test', 0)
-        self.sample_frac    = kwargs.get('sample_frac', 0.1)
-        self.test_size      = kwargs.get('test_size', 0.25)
-        self.n_feat_use     = kwargs.get('n_feat_use', 'sub')
-        self.dens_calc      = kwargs.get('dens_calc', False)
-        self.perf_opt       = kwargs.get('perf_opt', False)
-        self.seed           = kwargs.get('seed', 1)
-        self.kf_splits      = kwargs.get('kdf_splits', 3)
-        self.hidden_layers  = kwargs.get('hidden_layers', 1)
-        self.unit_layer     = kwargs.get('unit_layer', 100)
-        self.score_method   = kwargs.get('score_method', 'threshold')
-        self.threshold      = kwargs.get('threshold', 0.1)
-        self.perc_val       = kwargs.get('perc_val', 0.68)
-        self.sample_method  = kwargs.get('sample_method', 'binning')
-        self.bin_val        = kwargs.get('bin_val', 'nbins')
-        self.ml_analysis    = kwargs.get('ml_analysis', 'hod_dv_fixed')
-        self.resample_opt   = kwargs.get('resample_opt', 'under')
-        self.hod_models_n   = kwargs.get('hod_models_n', '0_1_2_3_4_5_6_7_8')
-        self.include_nn     = kwargs.get('include_nn', False)
-        self.dv_models_n    = kwargs.get('dv_models_n', '0.9_0.925_0.95_0.975_1.025_1.05_1.10')
-        self.chosen_ml_alg  = kwargs.get('chosen_ml_alg', 'xgboost')
+        self.hod_n            = kwargs.get('hod_n', 0)
+        self.halotype         = kwargs.get('halotype', 'so')
+        self.clf_method       = kwargs.get('clf_method', 1)
+        self.sigma_clf_c      = kwargs.get('sigma_clf_c', 0.1417)
+        self.clf_seed         = kwargs.get('clf_seed', 1235)
+        self.dv               = kwargs.get('dv', 1.0)
+        self.sample           = kwargs.get('sample', '19')
+        self.catl_type        = kwargs.get('catl_type', 'mr')
+        self.cosmo_choice     = kwargs.get('cosmo_choice', 'LasDamas')
+        self.nmin             = kwargs.get('nmin', 2)
+        self.mass_factor      = kwargs.get('mass_factor', 10)
+        self.n_predict        = kwargs.get('n_predict', 1)
+        self.shuffle_opt      = kwargs.get('shuffle_opt', True)
+        self.dropna_opt       = kwargs.get('dropna_opt', False)
+        self.pre_opt          = kwargs.get('pre_opt', 'standard')
+        self.test_train_opt   = kwargs.get('test_train_opt', 'boxes_n')
+        self.box_idx          = kwargs.get('box_idx', '0_3_4')
+        self.box_test         = kwargs.get('box_test', 0)
+        self.sample_frac      = kwargs.get('sample_frac', 0.1)
+        self.test_size        = kwargs.get('test_size', 0.25)
+        self.n_feat_use       = kwargs.get('n_feat_use', 'sub')
+        self.dens_calc        = kwargs.get('dens_calc', False)
+        self.perf_opt         = kwargs.get('perf_opt', False)
+        self.seed             = kwargs.get('seed', 1)
+        self.kf_splits        = kwargs.get('kdf_splits', 3)
+        self.hidden_layers    = kwargs.get('hidden_layers', 1)
+        self.unit_layer       = kwargs.get('unit_layer', 100)
+        self.score_method     = kwargs.get('score_method', 'threshold')
+        self.threshold        = kwargs.get('threshold', 0.1)
+        self.perc_val         = kwargs.get('perc_val', 0.68)
+        self.sample_method    = kwargs.get('sample_method', 'binning')
+        self.bin_val          = kwargs.get('bin_val', 'nbins')
+        self.ml_analysis      = kwargs.get('ml_analysis', 'hod_dv_fixed')
+        self.resample_opt     = kwargs.get('resample_opt', 'under')
+        self.hod_models_n     = kwargs.get('hod_models_n', '0_1_2_3_4_5_6_7_8')
+        self.include_nn       = kwargs.get('include_nn', False)
+        self.dv_models_n      = kwargs.get('dv_models_n', '0.9_0.925_0.95_0.975_1.025_1.05_1.10')
+        self.chosen_ml_alg    = kwargs.get('chosen_ml_alg', 'xgboost')
+        self.sigma_c_models_n = kwargs.get('sigma_c_models_n', '0.10_0.12_0.14_0.1417_0.16_0.18_0.20_0.22_0.24_0.26_0.28_0.30')
         #
         # Extra variables
         self.sample_Mr      = 'Mr{0}'.format(self.sample)
@@ -280,6 +286,7 @@ class ReadML(object):
                                     'hod_model_{0}'.format(self.hod_n),
                                     'clf_seed_{0}'.format(self.clf_seed),
                                     'clf_method_{0}'.format(self.clf_method),
+                                    'sigma_c_{0}'.format(self.sigma_clf_c),
                                     self.catl_type,
                                     self.sample_Mr,
                                     'dens_{0}'.format(self.dens_calc))
@@ -360,6 +367,7 @@ class ReadML(object):
                         self.hod_n,
                         self.dv,
                         self.clf_method,
+                        self.sigma_clf_c,
                         self.clf_seed,
                         self.catl_type,
                         self.cosmo_choice,
@@ -367,8 +375,9 @@ class ReadML(object):
                         self.mass_factor,
                         self.perf_opt]
         # Combining string
-        catl_pre_str = '{0}_halo_{1}_hodn_{2}_dv_{3}_clfm_{4}_clfseed_{5}_'
-        catl_pre_str += 'ctype_{6}_cosmo_{7}_nmin_{8}_massf_{9}_perf_{10}'
+        catl_pre_str = '{0}_halo_{1}_hodn_{2}_dv_{3}_clfm_{4}_sigma_c_{5}'
+        catl_pre_str += 'clfseed_{6}_ctype_{7}_cosmo_{8}_nmin_{9}_massf_{10}_'
+        catl_pre_str += 'perf_{11}'
         catl_pre_str = catl_pre_str.format(*catl_pre_arr)
 
         return catl_pre_str
@@ -1656,6 +1665,154 @@ class ReadML(object):
 
         return catl_train_prefix_str
 
+    ## -- Training algorithms - Sigma C Comparisons
+    def catl_train_sigma_c_diff_dir(self, check_exist=True,
+        create_dir=False):
+        """
+        Directory for the `HOD comparison` section of the ML analysis.
+
+        Parameters
+        -----------
+        check_exist : `bool`, optional
+            If `True`, it checks for whether or not the file exists.
+            This variable is set to `True` by default.
+
+        create_dir : `bool`, optional
+            If `True`, it creates the directory if it does not exist.
+
+        Returns
+        --------
+        catl_train_sigma_c_diff_comp_dir : `str`
+            Output directory for the `Sigma_C comparison` ML analysis.
+        """
+        # Check input parameters
+        # `check_exist`
+        if not (isinstance(check_exist, bool)):
+            msg = '`check_exist` ({0}) must be of `boolean` type!'.format(
+                type(check_exist))
+            raise TypeError(msg)
+        #
+        # `create_dir`
+        if not (isinstance(create_dir, bool)):
+            msg = '`create_dir` ({0}) must be of `boolean` type!'.format(
+                type(create_dir))
+            raise TypeError(msg)
+        #
+        # Output directory
+        main_catl_train_dir = self.main_catl_train_dir(check_exist=False,
+            create_dir=False)
+        # Appending to main directory
+        catl_train_sigma_c_diff_comp_dir = os.path.join(main_catl_train_dir,
+                                    'ml_sigma_c_diff',
+                                    self.sigma_c_models_n)
+        # Creating directory if necessary
+        if create_dir:
+            cfutils.Path_Folder(catl_train_sigma_c_diff_comp_dir)
+        # Check that folder exists
+        if check_exist:
+            if not (os.path.exists(catl_train_sigma_c_diff_comp_dir)):
+                msg = '`catl_train_sigma_c_diff_comp_dir` ({0}) was not found! '
+                msg += 'Check your path!'
+                msg = msg.format(catl_train_sigma_c_diff_comp_dir)
+                raise FileNotFoundError(msg)
+
+        return catl_train_sigma_c_diff_comp_dir
+
+    def catl_train_sigma_c_diff_file(self, ext='p', check_exist=True):
+        """
+        Path to the file that contains the outputs from the
+        `HOD comparison` stage.
+
+        Parameters
+        -----------
+        ext : `str`, optional
+            Extension of the file being analyzed. This variable is set to
+            `p` by default.
+
+        check_exist : `bool`, optional
+            If `True`, it checks for whether or not the file exists.
+            This variable is set to `True` by default.
+
+        Returns
+        ---------
+        catl_train_sigma_c_diff_path : `str`
+            Path to the file with the outputs from the `Sigma_C comparison`
+            stage of the ML analysis.
+        """
+        # `Algorithm comparison` directory
+        catl_train_sigma_c_diff_dir = self.catl_train_sigma_c_diff_dir(
+                                    check_exist=True,
+                                    create_dir=False)
+        # `HOD Comparison` Prefix string
+        filename_str = '{0}_nn_{1}_md.{2}'.format(
+                            self._catl_train_prefix_str(),
+                            self.include_nn,
+                            ext)
+        # `catl_train_sigma_c_diff_path`
+        catl_train_sigma_c_diff_path = os.path.join(catl_train_sigma_c_diff_dir,
+                                filename_str)
+        # Checking if file exists
+        if check_exist:
+            if not (os.path.exists(catl_train_sigma_c_diff_path)):
+                msg = '`catl_train_sigma_c_diff_path` ({0}) was not found!'.format(
+                    catl_train_sigma_c_diff_path)
+                raise FileNotFoundError(msg)
+
+        return catl_train_sigma_c_diff_path
+
+    def extract_catl_sigma_c_diff_info(self, ext='p', return_path=False):
+        """
+        Extracts the information from the `DV Difference`, and
+        returns a set of dictionaries.
+
+        Parameters
+        -----------
+        ext : `str`, optional
+            Extension of the file being analyzed. This variable is set to
+            `p` by default.
+
+        return_path : `bool`, optional
+            If True, the function also returns the path to the file being read.
+
+        Returns
+        ---------
+        models_dict : `dict`
+            Dictionary with the output results from the `DV difference`
+            stage of the ML analysis.
+        """
+        # File containing the dictionaries
+        catl_sigma_c_diff_path = self.catl_train_sigma_c_diff_file(ext=ext,
+                                check_exist=True)
+        # Extracting information
+        with open(catl_sigma_c_diff_path, 'rb') as file_p:
+            obj_arr = pickle.load(file_p)
+        # Unpacking objects
+        if (len(obj_arr) == 1):
+            models_dict = obj_arr[0]
+        else:
+            msg = '`obj` ({0}) must be of length `1`'.format(len(obj_arr))
+
+        if return_path:
+            return models_dict, catl_sigma_c_diff_path
+        else:
+            return models_dict
+
+    def catl_sigma_c_diff_fig_str(self):
+        """
+        Prefix string for the figure of `algorithm comparison` ML stage.
+
+        Returns
+        ---------
+        catl_alg_comp_fig_str : `str`
+            Prefix string for the figure of `algorithm comparison`.
+        """
+        # ML Training prefix
+        catl_train_prefix_str = self._catl_train_prefix_str()
+        # Adding to main string
+        catl_train_prefix_str += '_sigma_c_diff'
+
+        return catl_train_prefix_str
+        
     ## -- Model Application to Data - SDSS
     def catl_model_app_data_main(self, check_exist=True, create_dir=False):
         """
