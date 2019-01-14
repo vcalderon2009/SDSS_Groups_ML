@@ -74,7 +74,7 @@ RESAMPLE_OPT   = 'under'
 HOD_MODELS_N   = '0_1_2_3_4_5_6_7_8'
 INCLUDE_NN     = 'False'
 DV_MODELS_N    = '0.9_0.925_0.95_0.975_1.025_1.05_1.10'
-SIGMA_C_MOD_N  = '0.10_0.12_0.14_0.1417_0.16_0.18_0.20_0.22_0.24_0.26_0.28_0.30'
+SIGMA_C_MOD_N  = '0.10_0.1417_0.15_0.20_0.25_0.30'
 INCLUDE_NN     = "False"
 # -- Real Catalogue - Creating --
 CHOSEN_ML_ALG  = 'xgboost'
