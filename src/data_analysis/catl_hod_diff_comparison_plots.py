@@ -999,7 +999,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
                                 y1, y2,
                                 color=cm_arr[zz],
                                 alpha=alpha,
-                                label='Model {0}'.format(hod_zz),
+                                label='HOD {0}'.format(hod_zz),
                                 zorder=zorder_ml)
         ##
         ## HAM and Dynamical Masses
