@@ -2077,7 +2077,7 @@ def project_const(param_dict):
     ## Fixed HOD and multiple DV models
     if (param_dict['ml_analysis'] == 'hod_fixed'):
         run_file_dict    = {}
-        run_file_dict[0] = {'file': 'catl_velocfity_bias_diff_comparison.py'}
+        run_file_dict[0] = {'file': 'catl_velocity_bias_diff_comparison.py'}
         run_file_dict[1] = {'file': 'catl_velocity_bias_diff_comparison_plots.py'}
     ## Fixed HOD and DV, and multiple `Sigma_c` models
     ## Fixed HOD and multiple DV models
