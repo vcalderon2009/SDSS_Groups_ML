@@ -739,7 +739,7 @@ def array_insert(arr1, arr2, axis=1):
 # Fractional difference
 def frac_diff_model(models_dict, param_dict, proj_dict,
     arr_len=10, bin_statval='left', fig_fmt='pdf', figsize_1=(8, 8),
-    figsize_2=(15, 8), fig_number=10):
+    figsize_2=(15, 8), fig_number=14):
     """
     Plots the fractional difference between `predicted` and `true`
     halo masses.
@@ -776,7 +776,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
         default.
 
     fig_number : `int`, optional
-        Number of figure in the workflow. This variable is set to `1`
+        Number of figure in the workflow. This variable is set to `14`
         by default.
     """
     file_msg = param_dict['Prog_msg']
@@ -803,7 +803,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
     ##
     ## Paper Figure
     fname_paper = os.path.join( proj_dict['paper_fig_dir'],
-                                'Figure_10.{0}'.format(fig_fmt))
+                                'Figure_14.{0}'.format(fig_fmt))
     ## Algorithm names - Thought as indices for the plot
     ml_algs_names = num.sort(list(models_dict.keys()))
     n_ml_algs     = len(ml_algs_names)
@@ -997,7 +997,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
                                 y1, y2,
                                 color=cm_arr[zz],
                                 alpha=alpha,
-                                label=r'\boldmath$f_\mathrm{vb}$: ' + '{0}'.format(sigma_c_zz),
+                                label=r'\boldmath$\sigma_\mathrm{c}$: ' + '{0}'.format(sigma_c_zz),
                                 zorder=zorder_ml)
         ##
         ## HAM and Dynamical Masses
@@ -1072,7 +1072,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
 
 # Model Score - Different algorithms - Bar Chart
 def model_score_chart_1d(models_dict, param_dict, proj_dict,
-    fig_fmt='pdf', figsize=(10,8), fig_number=2, score_type='perc'):
+    fig_fmt='pdf', figsize=(10,8), fig_number=15, score_type='perc'):
     """
     Plots the overall `score` for each algorithm, and compares them to
     the more traditional group mass estimation techniques, i.e. HAM and 
@@ -1127,7 +1127,7 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     ##
     ## Paper Figure
     fname_paper = os.path.join( proj_dict['paper_fig_dir'],
-                                'Figure_11.{0}'.format(fig_fmt))
+                                'Figure_15.{0}'.format(fig_fmt))
     #
     # Algorithms names - Thought as indices for this plot
     ml_algs_names = num.sort(list(models_dict))
