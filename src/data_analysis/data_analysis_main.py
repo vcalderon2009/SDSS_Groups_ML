@@ -485,7 +485,7 @@ def get_parser():
     ## Program message
     parser.add_argument('-progmsg',
                         dest='Prog_msg',
-                        help='Program message to use throught the script',
+                        help='Program message to use through the script',
                         type=str,
                         default=cfutils.Program_Msg(__file__))
     ## Parsing Objects
@@ -2056,8 +2056,8 @@ def project_const(param_dict):
     ##
     ## Fixed HOD and DV, and alternating Sigma_C in CLF
     if (param_dict['ml_analysis'] == 'hod_dv_fixed_sigma_c'):
-        window_name     = 'SDSS_ML_DA_fixed_hod_dv_{0}_sigma_c_{1}'.format(
-            param_dict['sigma_c_models_n'], param_dict['sigma_clf_c'])
+        window_name     = 'SDSS_ML_DA_fixed_hod_dv_sigma_c_{0}'.format(
+            param_dict['sigma_clf_c'])
     ##
     ## File or files to run
     sub_window_name = 'DA'
@@ -2077,7 +2077,7 @@ def project_const(param_dict):
     ## Fixed HOD and multiple DV models
     if (param_dict['ml_analysis'] == 'hod_fixed'):
         run_file_dict    = {}
-        run_file_dict[0] = {'file': 'catl_velocity_bias_diff_comparison.py'}
+        run_file_dict[0] = {'file': 'catl_velocfity_bias_diff_comparison.py'}
         run_file_dict[1] = {'file': 'catl_velocity_bias_diff_comparison_plots.py'}
     ## Fixed HOD and DV, and multiple `Sigma_c` models
     ## Fixed HOD and multiple DV models

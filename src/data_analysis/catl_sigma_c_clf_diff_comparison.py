@@ -410,8 +410,8 @@ def get_parser():
                         dest='ml_analysis',
                         help='Type of analysis to perform.',
                         type=str,
-                        choices=['hod_fixed'],
-                        default='hod_fixed')
+                        choices=['hod_dv_fixed_sigma_c'],
+                        default='hod_dv_fixed_sigma_c')
     ## Type of resampling to use if necessary
     parser.add_argument('-resample_opt',
                         dest='resample_opt',
