@@ -375,7 +375,7 @@ class ReadML(object):
                         self.mass_factor,
                         self.perf_opt]
         # Combining string
-        catl_pre_str = '{0}_halo_{1}_hodn_{2}_dv_{3}_clfm_{4}_sigma_c_{5}'
+        catl_pre_str = '{0}_halo_{1}_hodn_{2}_dv_{3}_clfm_{4}_sigma_c_{5}_'
         catl_pre_str += 'clfseed_{6}_ctype_{7}_cosmo_{8}_nmin_{9}_massf_{10}_'
         catl_pre_str += 'perf_{11}'
         catl_pre_str = catl_pre_str.format(*catl_pre_arr)
