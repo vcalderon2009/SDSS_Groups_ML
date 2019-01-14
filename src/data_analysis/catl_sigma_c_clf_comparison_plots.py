@@ -797,7 +797,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
     ##
     ## Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
-                            'Fig_{0}_{1}_frac_diff_predicted_sigma_c.pdf'.format(
+                            'Fig_{0}_{1}_fd_pred_sc.pdf'.format(
                                 fig_number,
                                 param_dict['catl_str_fig']))
     ##
