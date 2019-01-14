@@ -1048,7 +1048,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
         ax.yaxis.set_major_locator(yaxis_major_loc)
         ax.yaxis.set_minor_locator(yaxis_minor_loc)
         # Axis legend
-        ax.legend(loc='upper left', ncol=2, numpoints=1, frameon=False,
+        ax.legend(loc='upper left', ncol=1, numpoints=1, frameon=False,
             prop={'size': 14})
     #
     # Spacing
