@@ -790,7 +790,7 @@ def score_mass_regimes(true_arr, pred_arr, low_high_cut=12.5,
 
 # Fractional difference
 def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
-    arr_len=10, bin_statval='left', fig_fmt='pdf', figsize=(10, 8),
+    arr_len=10, bin_statval='average', fig_fmt='pdf', figsize=(10, 8),
     fig_number=1):
     """
     Plots the fractional difference between `predicted` and `true`
