@@ -729,7 +729,7 @@ def mass_pred_comparison_plot(catl_pd, param_dict, proj_dict, arr_len=10,
     bin_width = param_dict['ml_args'].mass_bin_width
     ## Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
-                            'Fig_{0}_{1}_masses_comparison.{2}'.format(
+                            'Fig_{0}_{1}_m_comp.{2}'.format(
                                 fig_number,
                                 param_dict['catl_str_fig'],
                                 fig_fmt))
