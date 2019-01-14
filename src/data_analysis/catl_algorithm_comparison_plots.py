@@ -853,7 +853,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     ##
     ## Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
-                            'Fig_{0}_{1}_{2}_frac_diff_predicted.pdf'.format(
+                            'Fig_{0}_{1}_{2}_fd_pred.pdf'.format(
                                 fig_number,
                                 param_dict['catl_str_fig'],
                                 plot_opt))
@@ -1131,7 +1131,7 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
     ##
     ## Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
-                            'Fig_{0}_{1}_feature_ranking_{2}.{3}'.format(
+                            'Fig_{0}_{1}_f_rank_{2}.{3}'.format(
                                 fig_number,
                                 param_dict['catl_str_fig'],
                                 rank_opt,
@@ -1329,7 +1329,7 @@ def model_score_chart_1d_cut_bar(models_dict, param_dict, proj_dict,
     #
     # Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
-                            'Fig_{0}_{1}_ml_algorithms_scores_cut_b_{2}.{3}'.format(
+                            'Fig_{0}_{1}_ml_alg_s_cut_b_{2}.{3}'.format(
                                 fig_number,
                                 param_dict['catl_str_fig'],
                                 score_type,
@@ -1559,7 +1559,7 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
     #
     # Figure name
     fname = os.path.join(   proj_dict['figure_dir'],
-                            'Fig_{0}_{1}_ml_algorithms_scores_{2}.{3}'.format(
+                            'Fig_{0}_{1}_ml_algs_scores_{2}.{3}'.format(
                                 fig_number,
                                 param_dict['catl_str_fig'],
                                 score_type,
@@ -1588,7 +1588,7 @@ def model_score_chart_1d(models_dict, param_dict, proj_dict,
         # Assigning to DataFrame
         ml_algs_pd.loc[kk, 'ML'] = model_score
     #
-    # -- Traditonal mehods
+    # -- Traditional methods
     # HAM
     (   ham_pred,
         ham_true,
@@ -1724,7 +1724,7 @@ def pred_masses_halo_mass(models_dict, param_dict, proj_dict,
     #
     # Figure name
     fname = os.path.join(proj_dict['figure_dir'],
-                'Fig_{0}_{1}_pred_true_masses.{2}'.format(
+                'Fig_{0}_{1}_pred_true_m.{2}'.format(
                     fig_number, param_dict['catl_str_fig'], fig_fmt))
     ##
     ## Paper Figure
