@@ -1934,7 +1934,7 @@ def main(args):
                                         hod_n=param_dict['hod_n'],
                                         clf_seed=param_dict['clf_seed'],
                                         return_len=True,
-                                        print_filedir=False )
+                                        print_filedir=False)
     #
     # Checking if a new merged VAC is needed
     param_dict = test_df_merged_dir(param_dict, proj_dict, n_catls)
