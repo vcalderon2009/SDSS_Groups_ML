@@ -997,7 +997,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
                                 y1, y2,
                                 color=cm_arr[zz],
                                 alpha=alpha,
-                                label=r'\boldmath$\sigma_\mathrm{\log\ L}$: ' + '{0}'.format(sigma_c_zz),
+                                label=r'\boldmath$\sigma_\mathrm{\log(L)}$: ' + '{0}'.format(sigma_c_zz),
                                 zorder=zorder_ml)
         ##
         ## HAM and Dynamical Masses
