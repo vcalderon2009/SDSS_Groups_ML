@@ -803,7 +803,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
     ##
     ## Paper Figure
     fname_paper = os.path.join( proj_dict['paper_fig_dir'],
-                                'Figure_14.{0}'.format(fig_fmt))
+                                'Figure_13.{0}'.format(fig_fmt))
     ## Algorithm names - Thought as indices for the plot
     ml_algs_names = num.sort(list(models_dict.keys()))
     n_ml_algs     = len(ml_algs_names)

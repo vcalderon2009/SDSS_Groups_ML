@@ -736,7 +736,7 @@ def mass_pred_comparison_plot(catl_pd, param_dict, proj_dict, arr_len=10,
     ##
     ## Paper Figure
     fname_paper = os.path.join( proj_dict['paper_fig_dir'],
-                                'Figure_12.{0}'.format(fig_fmt))
+                                'Figure_14.{0}'.format(fig_fmt))
     # Labels
     labels_dict = { 'M_h_pred': r'\boldmath$\log M_{\mathrm{predicted}}\left[h^{-1} M_{\odot}\right]$',
                     'GG_M_group': r'\boldmath$\log M_{\mathrm{HAM}}\left[h^{-1} M_{\odot}\right]$',
