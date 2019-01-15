@@ -420,7 +420,7 @@ def get_parser():
                         help='Option for which variable to plot on x-axis',
                         type=str,
                         choices=['mgroup', 'mhalo'],
-                        default='mhalo')
+                        default='mgroup')
     ## Which axes to plot
     parser.add_argument('-rank_opt',
                         dest='rank_opt',
@@ -790,7 +790,7 @@ def score_mass_regimes(true_arr, pred_arr, low_high_cut=12.5,
 
 # Fractional difference
 def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
-    arr_len=10, bin_statval='average', fig_fmt='pdf', figsize=(10, 8),
+    arr_len=10, bin_statval='average', fig_fmt='pdf', figsize=(8, 8),
     fig_number=1):
     """
     Plots the fractional difference between `predicted` and `true`

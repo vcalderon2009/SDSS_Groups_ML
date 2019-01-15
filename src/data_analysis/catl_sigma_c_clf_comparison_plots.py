@@ -734,8 +734,6 @@ def array_insert(arr1, arr2, axis=1):
 
 ## --------- Plotting Functions ------------##
 
-
-
 # Fractional difference
 def frac_diff_model(models_dict, param_dict, proj_dict,
     arr_len=10, bin_statval='average', fig_fmt='pdf', figsize_1=(8, 8),
