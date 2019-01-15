@@ -935,7 +935,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
     propssfr = dict(boxstyle='round', facecolor='white', alpha=0.7)
     ##
     ## Constants
-    xlim = (10, 15)
+    xlim = (11, 15)
     ylim = (-20, 20)
     # Major and minor locators
     xaxis_major = 1
@@ -1034,7 +1034,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
                         y2_dyn,
                         color=plot_dict['color_dyn'],
                         alpha=alpha,
-                        label='Dynamical',
+                        label='DYN',
                         zorder=zorder_ml)
         ##
         ## Axes limits

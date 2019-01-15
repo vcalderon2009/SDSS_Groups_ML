@@ -1024,7 +1024,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
                         y2_dyn, 
                         color=plot_dict['color_dyn'],
                         alpha=alpha_mass,
-                        label='Dynamical',
+                        label='DYN',
                         zorder=zorder_shade)
     ## Legend
     leg = ax1.legend(loc='upper left', numpoints=1, frameon=False,
@@ -1050,7 +1050,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     ax1.set_ylabel(ylabel, fontsize=plot_dict['size_label'])
     ##
     ## Limits
-    xlim = (10, 15)
+    xlim = (11, 15)
     ylim = (-20, 20)
     ax1.set_xlim(xlim)
     ax1.set_ylim(ylim)

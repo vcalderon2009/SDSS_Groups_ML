@@ -76,14 +76,14 @@ make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="
 ##############################################################################
 
 ## --- Fixed HOD and DV ---
-make HALOTYPE="so" N_FEAT_USE="all" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="True" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="hod_dv_fixed" SAMPLE_METHOD="binning" BIN_VAL="nbins" ml_analysis
-make HALOTYPE="so" N_FEAT_USE="sub" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="True" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="hod_dv_fixed" SAMPLE_METHOD="binning" BIN_VAL="nbins" ml_analysis
+make HALOTYPE="so" N_FEAT_USE="all" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="False" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="hod_dv_fixed" SAMPLE_METHOD="binning" BIN_VAL="nbins" ml_analysis
+make HALOTYPE="so" N_FEAT_USE="sub" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="False" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="hod_dv_fixed" SAMPLE_METHOD="binning" BIN_VAL="nbins" ml_analysis
 
 ## --- HOD Comparison - Same DV ---
-make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="True" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="dv_fixed" HOD_MODELS_N='0_1_2_3_4_5_6_7_8' SAMPLE_METHOD="binning" BIN_VAL="nbins" ml_analysis
+make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="False" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="dv_fixed" HOD_MODELS_N='0_1_2_3_4_5_6_7_8' SAMPLE_METHOD="binning" BIN_VAL="nbins" ml_analysis
 
 ## --- DV Comparison - Same HOD ---
-make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="True" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="hod_fixed" DV_MODELS_N='0.9_0.95_1.0_1.05_1.10' SAMPLE_METHOD="binning" BIN_VAL="nbins" ml_analysis
+make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="False" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="hod_fixed" DV_MODELS_N='0.9_0.95_1.0_1.05_1.10' SAMPLE_METHOD="binning" BIN_VAL="nbins" ml_analysis
 
 ## --- Sigma_C Comparison - Same HOD ---
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="False" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="hod_dv_fixed_sigma_c" SIGMA_C_MOD_N='0.10_0.1417_0.20_0.30' SAMPLE_METHOD="binning" BIN_VAL="nbins" ml_analysis
