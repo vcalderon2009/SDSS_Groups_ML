@@ -98,7 +98,6 @@ make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="
 ## --- Creating plots for the REAL catalogues for Mr19 --- ###
 make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="True" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="hod_dv_fixed" SAMPLE_METHOD="binning" BIN_VAL="nbins" CHOSEN_ML_ALG="xgboost"  SAMPLE_METHOD="binning" BIN_VAL="nbins" data_real_catl_plots
 
-
 ##### --------------------------- 2018-09-03 --------------------------- #####
 
 ##############################################################################
