@@ -737,8 +737,6 @@ def array_insert(arr1, arr2, axis=1):
 
 ## --------- Plotting Functions ------------##
 
-
-
 # Fractional difference
 def frac_diff_model(models_dict, param_dict, proj_dict,
     arr_len=10, bin_statval='average', fig_fmt='pdf', figsize_1=(8, 8),
@@ -1072,6 +1070,396 @@ def frac_diff_model(models_dict, param_dict, proj_dict,
     plt.clf()
     plt.close()
 
+## Extracts the masses (HAM and DYN) for different HOD models
+def extract_masses_hod(hod_ii, param_dict, bin_width=0.4, arr_len=10,
+    bin_statval='average', dyn_thresh=11., nlim_min=4, mass_plot='ham'):
+    """
+    Computes the HAM and DYN masses for different HOD models
+
+    Parameters
+    ------------
+    hod_ii : `int`
+        HOD model used for extracting masses
+
+    param_dict : `dict`
+        Dictionary with input parameters and values related to this project.
+
+    bin_width : `float`, optional
+        This variable sets the width of the bin along the x-axis in ``log``.
+        This variable is set to ``0.4`` dex by default.
+
+    arr_len : `int`, optional
+        Minimum number of elements in bins. This variable is set to `0`
+        by default.
+
+    bin_statval : `str`, optional
+        Option for where to plot the bin values. This variable is set
+        to `average` by default.
+
+        Options:
+        - 'average': Returns the x-points at the average x-value of the bin
+        - 'left'   : Returns the x-points at the left-edge of the x-axis bin
+        - 'right'  : Returns the x-points at the right-edge of the x-axis bin
+
+    dyn_thresh : `float`, optional
+        Value, above which `dynamical` mass can be used. Any `dyn` values
+        below this value will be ignored. This variable is set to ``11`` dex
+        by default.
+
+    nlim_min : `int`, optional
+        Minimum number of elements in a group, to show as part of the
+        catalogue. This variable is set to `4` by default.
+
+    mass_plot : {``'ham'``, ``'dyn'``} `str`, optional
+        Choice of which mass to plot. This variable is set to ``ham`` by
+        default.
+    
+    Returns
+    ------------
+    mass_hod_ii_dict : `dict`
+        Dictionary for the given `hod_ii` value, with their corresponding
+        `HAM` and `DYN` masses.
+    """
+    ## Making copy of main `param_dict`
+    param_dict_copy = param_dict.copy()
+    ## Modifying HOD parameters
+    param_dict_copy['hod_n'] = hod_ii
+    ## Initializing object
+    ml_ii_obj = ReadML(**param_dict_copy)
+    ##
+    ## Extracting Mass
+    if (mass_plot == 'ham'):
+        # HAM
+        (   pred_ii,
+            true_ii,
+            frac_diff_ii) = ml_ii_obj.extract_trad_masses_alt(
+                                                    mass_opt='ham',
+                                                    return_frac_diff=True)
+    #
+    if (mass_plot == 'dyn'):
+        # DYN
+        (   pred_ii,
+            true_ii,
+            frac_diff_ii) = ml_ii_obj.extract_trad_masses_alt(
+                                                    mass_opt='dyn',
+                                                    return_frac_diff=True,
+                                                    nlim_threshold=True,
+                                                    nlim_min=nlim_min)
+        ## Only choosing non-zero values
+        pred_ii_mask = pred_ii >= dyn_thresh
+        pred_ii      = pred_ii[pred_ii_mask]
+        true_ii      = true_ii[pred_ii_mask]
+        frac_diff_ii = frac_diff_ii[pred_ii_mask]
+    ##
+    ## Choosing which mass to plot
+    ham_x_ii = ham_pred_ii
+    dyn_x_ii = dyn_pred_ii
+    ##
+    ## Binning data
+    (   x_stat_ii   ,
+        y_stat_ii   ,
+        y_std_ii    ,
+        y_std_err_ii) = cstats.Stats_one_arr(   pred_ii,
+                                                    frac_diff_ii,
+                                                    base=bin_width,
+                                                    arr_len=arr_len,
+                                                    bin_statval=bin_statval)
+    y1_ii = y_stat_ii - y_std_ii
+    y2_ii = y_stat_ii + y_std_ii
+    ##
+    ## Saving as dictionary
+    mass_hod_ii_dict = {}
+    mass_hod_ii_dict['hod'   ] = hod_ii
+    # `HAM`
+    mass_hod_ii_dict['x_stat'] = x_stat_ii
+    mass_hod_ii_dict['y_stat'] = y_stat_ii
+    mass_hod_ii_dict['y1'    ] = y1_ii
+    mass_hod_ii_dict['y2'    ] = y2_ii
+
+    return mass_hod_ii_dict
+
+# Fractional difference
+def frac_diff_model_mass_hods(models_dict, param_dict, proj_dict,
+    arr_len=10, bin_statval='average', fig_fmt='pdf', figsize_1=(8, 8),
+    figsize_2=(15, 8), fig_number=8, nlim_min=4, dyn_thresh=11.,
+    mass_plot='ham'):
+    """
+    Plots the fractional difference between `predicted` and `true`
+    halo masses.
+
+    Parameters
+    -----------
+    models_dict : `dict`
+        Dictionary containing the results from the ML analysis.
+
+    param_dict : `dict`
+        Dictionary with input parameters and values related to this project.
+
+    proj_dict: python dictionary
+        Dictionary with current and new paths to project directories
+
+    arr_len : `int`, optional
+        Minimum number of elements in bins. This variable is set to `0`
+        by default.
+
+    bin_statval : `str`, optional
+        Option for where to plot the bin values. This variable is set
+        to `average` by default.
+
+        Options:
+        - 'average': Returns the x-points at the average x-value of the bin
+        - 'left'   : Returns the x-points at the left-edge of the x-axis bin
+        - 'right'  : Returns the x-points at the right-edge of the x-axis bin
+
+    fig_fmt : `str`, optional (default = 'pdf')
+        extension used to save the figure
+
+    figsize : `tuple`, optional
+        Size of the output figure. This variable is set to `(12,15.5)` by
+        default.
+
+    fig_number : `int`, optional
+        Number of figure in the workflow. This variable is set to `1`
+        by default.
+
+    nlim_min : `int`, optional
+        Minimum number of elements in a group, to show as part of the
+        catalogue. This variable is set to `4` by default.
+
+    dyn_thresh : `float`, optional
+        Value, above which `dynamical` mass can be used. Any `dyn` values
+        below this value will be ignored. This variable is set to ``11`` dex
+        by default.
+
+    mass_plot : {``'ham'``, ``'dyn'``} `str`, optional
+        Choice of which mass to plot. This variable is set to ``ham`` by
+        default.
+    """
+    file_msg = param_dict['Prog_msg']
+    ## Matplotlib option
+    matplotlib.rcParams['axes.linewidth'] = 2.5
+    matplotlib.rcParams['axes.edgecolor'] = 'black'
+    #
+    # Constants
+    cm           = plt.cm.get_cmap('viridis')
+    plot_dict    = param_dict['plot_dict']
+    ham_color    = 'red'
+    alpha        = 0.2
+    alpha_mass   = 0.2
+    zorder_mass  = 10
+    zorder_shade = zorder_mass - 1
+    zorder_ml    = zorder_mass + 1
+    bin_width    = param_dict['ml_args'].mass_bin_width
+    ##
+    ## Figure name
+    # fname = os.path.join(   proj_dict['figure_dir'],
+    #                         'Fig_{0}_{1}_frac_diff_predicted_HOD_{2}.pdf'.format(
+    #                             fig_number,
+    #                             param_dict['catl_str_fig'],
+    #                             mass_plot))
+    ##
+    ## Paper Figure
+    fname_paper = os.path.join( proj_dict['paper_fig_dir'],
+                                'Figure_08b_{0}.{1}'.format(mass_plot,
+                                    fig_fmt))
+    ## Algorithm names - Thought as indices for the plot
+    ml_algs_names = num.sort(list(models_dict.keys()))
+    n_ml_algs     = len(ml_algs_names)
+    ##
+    ## Only using the information for the given algorithm
+    if (param_dict['chosen_ml_alg'] == 'xgboost'):
+        ml_alg_key = 'XGBoost'
+    elif (param_dict['chosen_ml_alg'] == 'rf'):
+        ml_alg_key = 'random_forest'
+    elif (param_dict['chosen_ml_alg'] == 'nn'):
+        ml_alg_key = 'neural_network'
+    # Chosen algorithm
+    ml_algs_names = [ml_alg_key]
+    # Initializing dictionary that will contain the necessary information
+    # on each model
+    frac_diff_dict        = {}
+    model_hod_masses_dict = {}
+    ## Reading in arrays for different models
+    for kk, model_kk in enumerate(tqdm(ml_algs_names)):
+        # X and Y coordinates
+        model_kk_data = models_dict[model_kk]
+        # Dictionary to save results
+        frac_diff_dict[model_kk] = {}
+        # Looping over different HOD models
+        for ii, hod_ii in enumerate(model_kk_data.keys()):
+            # New X-axis
+            model_kk_x = model_kk_data[hod_ii]['mhalo_pred']
+            # Y-axis
+            model_kk_y = model_kk_data[hod_ii]['frac_diff']
+            # Calculating error in bins
+            (   x_stat_arr,
+                y_stat_arr,
+                y_std_arr,
+                y_std_err) = cstats.Stats_one_arr(  model_kk_x,
+                                                    model_kk_y,
+                                                    base=bin_width,
+                                                    arr_len=arr_len,
+                                                    bin_statval=bin_statval)
+            # Saving to dictionary
+            frac_diff_dict[model_kk][hod_ii] = {}
+            frac_diff_dict[model_kk][hod_ii]['x_val' ] = model_kk_x
+            frac_diff_dict[model_kk][hod_ii]['y_val' ] = model_kk_y
+            frac_diff_dict[model_kk][hod_ii]['x_stat'] = x_stat_arr
+            frac_diff_dict[model_kk][hod_ii]['y_stat'] = y_stat_arr
+            frac_diff_dict[model_kk][hod_ii]['y_err' ] = y_std_arr
+            ##
+            ## Extracting `HAM` and `DYN` masses
+            if (kk == 0):
+                model_hod_masses_dict[hod_ii] = extract_masses_hod(
+                                                    hod_ii,
+                                                    param_dict,
+                                                    bin_width=bin_width,
+                                                    arr_len=arr_len,
+                                                    bin_statval=bin_statval,
+                                                    dyn_thresh=dyn_thresh,
+                                                    nlim_min=nlim_min,
+                                                    mass_plot=mass_plot)
+    ##
+    ## Figure details
+    # ML algorithms - names
+    ml_algs_names_mod  = [xx.replace('_',' ').title() for xx in ml_algs_names]
+    ml_algs_names_dict = dict(zip(ml_algs_names, ml_algs_names_mod))
+    # Number of algorithms
+    n_ml_algs = len(ml_algs_names)
+    # Number of HOD
+    hod_arr = list(models_dict[list(models_dict.keys())[0]].keys())
+    n_hod   = len(hod_arr)
+    # Labels
+    xlabel = r'\boldmath$\log M_{\textrm{predicted}}\left[ h^{-1} M_{\odot}\right]$'
+    # Y-label
+    ylabel = r'Frac. Difference \boldmath$[\%]$'
+    ##
+    # Figure size
+    if (n_ml_algs == 1):
+        figsize = figsize_1
+    else:
+        figsize = figsize_2
+    # Initializing figure
+    plt.clf()
+    plt.close()
+    fig, axes = plt.subplots(nrows=1, ncols=n_ml_algs, sharey=True,
+                    sharex=True, figsize=figsize, facecolor='white')
+    if (n_ml_algs > 1):
+        axes = axes.flatten()
+    else:
+        axes = [axes]
+    # Color
+    cm       = plt.cm.get_cmap('viridis')
+    cm_arr   = [cm(kk/float(n_hod)) for kk in range(n_hod)]
+    propssfr = dict(boxstyle='round', facecolor='white', alpha=0.7)
+    ##
+    ## Constants
+    xlim = (11, 15)
+    ylim = (-20, 20)
+    # Major and minor locators
+    xaxis_major = 1
+    xaxis_minor = 0.2
+    yaxis_major = 5
+    yaxis_minor = 1
+    xaxis_major_loc = ticker.MultipleLocator(xaxis_major)
+    xaxis_minor_loc = ticker.MultipleLocator(xaxis_minor)
+    yaxis_major_loc = ticker.MultipleLocator(yaxis_major)
+    yaxis_minor_loc = ticker.MultipleLocator(yaxis_minor)
+    # Looping over axes
+    for kk, ml_kk in enumerate(ml_algs_names):
+        # Axes being used
+        ax = axes[kk]
+        # Background
+        ax.set_facecolor('white')
+        # Model Name
+        ml_kk_name = ml_algs_names_dict[ml_kk]
+        #
+        # ML name - Text
+        ax.text(0.60, 0.10, ml_kk_name, transform=ax.transAxes,
+            verticalalignment='top', color='black',
+            bbox=propssfr, weight='bold', fontsize=plot_dict['size_text'])
+        # Type of mass
+        ax.text(0.80, 0.10, mass_plot.upper(), transform=ax.transAxes,
+            verticalalignment='top', color='black',
+            bbox=propssfr, weight='bold', fontsize=plot_dict['size_text'])
+        ## Horizontal line
+        ax.axhline(y=0, color='black', linestyle='--', zorder=10)
+        # Looping over HOD models
+        for zz, hod_zz in enumerate(hod_arr):
+            ## Extracting values for HAM
+            x_stat = model_hod_masses_dict[hod_zz]['x_stat']
+            y_stat = model_hod_masses_dict[hod_zz]['y_stat']
+            y1     = model_hod_masses_dict[hod_zz]['y1']
+            y2     = model_hod_masses_dict[hod_zz]['y2']
+            #
+            # - Plotting
+            # Relation
+            if (hod_zz == param_dict['hod_n']):
+                ax.plot(x_stat,
+                        y_stat,
+                        color='black',
+                        linestyle='-.',
+                        linewidth=2,
+                        marker='o',
+                        zorder=zorder_ml)
+                # Fill-between
+                ax.fill_between(x_stat,
+                                y1, y2,
+                                color='black',
+                                alpha=alpha,
+                                label='Fiducial Model',
+                                zorder=zorder_ml)
+            else:
+                ax.plot(x_stat,
+                        y_stat,
+                        color=cm_arr[zz],
+                        linestyle='-',
+                        marker='o',
+                        zorder=zorder_ml)
+                # Fill-between
+                ax.fill_between(x_stat,
+                                y1, y2,
+                                color=cm_arr[zz],
+                                alpha=alpha,
+                                label='HOD {0}'.format(hod_zz),
+                                zorder=zorder_ml)
+        ##
+        ## Axes limits
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        # labels
+        ax.set_xlabel(xlabel, fontsize=plot_dict['size_label'])
+        if (kk == 0):
+            ax.set_ylabel(ylabel, fontsize=plot_dict['size_label'])
+        #
+        # Major and minor locators
+        ax.xaxis.set_major_locator(xaxis_major_loc)
+        ax.xaxis.set_minor_locator(xaxis_minor_loc)
+        ax.yaxis.set_major_locator(yaxis_major_loc)
+        ax.yaxis.set_minor_locator(yaxis_minor_loc)
+        # Axis legend
+        ax.legend(loc='upper left', ncol=2, numpoints=1, frameon=False,
+            prop={'size': 14})
+    #
+    # Spacing
+    plt.subplots_adjust(wspace=0.05)
+    #
+    # Saving figure
+    ##
+    ## Saving figure
+    if (fig_fmt == 'pdf'):
+        # plt.savefig(fname, bbox_inches='tight', rasterize=True)
+        plt.savefig(fname_paper, bbox_inches='tight', rasterize=True)
+    else:
+        # plt.savefig(fname, bbox_inches='tight', dpi=400)
+        plt.savefig(fname_paper, bbox_inches='tight', dpi=400)
+    ##
+    ##
+    print('{0} Figure saved as: {1}'.format(file_msg, fname))
+    print('{0} Paper Figure saved as: {1}'.format(file_msg, fname_paper))
+    plt.clf()
+    plt.close()
+
 # Model Score - Different algorithms - Bar Chart
 def model_score_chart_1d(models_dict, param_dict, proj_dict,
     fig_fmt='pdf', figsize=(10,8), fig_number=2, score_type='perc'):
@@ -1276,6 +1664,13 @@ def main(args):
     ##
     ## Fractional difference of `predicted` and `truth`
     frac_diff_model(models_dict, param_dict, proj_dict)
+    ##
+    ## Fractional difference of `predicted` and `truth` - `HAM`
+    frac_diff_model_mass_hods(models_dict, param_dict, proj_dict,
+        mass_plot='ham')
+    ## Fractional difference of `predicted` and `truth` - `DYN`
+    frac_diff_model_mass_hods(models_dict, param_dict, proj_dict,
+        mass_plot='dyn')
     #
     # Model Score - Different algorithms - Bar Chart
     # model_score_chart_1d(models_dict, param_dict, proj_dict)
