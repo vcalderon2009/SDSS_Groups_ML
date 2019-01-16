@@ -792,6 +792,21 @@ class ReadML(object):
 
         return features_cols
 
+    ## List of keys for masses, i.e. `HAM` and `DYN`
+    def mass_keys_extract(self):
+        """
+        List of keys for masses, i.e. `HAM` and `DYN`
+
+        Returns
+        ----------
+        mass_dict : `dict`
+            Dictionary with the corresponding keys for ``HAM`` AND ``
+        """
+        mass_dict = {   'HAM': 'GG_M_group',
+                        'DYN': 'GG_mdyn_rproj'}
+
+        return mass_dict
+
     ## -- Traditional mass estimates extraction --
     def extract_trad_masses_alt(self, mass_opt='ham', score_method='perc',
         threshold=None, perc=None, return_score=False, return_frac_diff=False,
