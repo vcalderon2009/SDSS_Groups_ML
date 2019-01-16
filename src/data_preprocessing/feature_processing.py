@@ -677,11 +677,14 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
     ## List of `features` and `predicted values`
     predicted_cols = param_dict['ml_args']._predicted_cols()
     features_cols  = param_dict['ml_args']._feature_cols()
+    ##
+    ## List of masses, i.e. HAM and DYN
+    mass_cols_dict = param_dict['ml_args'].mass_keys_extract()
     ## Dropping NaN's
     if dropna_opt:
         catl_pd_tot.dropna(how='any', inplace=True)
     ## Choosing which type to use for the training/testing datasets
-    if test_train_opt == 'sample_frac':
+    if (test_train_opt == 'sample_frac'):
         ## Fraction of the total dataset
         catl_pd = catl_pd_tot.sample(   frac=sample_frac,
                                         random_state=random_state)
@@ -689,8 +692,10 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
         catl_pd_tot = None
         ##
         ## Creating new DataFrames
-        pred_arr = catl_pd.loc[:, predicted_cols].values
-        feat_arr = catl_pd.loc[:, features_cols ].values
+        pred_pd  = catl_pd.loc[:, predicted_cols]
+        feat_pd  = catl_pd.loc[:, features_cols ]
+        pred_arr = pred_pd.values
+        feat_arr = feat_pd.values
         ## Modifying `pred_arr` and `feat_arr`
         pred_arr = cgu.reshape_arr_1d(pred_arr)
         feat_arr = cgu.reshape_arr_1d(feat_arr)
@@ -701,12 +706,25 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
         ##
         ## Rescaling and computing training and testing datasets
         (   train_dict,
-            test_dict ) = cmlu.train_test_dataset(  pred_arr,
-                                                    feat_arr,
+            test_dict ) = cmlu.train_test_dataset(  pred_pd,
+                                                    feat_pd,
                                                     pre_opt=pre_opt,
                                                     shuffle_opt=shuffle_opt,
                                                     random_state=random_state,
-                                                    test_size=test_size)
+                                                    test_size=test_size,
+                                                    reshape=True,
+                                                    return_idx=True)
+        ##
+        ## Adding values of mass to train dictionary
+        for key_ii in mass_cols_dict.keys():
+            # Key for the mass being extracted
+            mass_key_ii = mass_cols_dict[key_ii]
+            # Extracting values from main catalogue
+            mass_ii_train = catl_pd.loc[train_dict['train_idx'], mass_key_ii].values
+            mass_ii_test  = catl_pd.loc[test_dict ['test_idx'] , mass_key_ii].values
+            # Saving to dictionaries
+            train_dict[key_ii] = mass_ii_train
+            test_dict [key_ii] = mass_ii_test
         ##
         ## Saving to dictionary
         param_dict['predicted_cols' ] = predicted_cols
@@ -715,8 +733,8 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
         param_dict['feat_arr'       ] = feat_arr
     ##
     ## If selecting testing/training based on which boxes
-    if test_train_opt =='boxes_n':
-        ## Simualation boxes - Indices
+    if (test_train_opt =='boxes_n'):
+        ## Simulation boxes - Indices
         (   box_train_start,
             box_train_end  ,
             box_test_idx   ) = (num.array(param_dict['box_idx'].split('_'))
@@ -755,11 +773,13 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
         ##
         ## `Features` and `predictions`
         # Training
+        train_idx      = catl_train_pd.index.values
         pred_train_arr = catl_train_pd.loc[:, predicted_cols].values
         feat_train_arr = catl_train_pd.loc[:, features_cols ].values
         pred_train_arr = cgu.reshape_arr_1d(pred_train_arr)
         feat_train_arr = cgu.reshape_arr_1d(feat_train_arr)
         # Testing
+        test_idx       = catl_test_pd.index.values
         pred_test_arr  = catl_test_pd.loc[:, predicted_cols].values
         feat_test_arr  = catl_test_pd.loc[:, features_cols ].values
         pred_test_arr  = cgu.reshape_arr_1d(pred_test_arr)
@@ -776,12 +796,25 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
         train_dict = {  'X_train'   : feat_train_arr_scaled,
                         'Y_train'   : pred_train_arr,
                         'X_train_ns': feat_train_arr,
-                        'Y_train_ns': pred_train_arr}
+                        'Y_train_ns': pred_train_arr,
+                        'train_idx' : train_idx}
         # Testing
         test_dict  = {  'X_test'   : feat_test_arr_scaled,
                         'Y_test'   : pred_test_arr,
                         'X_test_ns': feat_test_arr,
-                        'Y_test_ns': pred_test_arr}
+                        'Y_test_ns': pred_test_arr,
+                        'test_idx' : test_idx}
+        ##
+        ## Adding values of mass to train dictionary
+        for key_ii in mass_cols_dict.keys():
+            # Key for the mass being extracted
+            mass_key_ii = mass_cols_dict[key_ii]
+            # Extracting values from main catalogue
+            mass_ii_train = catl_pd_tot.loc[train_idx, mass_key_ii].values
+            mass_ii_test  = catl_pd_tot.loc[test_idx , mass_key_ii].values
+            # Saving to dictionaries
+            train_dict[key_ii] = mass_ii_train
+            test_dict [key_ii] = mass_ii_test
         ##
         ## Saving to dictionary
         param_dict['predicted_cols' ] = predicted_cols
@@ -810,9 +843,11 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
         # Deleting `total` catalogue
         catl_pd_tot = None
         ##
-        ## Creating `prediction` and `features` arrays
-        pred_arr = catl_pd.loc[:, predicted_cols].values
-        feat_arr = catl_pd.loc[:, features_cols ].values
+        ## Creating `prediction` and `features` arrays and DataFrames
+        pred_pd  = catl_pd.loc[:, predicted_cols]
+        feat_pd  = catl_pd.loc[:, features_cols ]
+        pred_arr = pred_pd.values
+        feat_arr = feat_pd.values
         ## Modifying `pred_arr` and `feat_arr`
         pred_arr = cgu.reshape_arr_1d(pred_arr)
         feat_arr = cgu.reshape_arr_1d(feat_arr)
@@ -823,12 +858,25 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
         ##
         ## Rescaling and computing training and testing datasets
         (   train_dict,
-            test_dict ) = cmlu.train_test_dataset(  pred_arr,
-                                                    feat_arr,
+            test_dict ) = cmlu.train_test_dataset(  pred_pd,
+                                                    feat_pd,
                                                     pre_opt=pre_opt,
                                                     shuffle_opt=shuffle_opt,
                                                     random_state=random_state,
-                                                    test_size=test_size)
+                                                    test_size=test_size,
+                                                    reshape=True,
+                                                    return_idx=True)
+        ##
+        ## Adding values of mass to train dictionary
+        for key_ii in mass_cols_dict.keys():
+            # Key for the mass being extracted
+            mass_key_ii = mass_cols_dict[key_ii]
+            # Extracting values from main catalogue
+            mass_ii_train = catl_pd.loc[train_dict['train_idx'], mass_key_ii].values
+            mass_ii_test  = catl_pd.loc[test_dict ['test_idx'] , mass_key_ii].values
+            # Saving to dictionaries
+            train_dict[key_ii] = mass_ii_train
+            test_dict [key_ii] = mass_ii_test
         ##
         ## Saving to dictionary
         param_dict['predicted_cols' ] = predicted_cols
