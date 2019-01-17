@@ -1255,7 +1255,7 @@ def frac_diff_model_mass_sigma_cs_panels(models_dict, param_dict, proj_dict,
     ##
     ## Paper Figure
     fname_paper = os.path.join( proj_dict['paper_fig_dir'],
-                                'Figure_08b_{0}_panels.{1}'.format(mass_plot,
+                                'Figure_12b_{0}_panels.{1}'.format(mass_plot,
                                     fig_fmt))
     ## Algorithm names - Thought as indices for the plot
     ml_algs_names = num.sort(list(models_dict.keys()))

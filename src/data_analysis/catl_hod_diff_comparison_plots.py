@@ -1457,6 +1457,7 @@ def frac_diff_model_mass_hods(models_dict, param_dict, proj_dict,
     plt.clf()
     plt.close()
 
+# Fractional Difference for each of the different HOD models
 def frac_diff_model_mass_hods_panels(models_dict, param_dict, proj_dict,
     arr_len=10, bin_statval='average', fig_fmt='pdf',
     figsize_2=(15, 8), fig_number=8, nlim_min=4, dyn_thresh=11.,
