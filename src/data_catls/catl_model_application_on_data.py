@@ -19,7 +19,7 @@ It produces a set of catalogues with galaxy- and
 group-related information, as well as the estimated
 masses from the three ML algorithms.
 
-We will use the following ML algoriths:
+We will use the following ML algorithms:
     - Random Forests
     - XGBoost
     - Neural Network

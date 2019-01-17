@@ -15,7 +15,7 @@ Main script to run the data preprocessing pipeline on the `real` data.
 The pipeline includes:
     - Calculates the features for each galaxy/group `real` catalogue.
     - Transforms the features into proper inputs for the ML algorithms.
-    - Saves thef features arrays as pickle files.
+    - Saves the features arrays as pickle files.
 
 Note
 -----

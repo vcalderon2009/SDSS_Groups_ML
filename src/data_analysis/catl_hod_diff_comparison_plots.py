@@ -1452,7 +1452,7 @@ def frac_diff_model_mass_hods(models_dict, param_dict, proj_dict,
         plt.savefig(fname_paper, bbox_inches='tight', dpi=400)
     ##
     ##
-    print('{0} Figure saved as: {1}'.format(file_msg, fname))
+    # print('{0} Figure saved as: {1}'.format(file_msg, fname))
     print('{0} Paper Figure saved as: {1}'.format(file_msg, fname_paper))
     plt.clf()
     plt.close()
