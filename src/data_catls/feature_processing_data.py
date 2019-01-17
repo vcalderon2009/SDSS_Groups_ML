@@ -315,12 +315,6 @@ def get_parser():
                         help='Fraction of total number of CPUs to use',
                         type=float,
                         default=0.75)
-    ## Option for removing file
-    parser.add_argument('-remove',
-                        dest='remove_files',
-                        help='Removed main files',
-                        type=_str2bool,
-                        default=False)
     ## Verbose
     parser.add_argument('-v', '--verbose',
                         dest='verbose',
@@ -535,13 +529,9 @@ def test_feat_file(param_dict, proj_dict):
     ##
     ## Checking if to run or not
     if os.path.exists(filepath):
-        if param_dict['remove_files']:
-            os.remove(filepath)
-            run_opt = True
-        else:
-            run_opt = False
-    else:
-        run_opt = True
+        os.remove(filepath)
+    # Always create new file
+    run_opt = True
     ##
     ## Saving name to dictionary
     param_dict['filepath'    ] = filepath
@@ -683,10 +673,10 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
 
     ##
     ## Selecting only 'feature' columns
-    catl_pd_tot = catl_pd_tot.loc[:, features_cols]
+    catl_pd = catl_pd_tot.loc[:, features_cols]
     ##
     ## 
-    feat_arr = cgu.reshape_arr_1d(catl_pd_tot.values)
+    feat_arr = cgu.reshape_arr_1d(catl_pd.values)
     # Scaled feature array
     feat_arr_scaled = cmlu.data_preprocessing(  feat_arr,
                                                 pre_opt=pre_opt)
@@ -695,6 +685,11 @@ def feat_selection(param_dict, proj_dict, random_state=0, shuffle_opt=True,
     pred_dict = {   'pred_X'     : feat_arr_scaled,
                     'pred_X_ns'  : feat_arr,
                     'catl_pd_tot': catl_pd_tot}
+    ## Adding arrays for `HAM` and `DYN`
+    mass_keys_dict = param_dict['ml_args'].mass_keys_extract()
+    # Looping over different mass keys in `mass_keys_dict`
+    for mass_ii in mass_keys_dict.keys():
+        pred_dict[mass_ii] = catl_pd_tot.loc[:, mass_keys_dict[mass_ii]].values
     ##
     ## Saving to dictionary
     param_dict['predicted_cols' ] = predicted_cols
@@ -723,16 +718,15 @@ def train_test_save(param_dict, pred_dict):
     ## Saving new file if necessary
     ##
     ## Data to be saved in the pickle file
-    if not (os.path.exists(filepath)):
-        ##
-        ## List of objects to save in pickle file.
-        obj_arr = [pred_dict]
-        ## Savng to pickle file
-        with open(filepath, 'wb') as file_p:
-            pickle.dump(obj_arr, file_p)
-        ##
-        ## Checking that file exists
-        cfutils.File_Exists(filepath)
+    ##
+    ## List of objects to save in pickle file.
+    obj_arr = [pred_dict]
+    ## Savng to pickle file
+    with open(filepath, 'wb') as file_p:
+        pickle.dump(obj_arr, file_p)
+    ##
+    ## Checking that file exists
+    cfutils.File_Exists(filepath)
     ##
     ## Output message
     msg = '{0} Output file: {1}'.format(file_msg, filepath)
