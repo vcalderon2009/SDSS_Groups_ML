@@ -48,6 +48,7 @@ plt.rc('text', usetex=True)
 from astropy.visualization import astropy_mpl_style
 plt.style.use(astropy_mpl_style)
 import seaborn as sns
+import math
 #sns.set()
 
 # Extra-modules
@@ -1172,7 +1173,6 @@ def extract_masses_sigma_c(sigma_c_ii, param_dict, bin_width=0.4, arr_len=10,
 
     return mass_sigma_c_ii_dict
 
-
 # Fractional Difference for each of the different sigma_c models
 def frac_diff_model_mass_sigma_cs_panels(models_dict, param_dict, proj_dict,
     arr_len=10, bin_statval='average', fig_fmt='pdf',
@@ -1332,8 +1332,8 @@ def frac_diff_model_mass_sigma_cs_panels(models_dict, param_dict, proj_dict,
     # Figure size
     figsize = figsize_2
     # Rows and columns
-    nrows = 2
     ncols = 5
+    nrows = math.ceil(len(sigma_c_arr)/ncols)
     # Initializing figure
     plt.clf()
     plt.close()
@@ -1466,8 +1466,6 @@ def frac_diff_model_mass_sigma_cs_panels(models_dict, param_dict, proj_dict,
     print('{0} Paper Figure saved as: {1}'.format(file_msg, fname_paper))
     plt.clf()
     plt.close()
-
-
 
 # Model Score - Different algorithms - Bar Chart
 def model_score_chart_1d(models_dict, param_dict, proj_dict,
@@ -1673,6 +1671,11 @@ def main(args):
     ##
     ## Fractional difference of `predicted` and `truth`
     frac_diff_model(models_dict, param_dict, proj_dict)
+    ## Panels
+    frac_diff_model_mass_sigma_cs_panels(models_dict, param_dict, proj_dict,
+        mass_plot='ham')
+    frac_diff_model_mass_sigma_cs_panels(models_dict, param_dict, proj_dict,
+        mass_plot='dyn')
     #
     # Model Score - Different algorithms - Bar Chart
     # model_score_chart_1d(models_dict, param_dict, proj_dict)

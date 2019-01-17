@@ -67,6 +67,7 @@ import sklearn
 import sklearn.ensemble         as skem
 import sklearn.neural_network   as skneuro
 import xgboost
+import math
 
 ## Functions
 
@@ -1616,8 +1617,8 @@ def frac_diff_model_mass_hods_panels(models_dict, param_dict, proj_dict,
     # Figure size
     figsize = figsize_2
     # Rows and columns
-    nrows = 2
     ncols = 5
+    nrows = math.ceil(len(hod_arr)/ncols)
     # Initializing figure
     plt.clf()
     plt.close()
