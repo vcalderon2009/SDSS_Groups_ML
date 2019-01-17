@@ -1981,13 +1981,14 @@ class ReadML(object):
         feat_arr    = feat_dict['pred_X']
         feat_ns_arr = feat_dict['pred_X_ns']
         catl_pd_tot = feat_dict['catl_pd_tot']
+        # Mass Dictionary
+        mass_keys_dict = self.mass_keys_extract()
         # Indices for `catl_pd_tot`
         catl_pd_tot.reset_index(inplace=True)
         # List of features used
         feat_colnames = num.array(self._feature_cols())
         # Extracting columns corresponding to `GG_M_group`
-        mgroup_data_arr = feat_ns_arr.T[num.where(
-                                feat_colnames == 'GG_M_group')[0]].flatten()
+        mgroup_data_arr = feat_dict['HAM']
         mgroup_data_idx_arr = num.arange(len(mgroup_data_arr))
         # Selecting algorithms
         if (self.chosen_ml_alg == 'xgboost'):
@@ -2033,10 +2034,11 @@ class ReadML(object):
                 pred_arr[mass_kk_idx] = pred_mass_kk
         ##
         ## Joining predicted array(s) to DataFrame
+        cols_final_arr = num.insert(feat_colnames, 0, 'index')
         pred_colnames  = num.array(self._predicted_cols())
         pred_colnames  = num.array([xx + '_pred' for xx in pred_colnames])
         pred_pd        = pd.DataFrame(pred_arr, columns=pred_colnames)
-        catl_pd_merged = pd.merge(  catl_pd_tot,
+        catl_pd_merged = pd.merge(  catl_pd_tot.loc[:, cols_final_arr],
                                     pred_pd,
                                     left_index=True,
                                     right_index=True)
