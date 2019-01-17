@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Victor Calderon
-# Created      : 2018-10-01
-# Last Modified: 2018-10-01
+# Created      : 2018-10-22
+# Last Modified: 2018-10-22
 # Vanderbilt University
 from __future__ import print_function, division, absolute_import
 __author__     = ['Victor Calderon']
@@ -15,7 +15,7 @@ Main script to run the data preprocessing pipeline on the `real` data.
 The pipeline includes:
     - Calculates the features for each galaxy/group `real` catalogue.
     - Transforms the features into proper inputs for the ML algorithms.
-    - Saves the features arrays as pickle files.
+    - Saves thef features arrays as pickle files.
 
 Note
 -----
@@ -479,7 +479,7 @@ def get_analysis_params(param_dict):
     ## CLF Method for assigning galaxy properties
     catl_feat_df = df_value_modifier(catl_feat_df, 'clf_method', param_dict)
     ##
-    ## Scatter in log(L) for central galaxies in the CLF
+    ## Scatter in log(L) of central galaxies in the CLF
     catl_feat_df = df_value_modifier(catl_feat_df, 'sigma_clf_c', param_dict)
     ##
     ## Random seed used during the CLF assignment
@@ -553,7 +553,7 @@ def get_analysis_params(param_dict):
                             ('n_feat_use'    , '-n_feat_use'    , 'sub'     ),
                             ('dens_calc'     , '-dens_calc'     , True      ),
                             ('cpu_frac'      , '-cpu'           , 0.75      ),
-                            # ('remove_files'  , '-remove'        , False     ),
+                            ('remove_files'  , '-remove'        , False     ),
                             ('verbose'       , '-v'             , False     ),
                             ('perf_opt'      , '-perf'          , False     ),
                             ('seed'          , '-seed'          , 1         )])
@@ -575,7 +575,7 @@ def get_analysis_params(param_dict):
     ## CLF Method for assigning galaxy properties
     feat_proc_df = df_value_modifier(feat_proc_df, 'clf_method', param_dict)
     ##
-    ## Scatter in log(L) for central galaxies in the CLF
+    ## Scatter in log(L) of central galaxies in CLF
     feat_proc_df = df_value_modifier(feat_proc_df, 'sigma_clf_c', param_dict)
     ##
     ## Random seed used during the CLF assignment
@@ -635,9 +635,9 @@ def get_analysis_params(param_dict):
     ##
     ## Percentage of CPU to use
     feat_proc_df = df_value_modifier(feat_proc_df, 'cpu_frac', param_dict)
-    # ##
-    # ## Option for removing files or not
-    # feat_proc_df = df_value_modifier(feat_proc_df, 'remove_files', param_dict)
+    ##
+    ## Option for removing files or not
+    feat_proc_df = df_value_modifier(feat_proc_df, 'remove_files', param_dict)
     ##
     ## Option for displaying outputs or not
     feat_proc_df = df_value_modifier(feat_proc_df, 'verbose', param_dict)
@@ -718,7 +718,6 @@ def project_const(param_dict):
     env_name        = 'sdss_groups_ml'
     ##
     ## Choosing the script(s) that will be ran
-    ## Choosing the script(s) that will be ran
     window_name     = 'SDSS_ML_data_preprocessing_data_hodn_{0}_dv_{1}_'
     window_name    += 'sigma_c_{2}'
     window_name     = window_name.format(   param_dict['hod_n'],
@@ -729,8 +728,9 @@ def project_const(param_dict):
     ##
     ## File or files to run
     run_file_dict    = {}
-    run_file_dict[0] = {'file': 'catl_feature_calculations_data.py'}
-    run_file_dict[1] = {'file': 'feature_processing_data.py'}
+    run_file_dict[0] = {'file': 'catl_model_application_on_data.py'}
+    run_file_dict[1] = {'file': 'catl_model_application_on_data_plots.py'}
+    run_file_dict[2] = {'file': 'catl_model_group_mass_variations'}
     ##
     ## Saving to main dictionary
     param_dict['env_name'       ] = env_name
@@ -753,7 +753,7 @@ def file_construction_and_execution(df_arr, param_dict, str_interval=200):
 
     param_dict: python dictionary
         dictionary with project variables
-
+    
     str_interval : `float`, optional
         Maximum length of the string to send at once. This variable is set to
         `200` by default.
