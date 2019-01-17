@@ -1677,6 +1677,11 @@ def main(args):
     ##
     ## Fractional difference of `predicted` and `truth`
     frac_diff_model(models_dict, param_dict, proj_dict)
+    ## Panels
+    frac_diff_model_mass_dvs_panels(models_dict, param_dict, proj_dict,
+        mass_plot='ham')
+    frac_diff_model_mass_dvs_panels(models_dict, param_dict, proj_dict,
+        mass_plot='dyn')
     #
     # Model Score - Different algorithms - Bar Chart
     # model_score_chart_1d(models_dict, param_dict, proj_dict)
