@@ -770,7 +770,7 @@ def subsample_idx(train_dict, test_dict, param_dict, mass_opt='group',
         Option for which mass to use when binning.
 
     resample_opt : {'under', 'over'}, `str`, optional
-        Option for which type of resample to use. This variable is set to
+        Option for which type of re-sample to use. This variable is set to
         `under` by default.
 
         Options:
@@ -796,17 +796,12 @@ def subsample_idx(train_dict, test_dict, param_dict, mass_opt='group',
     Y_train    = train_dict['Y_train']
     X_test_ns  = test_dict ['X_test_ns']
     Y_test     = test_dict ['Y_test']
+    # Keys for Masses
+    mass_keys_dict = param_dict['ml_args'].mass_keys_extract()
     ### --- Group mass --- ###
     # Unpacking `estimated` group mass
-    if ((len(feat_cols) == 1) and ('GG_M_group' in feat_cols)):
-        mgroup_train = X_train_ns
-        mgroup_test  = X_test_ns
-    elif ((len(feat_cols) > 1) and ('GG_M_group' in feat_cols)):
-        # Group mass index
-        mgroup_idx = num.where(feat_cols == 'GG_M_group')[0]
-        # Training and testing arrays
-        mgroup_train = X_train_ns.T[mgroup_idx].flatten()
-        mgroup_test  = X_test_ns.T[mgroup_idx].flatten()
+    mgroup_train = train_dict['HAM']
+    mgroup_test  = test_dict ['HAM']
     ### --- Halo mass --- ###
     # Unpacking `true` halo mass array
     if ((param_dict['n_predict'] == 1) and ('M_h' in pred_cols)):
@@ -892,7 +887,7 @@ def subsample_idx(train_dict, test_dict, param_dict, mass_opt='group',
         # Obtaining maximum number of counts
         n_train_min = num.min([len(x) for x in train_idx_bins])
         n_test_min  = num.min([len(x) for x in test_idx_bins])
-        # - Resampling
+        # - Re-sampling
         # Training
         for ii, train_rs_ii in enumerate(train_idx_bins):
             if (len(train_rs_ii) != n_train_min):
@@ -922,8 +917,6 @@ def subsample_idx(train_dict, test_dict, param_dict, mass_opt='group',
                         for key in test_dict}
 
     return train_dict_rs, test_dict_rs
-
-
 
 # Finding indices of bins
 def binning_idx(train_dict, test_dict, param_dict, mass_opt='group'):
@@ -963,17 +956,12 @@ def binning_idx(train_dict, test_dict, param_dict, mass_opt='group'):
     Y_train    = train_dict['Y_train']
     X_test_ns  = test_dict ['X_test_ns']
     Y_test     = test_dict ['Y_test']
+    # Keys for Masses
+    mass_keys_dict = param_dict['ml_args'].mass_keys_extract()
     ### --- Group mass --- ###
     # Unpacking `estimated` group mass
-    if ((len(feat_cols) == 1) and ('GG_M_group' in feat_cols)):
-        mgroup_train = X_train_ns
-        mgroup_test  = X_test_ns
-    elif ((len(feat_cols) > 1) and ('GG_M_group' in feat_cols)):
-        # Group mass index
-        mgroup_idx = num.where(feat_cols == 'GG_M_group')[0]
-        # Training and testing arrays
-        mgroup_train = X_train_ns.T[mgroup_idx].flatten()
-        mgroup_test  = X_test_ns.T[mgroup_idx].flatten()
+    mgroup_train = train_dict['HAM']
+    mgroup_test  = test_dict ['HAM']
     ### --- Halo mass --- ###
     # Unpacking `true` halo mass array
     if ((param_dict['n_predict'] == 1) and ('M_h' in pred_cols)):

@@ -2084,7 +2084,7 @@ def project_const(param_dict):
     if (param_dict['ml_analysis'] == 'hod_dv_fixed_sigma_c'):
         run_file_dict    = {}
         run_file_dict[0] = {'file': 'catl_sigma_c_clf_diff_comparison.py'}
-        run_file_dict[1] = {'file': 'catl_sigma_c_clf_comparison_plots.py'}
+        run_file_dict[1] = {'file': 'catl_sigma_c_clf_diff_comparison_plots.py'}
     ##
     ## Saving to main dictionary
     param_dict['env_name'       ] = env_name
