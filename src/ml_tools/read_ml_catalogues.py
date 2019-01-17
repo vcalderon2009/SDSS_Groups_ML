@@ -2399,23 +2399,3 @@ class ReadML(object):
         # Returning elements
         if return_path:
             return catl_out_filepath
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
