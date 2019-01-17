@@ -379,11 +379,24 @@ clean_data_dir:
 	@rm -rf $(DATA_DIR)/processed/*
 	@rm -rf $(DATA_DIR)/raw/*
 
+## Delete `preprocessing` screen sessions
+delete_preprocessing_screens:
+	@echo "screen -ls | awk '/SDSS_ML_data_preprocessing/ {print $1}' | xargs -L 1 bash -c 'screen -S $0 -X kill'"
+	screen -ls | awk '/SDSS_ML_data_preprocessing/ {print $1}' | xargs -L 1 bash -c 'screen -S $0 -X kill'
+
+## Delete `data analysis` of real catalogues - screen sessions
+delete_data_real_analysis_screens:
+	@echo "screen -ls | awk '/SDSS_ML_data_preprocessing_data/ {print $1}' | xargs -L 1 bash -c 'screen -S $0 -X kill'"
+	screen -ls | awk '/SDSS_ML_data_preprocessing_data/ {print $1}' | xargs -L 1 bash -c 'screen -S $0 -X kill'
+
+## Delete `mocks analysis` screen sessions
+delete_mocks_ml_analysis_screens:
+	@echo "screen -ls | awk '/SDSS_ML_DA_/ {print $1}' | xargs -L 1 bash -c 'screen -S $0 -X kill'"
+	screen -ls | awk '/SDSS_ML_DA_/ {print $1}' | xargs -L 1 bash -c 'screen -S $0 -X kill'
+
 ## Delete screens from creating catalogues
-delete_catl_screens:
-	screen -S "SDSS_ML_Groups_Catls_Create" -X quit || echo ""
-	screen -S "SDSS_ML_TRAINING" -X quit || echo ""
-	# screen -S "SDSS_Data_Mocks_create" -X quit || echo ""
+delete_catl_screens: delete_preprocessing_screens delete_data_real_analysis_screens delete_mocks_ml_analysis_screens
+	@echo "All screens deleted"
 
 #################################################################################
 # Self Documenting Commands                                                     #
