@@ -2041,8 +2041,8 @@ def project_const(param_dict):
     ##
     ## Fixed HOD and DV value - Default
     if (param_dict['ml_analysis'] == 'hod_dv_fixed'):
-        window_name     = 'SDSS_ML_DA_fixed_hodn_{0}_dv_{1}'.format(
-            param_dict['hod_n'], param_dict['dv'])
+        window_name     = 'SDSS_ML_DA_fixed_hodn_{0}_dv_{1}_nfeat_{2}'.format(
+            param_dict['hod_n'], param_dict['dv'], param_dict['n_feat_use'])
     ##
     ## Fixed DV and alternating HOD models
     if (param_dict['ml_analysis'] == 'dv_fixed'):
