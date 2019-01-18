@@ -1072,7 +1072,7 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
 # Ranking of each galaxy property for each different algorithm
 def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
     fig_fmt='pdf', figsize=(12, 8), fig_number=2, stacked_opt=True,
-    rank_opt='idx', sort_by='all', keep_top=10):
+    rank_opt='idx', sort_by='all', keep_top=9):
     """
     Plots the `ranking` of each galaxy proeperty based on the different ML
     algorithms used.
