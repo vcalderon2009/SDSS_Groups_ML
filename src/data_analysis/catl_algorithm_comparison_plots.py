@@ -1267,6 +1267,7 @@ def feature_ranking_ml_algs(models_dict, param_dict, proj_dict,
     ##
     ##
     print('{0} Figure saved as: {1}'.format(file_msg, fname))
+    print('{0} Figure (Paper) saved as: {1}'.format(file_msg, fname_paper))
     plt.clf()
     plt.close()
 
