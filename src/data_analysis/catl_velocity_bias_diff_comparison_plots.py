@@ -1181,8 +1181,8 @@ def extract_masses_dv(dv_ii, param_dict, bin_width=0.4, arr_len=10,
 # Fractional Difference for each of the different dv models
 def frac_diff_model_mass_dvs_panels(models_dict, param_dict, proj_dict,
     arr_len=10, bin_statval='average', fig_fmt='pdf',
-    figsize_2=(15, 8), fig_number=8, nlim_min=4, dyn_thresh=11.,
-    mass_plot='ham'):
+    figsize_1=(8, 5), figsize_2=(15, 8), fig_number=8, nlim_min=4,
+    dyn_thresh=11., mass_plot='ham'):
     """
     Plots the fractional difference between `predicted` and `true`
     halo masses.
@@ -1334,11 +1334,15 @@ def frac_diff_model_mass_dvs_panels(models_dict, param_dict, proj_dict,
     # Y-label
     ylabel = r'Frac. Difference \boldmath$[\%]$'
     ##
-    # Figure size
-    figsize = figsize_2
+    ##
     # Rows and columns
     ncols = 5
-    nrows = math.ceil(len(dv_arr)/ncols)
+    nrows = math.ceil(len(sigma_c_arr)/ncols)
+    # Figure size
+    if (nrows == 1):
+        figsize = figsize_1
+    else:
+        figsize = figsize_2
     # Initializing figure
     plt.clf()
     plt.close()
