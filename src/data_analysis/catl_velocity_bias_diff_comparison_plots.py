@@ -1337,7 +1337,7 @@ def frac_diff_model_mass_dvs_panels(models_dict, param_dict, proj_dict,
     ##
     # Rows and columns
     ncols = 5
-    nrows = math.ceil(len(sigma_c_arr)/ncols)
+    nrows = math.ceil(len(dv_arr)/ncols)
     # Figure size
     if (nrows == 1):
         figsize = figsize_1
