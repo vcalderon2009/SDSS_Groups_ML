@@ -409,6 +409,13 @@ def get_parser():
                         type=str,
                         choices=['xgboost', 'rf', 'nn'],
                         default='xgboost')
+    # Type of final SDSS catalogue to produce
+    parser.add_argument('-join_type',
+                        dest='join_type',
+                        help='Option for which type of catalogue to produce.',
+                        type=str,
+                        choices=['features', 'combined', 'subset'],
+                        default='combined')
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',
@@ -634,11 +641,12 @@ def directory_skeleton(param_dict, proj_dict):
 
 ## ----------------------------- Predictions --------------------------------#
 
+# Produces catalogues with the set of ML features
 def ml_predictions_data(param_dict, proj_dict):
     """
     Predicts the `predicted` columns of the real data and turns them
     into a DataFrame. It extracts the trained-ML-model, from which we
-    evalute new predictions.
+    evaluate new predictions.
 
     Parameters
     -----------
@@ -649,12 +657,9 @@ def ml_predictions_data(param_dict, proj_dict):
         dictionary with info of the project that uses the
         `Data Science` Cookiecutter template + paths to files/folders used in
         this project.
-
-    Returns
-    -----------
     """
     Prog_msg = param_dict['Prog_msg']
-    ## Computing output file with `preditec` columns
+    ## Computing output file with `predicted` columns
     catl_pred_path = param_dict['ml_args'].catl_model_pred_file_extract(
                                     return_pd=False,
                                     return_arr=False,
@@ -670,8 +675,6 @@ def ml_predictions_data(param_dict, proj_dict):
     msg = '{0} Final version of catalogue can be found at: `{1}`'.format(
                 Prog_msg, catl_fin_path)
     print(msg)
-
-
 
 ## --------------------------- Main Function --------------------------------#
 def main(args):
@@ -709,7 +712,6 @@ def main(args):
     ##
     # Predicting masses
     ml_predictions_data(param_dict, proj_dict)
-
 
 # Main function
 if __name__=='__main__':

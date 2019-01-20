@@ -78,6 +78,7 @@ SIGMA_C_MOD_N  = '0.10_0.1417_0.20_0.30'
 INCLUDE_NN     = "False"
 # -- Real Catalogue - Creating --
 CHOSEN_ML_ALG  = 'xgboost'
+JOIN_TYPE      = 'combined'
 
 
 # Checking for Anaconda
@@ -310,7 +311,8 @@ data_real_catl_create:
 	-n_feat_use $(N_FEAT_USE) -cpu $(CPU_FRAC) -remove $(REMOVE_FILES) \
 	-v $(VERBOSE) -perf $(PERF_OPT) \
 	-sample_method $(SAMPLE_METHOD) -bin_val $(BIN_VAL) \
-	-seed $(SEED) -dens_calc $(DENS_CALC) -chosen_ml_alg $(CHOSEN_ML_ALG)
+	-seed $(SEED) -dens_calc $(DENS_CALC) -chosen_ml_alg $(CHOSEN_ML_ALG) \
+	-join_type $(JOIN_TYPE)
 
 ## Creates the plots for the *reak* data
 data_real_catl_plots:

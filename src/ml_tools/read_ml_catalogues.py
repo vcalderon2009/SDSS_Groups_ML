@@ -211,6 +211,15 @@ class ReadML(object):
                 - 'hod_fixed' : Keeps the `hod_n` fixes, but varies `dv`.
                 - 'dv_fixed' : Keeps `dv` fixed, but varies `hod_n`.
                 - 'hod_dv_fixed' : Keeps both `dv` and `hod_n` fixed.
+
+        join_type : {``features``, ``combined``, ``subset``} `str`, optional
+            Option for which type of catalogue to produce. This variable
+            is set to ``combined`` by default ``combined``
+
+            Options:
+                - ``features``: Produces a file with the set of ``features`` and ``predicted`` masses.
+                - ``combined``: Combines default catalogue with ``new`` features and ``predicted`` masses.
+                - ``subset``: Produces a file with a subset of ``features`` and other properties.
         """
         super().__init__()
         # Assigning variables
@@ -253,6 +262,7 @@ class ReadML(object):
         self.dv_models_n      = kwargs.get('dv_models_n', '0.9_0.925_0.95_0.975_1.025_1.05_1.10')
         self.chosen_ml_alg    = kwargs.get('chosen_ml_alg', 'xgboost')
         self.sigma_c_models_n = kwargs.get('sigma_c_models_n', '0.10_0.12_0.14_0.1417_0.16_0.18_0.20_0.22_0.24_0.26_0.28_0.30')
+        self.join_type        = kwargs.get('join_type', 'combined')
         #
         # Extra variables
         self.sample_Mr      = 'Mr{0}'.format(self.sample)
@@ -1898,6 +1908,73 @@ class ReadML(object):
 
         return catl_app_data_str
 
+    def catl_model_pred_plot_dir(self, check_exist=True, create_dir=False):
+        """
+        Path to the directory, in which the `plots` of the final *real*
+        SDSS catalogue are saved.
+
+        Parameters
+        ------------
+        check_exist : `bool`, optional
+            If `True`, it checks for whether or not the file exists.
+            This variable is set to `True` by default.
+
+        create_dir : `bool`, optional
+            If `True`, it creates the directory if it does not exist.
+
+        Returns
+        ------------
+        catl_pred_dir_path : `str`
+            Path to the directory, in which the `plots` of the final *real*
+            SDSS catalogue are saved.
+        """
+        # Check input parameters
+        # `check_exist`
+        if not (isinstance(check_exist, bool)):
+            msg = '`check_exist` ({0}) must be of `boolean` type!'.format(
+                type(check_exist))
+            raise TypeError(msg)
+        #
+        # `create_dir`
+        if not (isinstance(create_dir, bool)):
+            msg = '`create_dir` ({0}) must be of `boolean` type!'.format(
+                type(create_dir))
+            raise TypeError(msg)
+        # Catalogue Prefix
+        catl_prefix_path_data = self.catl_prefix_path(catl_kind='data')
+        # Output directory
+        catl_pred_dir_path = os.path.join(  self.proj_dict['plot_dir'],
+                                            self.ml_analysis,
+                                            catl_prefix_path_data)
+        # Creating directory if necessary
+        if create_dir:
+            cfutils.Path_Folder(catl_pred_dir_path)
+        # Check that folder exists
+        if check_exist:
+            if not (os.path.exists(catl_pred_dir_path)):
+                msg = '`catl_pred_dir_path` ({0}) was not found! '
+                msg += 'Check your path!'
+                msg = msg.format(catl_pred_dir_path)
+                raise FileNotFoundError(msg)
+
+        return catl_pred_dir_path
+
+    def catl_model_pred_plots_prefix_str(self):
+        """
+        Prefix string for the final `plots` of the *real* data catalogue.
+
+        Returns
+        ---------
+        catl_pred_file_pre_str : `str`
+            Prefix string for the output plots of the *real* data catalogue.
+        """
+        # ML Trained Prefix - Plots
+        catl_pred_file_pre_str = self.catl_model_app_data_file_prefix_str()
+        # Added to main string
+        catl_pred_file_pre_str += '_plots'
+
+        return catl_pred_file_pre_str
+
     def catl_model_application_data_file(self, ext='hdf5', check_exist=True):
         """
         Path to the output file containing the necessary information
@@ -1936,11 +2013,72 @@ class ReadML(object):
 
         return catl_outfile_path
 
+    ## List of `subset` of columns to use when creating final SDSS catalogue
+    def catl_model_app_data_subset_cols(self):
+        """
+        List of the subset of columns to use when creating the `final`
+        version of the SDSS main catalogue.
+
+        Returns
+        ---------
+        subset_cols : `list`
+            List of the ``subset`` of columns to use when creating
+            the `final` version` of the SDSS main catalogue.
+        """
+        subset_cols = [ 'galid', 'ra', 'dec', 'cz', 'M_g', 'M_r', 'sersic',
+                        'fibcol', 'compl', 'redge', 'groupid', 'g_r',
+                        'logMstar_bell', 'logMstar_JHU', 'logsfr',
+                        'logssfr', 'logMstar_JHU_flag', 'JHU_NYU_index',
+                        'galtype', 'M_h', 'M_h_PL', 'GG_ngals', 'GG_cen_ra',
+                        'GG_cen_dec', 'GG_cen_cz', 'GG_sigma_v', 'GG_M_g',
+                        'GG_M_r', 'GG_compl', 'GG_redge', 'GG_rproj',
+
+
+
+
+                        'galid',
+                         'ra',
+                         'dec',
+                         'cz',
+                         'M_g',
+                         'M_r',
+                         'sersic',
+                         'fibcol',
+                         'compl',
+                         'redge',
+                         'groupid',
+                         'g_r',
+                         'logMstar_bell',
+                         'logMstar_JHU',
+                         'logsfr',
+                         'logssfr',
+                         'logMstar_JHU_flag',
+                         'JHU_NYU_index',
+                         'galtype',
+                         'M_h',
+                         'M_h_PL',
+                         'GG_ngals',
+                         'GG_cen_ra',
+                         'GG_cen_dec',
+                         'GG_cen_cz',
+                         'GG_sigma_v',
+                         'GG_M_g',
+                         'GG_M_r',
+                         'GG_compl',
+                         'GG_redge',
+                         'GG_rproj',
+                         'GG_logMstar_tot',
+                         'GG_logssfr_tot',
+                         'GG_match',
+                         'GG_M_h',
+                         'GG_M_h_PL']
+
     def catl_model_pred_calculations(self, return_pd=True, return_arr=False):
         """
         Computes the `predicted` values for the `real` data sample using the
         already-trained ML algorithms. It returns a full DataFrame or
-        an array of the `predicted` elements.
+        an array of the `predicted` elements. This function can also
+        include the path to the `output` file.
 
         Parameters
         -----------
@@ -1951,12 +2089,12 @@ class ReadML(object):
 
         return_arr : `bool`
             If True, it returns the `numpy.ndarray` of the predicted
-            elemeents. This variable is set to `False` by default.
+            elements. This variable is set to `False` by default.
 
         Returns
         -----------
-        catl_pd_merged : `pd.DataFrame`
-            DataFrame containing the original data and the predited
+        catl_pd_merged_mod : `pd.DataFrame`
+            DataFrame containing the original data and the predicted
             columns. This variable is returned only when ``return_pd == True``.
 
         pred_arr : `numpy.ndarray`
@@ -2034,6 +2172,8 @@ class ReadML(object):
                 pred_arr[mass_kk_idx] = pred_mass_kk
         ##
         ## Joining predicted array(s) to DataFrame
+        ## This DataFrame contains the final set of ``features`` and 
+        ## predicted mass for every galaxy in the SDSS sample.
         cols_final_arr = num.insert(feat_colnames, 0, 'index')
         pred_colnames  = num.array(self._predicted_cols())
         pred_colnames  = num.array([xx + '_pred' for xx in pred_colnames])
@@ -2042,16 +2182,53 @@ class ReadML(object):
                                     pred_pd,
                                     left_index=True,
                                     right_index=True)
+        ##
+        ## Joining DataFrames if necessary
+        # `subset` - Creating data
+        if (self.join_type in ['subset', 'combined']):
+            # Columns from `catl_pd_merged`
+            catl_pd_merged_cols = catl_pd_merged.columns.values
+            # Extracting `catl_data_main`
+            catl_data_main = cmcu.catl_sdss_merge(  0,
+                                                    catl_kind='data',
+                                                    catl_type=self.catl_type,
+                                                    sample_s=self.sample_s)
+            # Columns of main catalogue
+            catl_data_main_cols = catl_data_main.columns.values
+            # Selecting columns
+            if (self.join_type == 'combined'):
+                # It joins the main catalogue with the `feature` catalogue
+                catl_cols_comb = num.setdiff1d( catl_data_main_cols,
+                                                catl_pd_merged_cols)
+            # Only selecting certain set of columns
+            if (self.join_type == 'subset'):
+                # It joins the main catalog with the `feature` catalogue
+                catl_cols_comb = self.catl_model_app_data_subset_cols()
+            # New DataFrame containing desired set of columns
+            catl_data_main_mod = catl_data_main.loc[:, catl_cols_comb]
+            # Joining both DataFrames by the indices
+            catl_pd_merged_mod = pd.merge(  catl_pd_merged,
+                                            catl_data_main_mod,
+                                            left_on='index',
+                                            right_index=True,
+                                            how='left')
+            # Removing repeated columns
+            if ('GG_logssfr' in catl_pd_merged_mod.columns.values):
+                catl_pd_merged_mod.drop('GG_logssfr', axis=1, inplace=True)
+        else:
+            ## Returning only the set of features
+            catl_pd_merged_mod = catl_pd_merged.copy()
+        #
         # Returning elements
         if return_pd and (not return_arr):
             # Only returning DataFrame
-            return catl_pd_merged
+            return catl_pd_merged_mod
         elif (return_arr) and (not return_pd):
             # Only returning array
             return pred_arr
         elif (return_pd and return_arr):
             # Returning both DataFrames and Array(s)
-            return catl_pd_merged, pred_arr
+            return catl_pd_merged_mod, pred_arr
 
     def catl_model_pred_file_extract(self, return_pd=True, return_arr=False,
         remove_file=False, return_path=False):
@@ -2114,7 +2291,8 @@ class ReadML(object):
             msg = msg.format(type(return_path))
             raise TypeError(msg)
         ##
-        ## Filename for output DataFrame
+        ## Filename for output DataFrame. This file will contain the
+        ## final version of the output file.
         catl_outfile_path = self.catl_model_application_data_file(
             check_exist=False)
         # Checking if file exists
@@ -2173,73 +2351,6 @@ class ReadML(object):
             elif (return_pd and return_arr):
                 # Returning both DataFrames and Array(s)
                 return catl_pd_merged, pred_arr
-
-    def catl_model_pred_plot_dir(self, check_exist=True, create_dir=False):
-        """
-        Path to the directory, in which the `plots` of the final *real*
-        SDSS catalogue are saved.
-
-        Parameters
-        ------------
-        check_exist : `bool`, optional
-            If `True`, it checks for whether or not the file exists.
-            This variable is set to `True` by default.
-
-        create_dir : `bool`, optional
-            If `True`, it creates the directory if it does not exist.
-
-        Returns
-        ------------
-        catl_pred_dir_path : `str`
-            Path to the directory, in which the `plots` of the final *real*
-            SDSS catalogue are saved.
-        """
-        # Check input parameters
-        # `check_exist`
-        if not (isinstance(check_exist, bool)):
-            msg = '`check_exist` ({0}) must be of `boolean` type!'.format(
-                type(check_exist))
-            raise TypeError(msg)
-        #
-        # `create_dir`
-        if not (isinstance(create_dir, bool)):
-            msg = '`create_dir` ({0}) must be of `boolean` type!'.format(
-                type(create_dir))
-            raise TypeError(msg)
-        # Catalogue Prefix
-        catl_prefix_path_data = self.catl_prefix_path(catl_kind='data')
-        # Output directory
-        catl_pred_dir_path = os.path.join(  self.proj_dict['plot_dir'],
-                                            self.ml_analysis,
-                                            catl_prefix_path_data)
-        # Creating directory if necessary
-        if create_dir:
-            cfutils.Path_Folder(catl_pred_dir_path)
-        # Check that folder exists
-        if check_exist:
-            if not (os.path.exists(catl_pred_dir_path)):
-                msg = '`catl_pred_dir_path` ({0}) was not found! '
-                msg += 'Check your path!'
-                msg = msg.format(catl_pred_dir_path)
-                raise FileNotFoundError(msg)
-
-        return catl_pred_dir_path
-
-    def catl_model_pred_plots_prefix_str(self):
-        """
-        Prefix string for the final `plots` of the *real* data catalogue.
-
-        Returns
-        ---------
-        catl_pred_file_pre_str : `str`
-            Prefix string for the output plots of the *real* data catalogue.
-        """
-        # ML Trained Prefix - Plots
-        catl_pred_file_pre_str = self.catl_model_app_data_file_prefix_str()
-        # Added to main string
-        catl_pred_file_pre_str += '_plots'
-
-        return catl_pred_file_pre_str
 
     def catl_model_pred_final_path(self, check_exist=True, create_dir=False):
         """
@@ -2337,7 +2448,7 @@ class ReadML(object):
         return catl_model_final_file_path
 
     def catl_model_pred_file_final_path_save(self, remove_file=False,
-        return_path=False):
+        return_path=False, join_type='features'):
         """
         Function that saves the final `data model` DataFrame into the
         designated output directory. This catalogue is the final product
