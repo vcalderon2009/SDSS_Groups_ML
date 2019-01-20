@@ -77,9 +77,7 @@ DV_MODELS_N    = '0.9_0.95_1.0_1.05_1.10'
 SIGMA_C_MOD_N  = '0.10_0.1417_0.20_0.30'
 INCLUDE_NN     = "False"
 # -- Real Catalogue - Creating --
-# CHOSEN_ML_ALG  = 'xgboost'
-# CHOSEN_ML_ALG  = 'nn'
-CHOSEN_ML_ALG  = 'rf'
+CHOSEN_ML_ALG  = 'xgboost'
 
 
 # Checking for Anaconda
