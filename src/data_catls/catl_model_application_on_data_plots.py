@@ -1827,10 +1827,6 @@ def main(args):
     #
     # Mass comparison
     mass_pred_comparison_plot(catl_pd, param_dict, proj_dict, arr_len=0)
-    # Extra plots
-    mass_pred_comparison_plot_no_norm_no_normed(catl_pd, param_dict, proj_dict, arr_len=0)
-    mass_pred_comparison_plot_norm_no_normed(catl_pd, param_dict, proj_dict, arr_len=0)
-    mass_pred_comparison_plot_normed_no_norm(catl_pd, param_dict, proj_dict, arr_len=0)
 
 # Main function
 if __name__=='__main__':
