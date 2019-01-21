@@ -12,6 +12,7 @@ dependencies:
   - astropy
   - Cython
   - h5py
+  - halotools
   - graphviz
   - python-graphviz
   - numpy>=1.13.0
