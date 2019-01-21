@@ -134,7 +134,7 @@ def clf_models_analysis_main(proj_dict, sigma_c_init=0.1, sigma_c_final=2,
 
     return clf_models_dict
 
-def clf_models_analysis_calc(sigma_c_ii, log_lum_cut=9):
+def clf_models_analysis_calc(sigma_c_ii, log_lum_cut=9, apply_mask=False):
     """
     Computes the CLF models and computes relevant statistics for such model
 
@@ -153,10 +153,12 @@ def clf_models_analysis_calc(sigma_c_ii, log_lum_cut=9):
         Dictionary with the set of measurements and statistics for the given
         CLF model.
     """
+    # Array of halo masses
+    mhalo_arr = num.logspace(9, 15, 1000)
     # Initializing `clf_ii_model_dict` dictionary
     clf_ii_model_dict = {}
     # Initializing model
-    clf_ii_model = PrebuiltHodModelFactory('cacciato09', threshold=9)
+    clf_ii_model = PrebuiltHodModelFactory('cacciato09', threshold=log_lum_cut)
     # Modifying `sigma_c` value
     clf_ii_model.param_dict['sigma'] = sigma_c_ii
     # Modifying model with LasDamas values
@@ -172,8 +174,12 @@ def clf_models_analysis_calc(sigma_c_ii, log_lum_cut=9):
     clf_ii_model.param_dict['b_2']     = -0.05834
     clf_ii_model.param_dict['delta_1'] = 0.0
     clf_ii_model.param_dict['delta_2'] = 0.0
-    # Array of halo masses
-    mhalo_arr = num.logspace(9, 15, 1000)
+    # Luminosity
+    median_lum = clf_ii_model.median_prim_galprop_centrals(prim_haloprop = mhalo_arr)
+    # Luminosity mass
+    mhalo_mask = median_lum >= 10**log_lum_cut
+    if apply_mask:
+        mhalo_arr = mhalo_arr[mhalo_mask]
     # Mean number of centrals and satellites
     mean_cens = clf_ii_model.mean_occupation_centrals(prim_haloprop=mhalo_arr)
     mean_sats = clf_ii_model.mean_occupation_satellites(prim_haloprop=mhalo_arr)
@@ -333,7 +339,6 @@ def main():
     clf_models_dict = clf_models_analysis_main(proj_dict)
     # HOD Plotting
     hod_models_plotting(clf_models_dict, proj_dict)
-
 
 # Main function
 if __name__=='__main__':
