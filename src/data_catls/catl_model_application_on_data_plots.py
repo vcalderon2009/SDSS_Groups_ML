@@ -753,7 +753,7 @@ def mass_pred_comparison_plot(catl_pd, param_dict, proj_dict, arr_len=10,
     fig    = plt.figure(figsize=figsize)
     gs     = gridspec.GridSpec(1, 2, hspace=0.1, wspace=0.0)
     ax_arr = [[[],[]] for xx in range(2)]
-    # Figure contants
+    # Figure constants
     xlim       = (10.9, 15.2)
     ylim       = (10.9, 15.2)
     sigma_lims = (0.0, 0.6)

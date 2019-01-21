@@ -133,7 +133,7 @@ class ReadML(object):
             This variable is set to `0` by default.
 
         sample_frac : `float`, optional
-            Fraction of the total dataset ot use. This variable is set
+            Fraction of the total dataset to use. This variable is set
             to `0.01` by default.
 
         test_size : float, optional
@@ -491,8 +491,7 @@ class ReadML(object):
             return merged_feat_pd, merged_feat_path
         else:
             return merged_feat_pd
-
-    ## -- Feature preprocessing --
+    
     def _feat_proc_pre_str(self):
         """
         String used as the prefix of files during the `feature processing`
@@ -2245,7 +2244,7 @@ class ReadML(object):
 
         return_arr : `bool`
             If True, it returns the `numpy.ndarray` of the predicted
-            elemeents. This variable is set to `False` by default.
+            elements. This variable is set to `False` by default.
 
         remove_file : `bool`
             If True, it removes the output file if it exists. Otherwise,
