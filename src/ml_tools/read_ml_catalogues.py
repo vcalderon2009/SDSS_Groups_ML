@@ -1836,8 +1836,8 @@ class ReadML(object):
         catl_train_prefix_str += '_sigma_c_diff'
 
         return catl_train_prefix_str
-        
-    ## -- Model Application to Data - SDSS
+
+    ## -- Model Applications to Data -- SDSS
     def catl_model_app_data_main(self, check_exist=True, create_dir=False):
         """
         Directory for the main training of the ML algorithms. This directory
