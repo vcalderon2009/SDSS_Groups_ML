@@ -20,6 +20,7 @@ SRC_DATA_DIR         = $(SRC_DIR)/data
 SRC_PREPROC_DIR      = $(SRC_DIR)/data_preprocessing
 SRC_ANALYSIS_DIR     = $(SRC_DIR)/data_analysis
 SRC_PREPROC_DATA_DIR = $(SRC_DIR)/data_catls
+SRC_TESTING_DIR      = $(SRC_DIR)/data_testing
 MOCKS_CATL_DIR       = $(DATA_DIR)/external/SDSS/mocks
 DATA_CATL_DIR        = $(DATA_DIR)/external/SDSS/data
 
@@ -79,6 +80,11 @@ INCLUDE_NN     = "False"
 # -- Real Catalogue - Creating --
 CHOSEN_ML_ALG  = 'xgboost'
 JOIN_TYPE      = 'combined'
+# -- CLF Models - Comparison
+REMOVE_HMF     = 'True'
+HMF_OPT        = 'warren'
+LOG_LUM_CUT    = 9
+SIGMA_C_FID    = 0.1417
 
 
 # Checking for Anaconda
@@ -340,6 +346,13 @@ data_real_catl_plots:
 	# -v $(VERBOSE) -perf $(PERF_OPT) \
 	# -sample_method $(SAMPLE_METHOD) -bin_val $(BIN_VAL) \
 	# -seed $(SEED) -dens_calc $(DENS_CALC) -chosen_ml_alg $(CHOSEN_ML_ALG)
+
+## Computes and compares different CLF models (HOD, and HAM fractional diff.)
+clf_calcs:
+	@python $(SRC_TESTING_DIR)/CLF_Composite_model_testing.py \
+	-cosmo $(COSMO) -remove_hmf $(REMOVE_HMF) -hmf $(HMF_OPT) \
+	-log_lum_cut $(LOG_LUM_CUT) -sigma_c_fid $(SIGMA_C_FID)
+
 
 ## Run tests to see if all files (Halobias, catalogues) are in order
 test_files:

@@ -33,3 +33,4 @@ dependencies:
     - tables
     - xgboost
     - cosmo-utils>=0.1.55
+    - hmf
