@@ -884,7 +884,7 @@ def mass_frac_diff_models_plotting(clf_models_dict, proj_dict, param_dict,
 
 ## --------- Main Function ------------##
 
-def main():
+def main(args):
     """
     Compares various CLF models
     """
