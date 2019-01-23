@@ -81,7 +81,7 @@ INCLUDE_NN     = "False"
 CHOSEN_ML_ALG  = 'xgboost'
 JOIN_TYPE      = 'combined'
 # -- CLF Models - Comparison
-REMOVE_HMF     = 'True'
+REMOVE_HMF     = 'False'
 HMF_OPT        = 'warren'
 LOG_LUM_CUT    = 9
 SIGMA_C_FID    = 0.1417
