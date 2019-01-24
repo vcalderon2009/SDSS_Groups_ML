@@ -79,7 +79,7 @@ SIGMA_C_MOD_N  = '0.10_0.1417_0.20_0.30'
 INCLUDE_NN     = "False"
 # -- Real Catalogue - Creating --
 CHOSEN_ML_ALG  = 'xgboost'
-JOIN_TYPE      = 'combined'
+JOIN_TYPE      = 'subset'
 # -- CLF Models - Comparison
 REMOVE_HMF     = 'False'
 HMF_OPT        = 'warren'

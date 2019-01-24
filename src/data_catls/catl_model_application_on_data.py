@@ -415,7 +415,7 @@ def get_parser():
                         help='Option for which type of catalogue to produce.',
                         type=str,
                         choices=['features', 'combined', 'subset'],
-                        default='combined')
+                        default='subset')
     ## CPU Counts
     parser.add_argument('-cpu',
                         dest='cpu_frac',

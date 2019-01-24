@@ -214,7 +214,7 @@ class ReadML(object):
 
         join_type : {``features``, ``combined``, ``subset``} `str`, optional
             Option for which type of catalogue to produce. This variable
-            is set to ``combined`` by default ``combined``
+            is set to ``combined`` by default ``subset``
 
             Options:
                 - ``features``: Produces a file with the set of ``features`` and ``predicted`` masses.
@@ -262,7 +262,7 @@ class ReadML(object):
         self.dv_models_n      = kwargs.get('dv_models_n', '0.9_0.925_0.95_0.975_1.025_1.05_1.10')
         self.chosen_ml_alg    = kwargs.get('chosen_ml_alg', 'xgboost')
         self.sigma_c_models_n = kwargs.get('sigma_c_models_n', '0.10_0.12_0.14_0.1417_0.16_0.18_0.20_0.22_0.24_0.26_0.28_0.30')
-        self.join_type        = kwargs.get('join_type', 'combined')
+        self.join_type        = kwargs.get('join_type', 'subset')
         #
         # Extra variables
         self.sample_Mr      = 'Mr{0}'.format(self.sample)
@@ -2024,53 +2024,20 @@ class ReadML(object):
             List of the ``subset`` of columns to use when creating
             the `final` version` of the SDSS main catalogue.
         """
-        subset_cols = [ 'galid', 'ra', 'dec', 'cz', 'M_g', 'M_r', 'sersic',
-                        'fibcol', 'compl', 'redge', 'groupid', 'g_r',
-                        'logMstar_bell', 'logMstar_JHU', 'logsfr',
-                        'logssfr', 'logMstar_JHU_flag', 'JHU_NYU_index',
-                        'galtype', 'M_h', 'M_h_PL', 'GG_ngals', 'GG_cen_ra',
-                        'GG_cen_dec', 'GG_cen_cz', 'GG_sigma_v', 'GG_M_g',
-                        'GG_M_r', 'GG_compl', 'GG_redge', 'GG_rproj',
+        # List of subset columns
+        subset_cols = [ 'galid', 'ra', 'dec', 'cz', 'groupid']
 
+        # subset_cols = [ 'galid', 'ra', 'dec', 'cz', 'M_g', 'M_r', 'sersic',
+        #                 'fibcol', 'compl', 'redge', 'groupid', 'g_r',
+        #                 'logMstar_bell', 'logMstar_JHU', 'logsfr',
+        #                 'logssfr', 'logMstar_JHU_flag', 'JHU_NYU_index',
+        #                 'galtype', 'M_h', 'M_h_PL', 'GG_ngals', 'GG_cen_ra',
+        #                 'GG_cen_dec', 'GG_cen_cz', 'GG_sigma_v', 'GG_M_g',
+        #                 'GG_M_r', 'GG_compl', 'GG_redge', 'GG_rproj',
+        #                 'GG_logMstar_tot', 'GG_logssfr_tot', 'GG_match',
+        #                 'GG_M_h', 'GG_M_h_PL']
 
-
-
-                        'galid',
-                         'ra',
-                         'dec',
-                         'cz',
-                         'M_g',
-                         'M_r',
-                         'sersic',
-                         'fibcol',
-                         'compl',
-                         'redge',
-                         'groupid',
-                         'g_r',
-                         'logMstar_bell',
-                         'logMstar_JHU',
-                         'logsfr',
-                         'logssfr',
-                         'logMstar_JHU_flag',
-                         'JHU_NYU_index',
-                         'galtype',
-                         'M_h',
-                         'M_h_PL',
-                         'GG_ngals',
-                         'GG_cen_ra',
-                         'GG_cen_dec',
-                         'GG_cen_cz',
-                         'GG_sigma_v',
-                         'GG_M_g',
-                         'GG_M_r',
-                         'GG_compl',
-                         'GG_redge',
-                         'GG_rproj',
-                         'GG_logMstar_tot',
-                         'GG_logssfr_tot',
-                         'GG_match',
-                         'GG_M_h',
-                         'GG_M_h_PL']
+        return subset_cols
 
     def catl_model_pred_calculations(self, return_pd=True, return_arr=False):
         """
@@ -2183,6 +2150,17 @@ class ReadML(object):
                                     right_index=True)
         ##
         ## Joining DataFrames if necessary
+        # Columns from `catl_pd_merged`
+        catl_pd_merged_cols = catl_pd_merged.columns.values
+        # Extracting `catl_data_main`
+        catl_data_main = cmcu.catl_sdss_merge(  0,
+                                                catl_kind='data',
+                                                catl_type=self.catl_type,
+                                                sample_s=self.sample_s)
+        # Columns of main catalogue
+        catl_data_main_cols = catl_data_main.columns.values
+
+
         # `subset` - Creating data
         if (self.join_type in ['subset', 'combined']):
             # Columns from `catl_pd_merged`
@@ -2447,7 +2425,7 @@ class ReadML(object):
         return catl_model_final_file_path
 
     def catl_model_pred_file_final_path_save(self, remove_file=False,
-        return_path=False, join_type='features'):
+        return_path=False, join_type='subset'):
         """
         Function that saves the final `data model` DataFrame into the
         designated output directory. This catalogue is the final product
