@@ -2025,7 +2025,8 @@ class ReadML(object):
             the `final` version` of the SDSS main catalogue.
         """
         # List of subset columns
-        subset_cols = [ 'galid', 'ra', 'dec', 'cz', 'groupid']
+        subset_cols = [ 'galid', 'ra', 'dec', 'cz', 'groupid', 'galtype',
+                        'M_h']
 
         # subset_cols = [ 'galid', 'ra', 'dec', 'cz', 'M_g', 'M_r', 'sersic',
         #                 'fibcol', 'compl', 'redge', 'groupid', 'g_r',
