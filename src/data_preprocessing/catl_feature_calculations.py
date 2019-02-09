@@ -630,7 +630,7 @@ def catalogue_analysis(ii, catl_ii_name, box_n, param_dict, proj_dict,
     else:
         vac_create_opt = True
     ##
-    ## Onl running analysis if `merged_vac_filename` not present
+    ## Only running analysis if `merged_vac_filename` not present
     if vac_create_opt:
         ##
         ## Reading in `galaxy` and `group` catalogues, and merging 
@@ -1725,7 +1725,9 @@ def memb_group_merging(memb_mod_pd, group_mod_pd):
     memb_group_pd   = pd.merge( memb_mod_pd,
                                 group_mod_pd, 
                                 left_on=memb_merge_key,
-                                right_on=memb_merge_key)
+                                right_on='GG_' + memb_merge_key)
+    # Dropping extra `groupid` column
+    memb_group_pd.drop('GG_' + memb_merge_key, axis=1, inplace=True)
 
     return memb_group_pd
 
