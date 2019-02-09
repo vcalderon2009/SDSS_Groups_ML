@@ -1725,7 +1725,7 @@ def memb_group_merging(memb_mod_pd, group_mod_pd):
     memb_group_pd   = pd.merge( memb_mod_pd,
                                 group_mod_pd, 
                                 left_on=memb_merge_key,
-                                right_index=memb_merge_key)
+                                right_on=memb_merge_key)
 
     return memb_group_pd
 
