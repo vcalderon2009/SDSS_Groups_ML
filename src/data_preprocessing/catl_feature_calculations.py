@@ -208,6 +208,16 @@ def get_parser():
                         choices=range(2,1000),
                         metavar='[1-1000]',
                         default=2)
+    ## Minimum of galaxies in a group - Force all groups to have at least
+    ## `nmin` galaxies.
+    parser.add_argument('-nmin_group',
+                        dest='nmin_group',
+                        help="""
+                        Forces the minimum number of gals in a group to be
+                        at least `nmin`
+                        """,
+                        type=_str2bool,
+                        default=False)
     ## Factor by which to evaluate the distance to closest cluster.
     parser.add_argument('-mass_factor',
                         dest='mass_factor',
@@ -642,6 +652,28 @@ def catalogue_analysis(ii, catl_ii_name, box_n, param_dict, proj_dict,
                                                 print_filedir=False,
                                                 return_memb_group=True)
         merged_gal_pd = None
+        ## Only selecting galaxy groups with more than or equal number of
+        ## galaxies than `nmin`
+        if param_dict['nmin_group']:
+            # Column keys
+            (gm_key, id_key, galtype_key) = cmcu.catl_keys('mocks',
+                perf_opt=param_dict['perf_opt'], return_type='list')
+            # Group IDs
+            groups_nmin_lim_arr = (group_ii_pd.loc[
+                group_ii_pd['GG_ngals'] >= param_dict['nmin'], id_key]).values
+            # New DataFrames
+            memb_ii_pd = memb_ii_pd.loc[memb_ii_pd[id_key].isin(
+                groups_nmin_lim_arr)].reset_index(drop=True)
+            group_ii_pd = group_ii_pd.loc[group_ii_pd[id_key].isin(
+                groups_nmin_lim_arr)].reset_index(drop=True)
+            # Resetting group indices
+            group_ids_mod = dict(zip(group_ii_pd[id_key].values,
+                num.arange(len(group_ii_pd))))
+            # Resetting group ID's
+            group_ii_pd.loc[:, id_key] = ([group_ids_mod[xx]
+                for xx in group_ii_pd[id_key].values])
+            memb_ii_pd.loc[:, id_key] = ([group_ids_mod[xx]
+                for xx in memb_ii_pd[id_key].values])
         ##
         ## Constants
         n_gals   = len(memb_ii_pd )
@@ -657,7 +689,7 @@ def catalogue_analysis(ii, catl_ii_name, box_n, param_dict, proj_dict,
         ## Brightness of brightest galaxy
         group_mod_pd = group_brightest_gal( memb_ii_pd  , group_ii_pd    , 
                                             group_mod_pd, group_gals_dict)
-        ## Brighness ratio between 1st and 2nd brightest galaxies in galaxy group
+        ## Brightness ratio between 1st and 2nd brightest galaxies in galaxy group
         group_mod_pd = group_brightness_gal_ratio(  memb_ii_pd  , group_ii_pd    ,
                                         group_mod_pd, group_gals_dict,
                                         nmin=param_dict['nmin'])
@@ -683,7 +715,7 @@ def catalogue_analysis(ii, catl_ii_name, box_n, param_dict, proj_dict,
         ## Distance to nearest cluster
         group_mod_pd = group_distance_closest_cluster(group_ii_pd, group_mod_pd,
             mass_factor=param_dict['mass_factor'])
-        ## Pointing Method - Determining 'good' and 'bad' pointings
+        ## Pointing Method - Determining 'good' and 'bad' pointing
         group_mod_pd = group_halo_pointing(memb_ii_pd, group_ii_pd,
             group_mod_pd)
         ## Pointing Method - Assignment of halo masses
@@ -704,7 +736,7 @@ def catalogue_analysis(ii, catl_ii_name, box_n, param_dict, proj_dict,
         ## ---- Combining Member and Group Properties ---- ##
         ## Merging group and galaxy DataFrames
         memb_group_pd = memb_group_merging(memb_mod_pd, group_mod_pd)
-        ## Assigns the `box_n` variable to the dataframe 
+        ## Assigns the `box_n` variable to the DataFrame 
         memb_group_pd.loc[:,'box_n'] = box_n
         ## Saving DataFrames
         merging_df_save(merged_vac_filename, memb_group_pd, param_dict, 
@@ -715,7 +747,7 @@ def catalogue_analysis(ii, catl_ii_name, box_n, param_dict, proj_dict,
 
 ## --------- Galaxy Properties ------------##
 
-## Distance to the group's centre
+## Distance to the group's center
 def galaxy_dist_centre(memb_ii_pd, group_ii_pd, group_mod_pd, 
     group_gals_dict, memb_mod_pd):
     """
@@ -1681,7 +1713,8 @@ def memb_group_merging(memb_mod_pd, group_mod_pd):
     ## Constants
     memb_merge_key  = 'groupid'
     memb_cols_drop  = ['idx']
-    group_cols_drop = ['groupid','mr_brightest_idx']
+    # group_cols_drop = ['groupid','mr_brightest_idx']
+    group_cols_drop = ['mr_brightest_idx']
     ## Removing unnecessary columns
     memb_mod_pd     = memb_mod_pd.drop( memb_cols_drop, axis=1)
     group_mod_pd    = group_mod_pd.drop(group_cols_drop, axis=1)
@@ -1692,7 +1725,7 @@ def memb_group_merging(memb_mod_pd, group_mod_pd):
     memb_group_pd   = pd.merge( memb_mod_pd,
                                 group_mod_pd, 
                                 left_on=memb_merge_key,
-                                right_index=True)
+                                right_index=memb_merge_key)
 
     return memb_group_pd
 
@@ -1884,7 +1917,7 @@ def multiprocessing_catls(catl_arr, param_dict, proj_dict, memb_tuples_ii):
         catl_ii_name = os.path.splitext(os.path.split(catl_ii)[1])[0]
         ## Box Number
         box_n = int(catl_ii_name.split('_')[1])
-        ## Analaysis for the Halobias file
+        ## Analysis for the Halobias file
         catalogue_analysis(ii, catl_ii_name, box_n, param_dict, proj_dict)
 
 ## --------- Main Function ------------##
