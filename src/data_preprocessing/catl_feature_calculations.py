@@ -1760,10 +1760,13 @@ def test_df_merged_dir(param_dict, proj_dict, n_catls, ext='hdf5'):
         else:
             merged_vac_save = False
     else:
-        if (files_arr.size == n_catls):
-            merged_vac_save = False
-        else:
+        if param_dict['rm_master']:
             merged_vac_save = True
+        else:
+            if (files_arr.size == n_catls):
+                merged_vac_save = False
+            else:
+                merged_vac_save = True
     #
     # Saving to dictionary
     param_dict['merged_vac_save'] = merged_vac_save
