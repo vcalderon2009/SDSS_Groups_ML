@@ -37,7 +37,7 @@ DV             = 1.0
 SAMPLE         = "19"
 CATL_TYPE      = "mr"
 COSMO          = "LasDamas"
-NMIN           = 4
+NMIN           = 2
 VERBOSE        = "False"
 # -- Data Preprocessing -- #
 MASS_FACTOR    = 10
