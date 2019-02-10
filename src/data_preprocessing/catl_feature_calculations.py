@@ -217,7 +217,7 @@ def get_parser():
                         at least `nmin`
                         """,
                         type=_str2bool,
-                        default=True)
+                        default=False)
     ## Factor by which to evaluate the distance to closest cluster.
     parser.add_argument('-mass_factor',
                         dest='mass_factor',
