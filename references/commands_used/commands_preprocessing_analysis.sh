@@ -60,8 +60,8 @@ make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="
 
 # --- Total Sample for DV=1.0 and HOD_N = 0 --- #
 # Run it separately
-make HALOTYPE="so" N_FEAT_USE="all" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="False" REMOVE_FILES="False" CPU_FRAC=0.80 DV=1.0 HOD_N=0 data_preprocess
-make HALOTYPE="so" N_FEAT_USE="sub" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="False" REMOVE_FILES="False" CPU_FRAC=0.80 DV=1.0 HOD_N=0 data_preprocess
+make HALOTYPE="so" N_FEAT_USE="all" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.80 DV=1.0 HOD_N=0 data_preprocess
+make HALOTYPE="so" N_FEAT_USE="sub" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_MASTER="True" REMOVE_FILES="True" CPU_FRAC=0.80 DV=1.0 HOD_N=0 data_preprocess
 
 # --- REAL DATA - Total Sample ---
 # Run it separately
@@ -76,7 +76,7 @@ make HALOTYPE="so" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="
 ##############################################################################
 
 ## --- Fixed HOD and DV ---
-make HALOTYPE="so" N_FEAT_USE="all" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="False" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="hod_dv_fixed" SAMPLE_METHOD="binning" BIN_VAL="nbins" ml_analysis
+make HALOTYPE="so" N_FEAT_USE="all" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="True" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="hod_dv_fixed" SAMPLE_METHOD="binning" BIN_VAL="nbins" ml_analysis
 make HALOTYPE="so" N_FEAT_USE="sub" CLF_METHOD=1 CLF_SEED=1235 DENS_CALC="False" TEST_TRAIN_OPT="boxes_n" BOX_IDX="0_3_4" REMOVE_FILES="False" CPU_FRAC=0.75 DV=1.0 HOD_N=0 ML_ANALYSIS="hod_dv_fixed" SAMPLE_METHOD="binning" BIN_VAL="nbins" ml_analysis
 
 ## --- HOD Comparison - Same DV ---
