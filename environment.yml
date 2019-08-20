@@ -32,5 +32,5 @@ dependencies:
     - tqdm
     - tables
     - xgboost
-    - cosmo-utils>=0.1.55
+    - cosmo-utils>=0.1.64
     - hmf
