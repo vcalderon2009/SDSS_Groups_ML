@@ -791,7 +791,7 @@ def score_mass_regimes(true_arr, pred_arr, low_high_cut=12.5,
 # Fractional difference
 def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     arr_len=10, bin_statval='average', fig_fmt='pdf', figsize=(8, 8),
-    fig_number=1, type_shade='std', type_sigma='std', plot_sigma_num=0):
+    fig_number=1, type_shade='perc', type_sigma='std', plot_sigma_num=0):
     """
     Plots the fractional difference between `predicted` and `true`
     halo masses.
@@ -970,30 +970,6 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
                                         type_sigma=type_sigma)
     y1_dyn = dyn_dict['perc_arr_lims'][plot_sigma_num][0]
     y2_dyn = dyn_dict['perc_arr_lims'][plot_sigma_num][1]
-
-
-
-    (   x_stat_ham   ,
-        y_stat_ham   ,
-        y_std_ham    ,
-        y_std_err_ham) = cstats.Stats_one_arr(  ham_x,
-                                                ham_frac_diff,
-                                                base=bin_width,
-                                                arr_len=arr_len,
-                                                bin_statval=bin_statval)
-    y1_ham = y_stat_ham - y_std_ham
-    y2_ham = y_stat_ham + y_std_ham
-    # Dynamical
-    (   x_stat_dyn   ,
-        y_stat_dyn   ,
-        y_std_dyn    ,
-        y_std_err_dyn) = cstats.Stats_one_arr(  dyn_x,
-                                                dyn_frac_diff,
-                                                base=bin_width,
-                                                arr_len=arr_len,
-                                                bin_statval=bin_statval)
-    y1_dyn = y_stat_dyn - y_std_dyn
-    y2_dyn = y_stat_dyn + y_std_dyn
     ##
     ## Figure details
     # ML algorithms - names
