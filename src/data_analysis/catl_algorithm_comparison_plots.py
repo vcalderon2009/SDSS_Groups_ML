@@ -791,7 +791,7 @@ def score_mass_regimes(true_arr, pred_arr, low_high_cut=12.5,
 # Fractional difference
 def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     arr_len=10, bin_statval='average', fig_fmt='pdf', figsize=(8, 8),
-    fig_number=1):
+    fig_number=1, type_shade='perc', type_sigma='std', plot_sigma_num=1):
     """
     Plots the fractional difference between `predicted` and `true`
     halo masses.
@@ -834,6 +834,27 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     fig_number : `int`, optional
         Number of figure in the workflow. This variable is set to `1`
         by default.
+
+    type_sigma : {`std``, ``med_abs``} `str`, optional
+        Option for calculating either `percentiles`, `standard deviation`,
+        or ``error in the median``. This variable is set to ``std``
+        by default.
+
+        Options :
+            - ``std`` : Computes the Standard Deviation of bins in `y`
+            - ``med_abs`` : Computes the Absolute median absolute deviation of bins in `y`
+
+    type_shade : {``std``, ``perc``}, optional
+        Option for which type of statistic to use when determining the
+        ranges of errors. This variable is set to ``perc`` by default.
+
+        Options:
+            - ``std`` : Computes the 1-, 2-, and 3-St. Dev from the mean/median
+            - ``perc`` : Computers the 68th, 95th, and 99.7th percentiles about the median
+
+    plot_sigma_num : {``0``, ``1``, ``2``} `int`, optional
+        Value of the `sigma` plotted for the shadings. This variable is set
+        to ``1`` by default, which corresponds to the ``2 sigma`` range.
     """
     file_msg = param_dict['Prog_msg']
     ## Matplotlib option
@@ -883,21 +904,20 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
         # Y-axis
         model_kk_y = model_kk_data['frac_diff']
         # Calculating error in bins
-        (   x_stat_arr,
-            y_stat_arr,
-            y_std_arr,
-            y_std_err) = cstats.Stats_one_arr(  model_kk_x,
-                                                model_kk_y,
-                                                base=bin_width,
-                                                arr_len=arr_len,
-                                                bin_statval=bin_statval)
+        dict_stats_kk = cstats.Stats_one_arr_mod(   model_kk_x,
+                                                    model_kk_y,
+                                                    base=bin_width,
+                                                    arr_len=arr_len,
+                                                    bin_statval=bin_statval,
+                                                    type_shade=type_shade,
+                                                    type_sigma=type_sigma)
         # Saving to dictionary
-        frac_diff_dict[model_kk]      = {}
-        frac_diff_dict[model_kk]['x_val' ] = model_kk_x
-        frac_diff_dict[model_kk]['y_val' ] = model_kk_y
-        frac_diff_dict[model_kk]['x_stat'] = x_stat_arr
-        frac_diff_dict[model_kk]['y_stat'] = y_stat_arr
-        frac_diff_dict[model_kk]['y_err' ] = y_std_arr
+        frac_diff_dict[model_kk] = {}
+        frac_diff_dict[model_kk]['x_val'] = model_kk_x
+        frac_diff_dict[model_kk]['y_val'] = model_kk_y
+        frac_diff_dict[model_kk]['x_stat'] = dict_stats_kk['x_stat']
+        frac_diff_dict[model_kk]['y_stat'] = dict_stats_kk['y_stat']
+        frac_diff_dict[model_kk]['perc'  ] = dict_stats_kk['perc_arr_lims']
     ## Abundance matched mass
     # HAM
     (   ham_pred,
@@ -931,6 +951,28 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     ##
     ## Binning data
     # HAM
+    ham_dict = cstats.Stats_one_arr_mod(ham_x,
+                                        ham_frac_diff,
+                                        base=bin_width,
+                                        arr_len=arr_len,
+                                        bin_statval=bin_statval,
+                                        type_shade=type_shade,
+                                        type_sigma=type_sigma)
+    y1_ham = ham_dict['perc_arr_lims'][plot_sigma_num][0]
+    y2_ham = ham_dict['perc_arr_lims'][plot_sigma_num][1]
+    # Dynamical
+    dyn_dict = cstats.Stats_one_arr_mod(dyn_x,
+                                        dyn_frac_diff,
+                                        base=bin_width,
+                                        arr_len=arr_len,
+                                        bin_statval=bin_statval,
+                                        type_shade=type_shade,
+                                        type_sigma=type_sigma)
+    y1_dyn = dyn_dict['perc_arr_lims'][plot_sigma_num][0]
+    y2_dyn = dyn_dict['perc_arr_lims'][plot_sigma_num][1]
+
+
+
     (   x_stat_ham   ,
         y_stat_ham   ,
         y_std_ham    ,
@@ -984,11 +1026,9 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
         ## Stats
         x_stat = frac_diff_dict[model_kk]['x_stat']
         y_stat = frac_diff_dict[model_kk]['y_stat']
-        y_err  = frac_diff_dict[model_kk]['y_err' ]
-        ## Fill-between variables
-        y1 = y_stat - y_err
-        y2 = y_stat + y_err
-
+        # Fill-between variables
+        y1 = frac_diff_dict[model_kk]['perc'][plot_sigma_num][0]
+        y2 = frac_diff_dict[model_kk]['perc'][plot_sigma_num][1]
         ## Plotting relation
         ax1.plot(   x_stat,
                     y_stat,
@@ -999,13 +1039,13 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
         ax1.fill_between(x_stat, y1, y2, color=cm_arr[kk], alpha=alpha,
                         label=ml_alg_kk_name, zorder=zorder_ml)
     ## HAM Masses
-    ax1.plot(   x_stat_ham,
-                y_stat_ham,
+    ax1.plot(   ham_dict['x_stat'],
+                ham_dict['y_stat'],
                 color=plot_dict['color_ham'],
                 linestyle='--',
                 marker='o',
                 zorder=zorder_ml)
-    ax1.fill_between(   x_stat_ham,
+    ax1.fill_between(   ham_dict['x_stat'],
                         y1_ham,
                         y2_ham, 
                         color=plot_dict['color_ham'],
@@ -1013,13 +1053,13 @@ def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
                         label='HAM',
                         zorder=zorder_shade)
     ## Dynamical Masses
-    ax1.plot(   x_stat_dyn,
-                y_stat_dyn,
+    ax1.plot(   dyn_dict['x_stat'],
+                dyn_dict['y_stat'],
                 color=plot_dict['color_dyn'],
                 linestyle='--',
                 marker='o',
                 zorder=zorder_ml)
-    ax1.fill_between(   x_stat_dyn,
+    ax1.fill_between(   dyn_dict['x_stat'],
                         y1_dyn,
                         y2_dyn, 
                         color=plot_dict['color_dyn'],
