@@ -5,7 +5,7 @@
 # Created      : 2018-10-02
 # Last Modified: 2018-10-02
 # Vanderbilt University
-from __future__ import absolute_import, division, print_function 
+from __future__ import absolute_import, division, print_function
 __author__     = ['Victor Calderon']
 __copyright__  = ["Copyright 2018 Victor Calderon, "]
 __email__      = ['victor.calderon@vanderbilt.edu']
@@ -111,7 +111,7 @@ def get_parser():
 
     Returns
     -------
-    args: 
+    args:
         input arguments to the script
     """
     ## Define parser object
@@ -123,7 +123,7 @@ def get_parser():
     """
     parser = ArgumentParser(description=description_msg,
                             formatter_class=SortingHelpFormatter,)
-    ## 
+    ##
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 
     ## Number of HOD's to create. Dictates how many different types of
@@ -469,7 +469,7 @@ def param_vals_test(param_dict):
     Raises
     -----------
     ValueError : Error
-        This function raises a `ValueError` error if one or more of the 
+        This function raises a `ValueError` error if one or more of the
         required criteria are not met
     """
     ##    file_msg = param_dict['Prog_msg']
@@ -745,7 +745,7 @@ def mass_pred_comparison_plot(catl_pd, param_dict, proj_dict, arr_len=10,
     # Selecting only these columns
     mass_cols = ['GG_M_group', 'GG_mdyn_rproj']
     mass_pred = 'M_h_pred'
-    # Removing values 
+    # Removing values
     ##
     ## Figure details
     plt.clf()
@@ -1013,7 +1013,7 @@ def mass_pred_comparison_plot_no_norm_no_normed(catl_pd, param_dict, proj_dict,
     # Selecting only these columns
     mass_cols = ['GG_M_group', 'GG_mdyn_rproj']
     mass_pred = 'M_h_pred'
-    # Removing values 
+    # Removing values
     ##
     ## Figure details
     plt.clf()
@@ -1281,7 +1281,7 @@ def mass_pred_comparison_plot_norm_no_normed(catl_pd, param_dict, proj_dict,
     # Selecting only these columns
     mass_cols = ['GG_M_group', 'GG_mdyn_rproj']
     mass_pred = 'M_h_pred'
-    # Removing values 
+    # Removing values
     ##
     ## Figure details
     plt.clf()
@@ -1549,7 +1549,7 @@ def mass_pred_comparison_plot_normed_no_norm(catl_pd, param_dict, proj_dict,
     # Selecting only these columns
     mass_cols = ['GG_M_group', 'GG_mdyn_rproj']
     mass_pred = 'M_h_pred'
-    # Removing values 
+    # Removing values
     ##
     ## Figure details
     plt.clf()
@@ -1739,6 +1739,214 @@ def mass_pred_comparison_plot_normed_no_norm(catl_pd, param_dict, proj_dict,
     plt.clf()
     plt.close()
 
+## Stellar-Halo mass relation
+def stellar_mass_relation_comparison_plot(catl_pd, param_dict, proj_dict,
+    arr_len=10, bin_statval='left', fig_fmt='pdf', figsize=(10,6),
+    fig_number=1):
+    """
+    Computes the Stellar-Mass relation for Central for the two different
+    approaches at estimating masses.
+
+    Parameters
+    ------------
+    catl_pd : `pd.DataFrame`
+        DataFrame containing information on the various features for each
+        galaxy, as well as the `predicted` columns.
+
+    param_dict : `dict`
+        Dictionary with `project` variables.
+
+    proj_dict : `dict`
+        Dictionary with the `project` paths and directories.
+
+    arr_len : `int`, optional
+        Minimum number of elements in bins. This variable is set to `0`
+        by default.
+
+    bin_statval : `str`, optional
+        Option for where to plot the bin values. This variable is set
+        to `average` by default.
+
+        Options:
+        - 'average': Returns the x-points at the average x-value of the bin
+        - 'left'   : Returns the x-points at the left-edge of the x-axis bin
+        - 'right'  : Returns the x-points at the right-edge of the x-axis bin
+
+    fig_fmt : `str`, optional (default = 'pdf')
+        extension used to save the figure
+
+    figsize : `tuple`, optional
+        Size of the output figure. This variable is set to `(12,15.5)` by
+        default.
+
+    fig_number : `int`, optional
+        Number of figure in the workflow. This variable is set to `1`
+        by default.
+    """
+    file_msg     = param_dict['Prog_msg']
+    # Matplotlib option
+    matplotlib.rcParams['axes.linewidth'] = 2.5
+    matplotlib.rcParams['axes.edgecolor'] = 'black'
+    # Constants
+    cmap_opt  = 'Blues'
+    err_color = 'Orange'
+    vmax      = int(1) ## For the 2D Histograms
+    one_arr   = num.linspace(6, 16.05, 1000)
+    one_col   = 'k'
+    plot_dict = param_dict['plot_dict']
+    bin_width = param_dict['ml_args'].mass_bin_width
+    ## Paper Figure
+    fname_paper = os.path.join( proj_dict['paper_fig_dir'],
+                                'Figure_15_SHMF.{0}'.format(fig_fmt))
+    # Labels
+    labels_dict = { 'M_h_pred': r'\boldmath$\log M_{\mathrm{predicted}}\left[h^{-1} M_{\odot}\right]$',
+                    'GG_M_group': r'\boldmath$\log M_{\mathrm{HAM}}\left[h^{-1} M_{\odot}\right]$',
+                    'GG_mdyn_rproj': r'\boldmath$\log M_{\mathrm{dyn}}\left[h^{-1} M_{\odot}\right]$',
+                    'mstar': r'\boldmath$\log M_{\star}\left[h^{-1} M_{\odot}\right]$'}
+    # Selecting only these columns
+    mass_cols = ['GG_M_group', 'GG_mdyn_rproj']
+    mass_pred = 'M_h_pred'
+    ## Combining DataFrames
+    # Loads `merged` catalogue
+    (   catl_arr,
+        n_catls) = cmcu.extract_catls(  catl_kind='data',
+                                        catl_type=param_dict['catl_type'],
+                                        sample_s=param_dict['sample_s'],
+                                        halotype=param_dict['halotype'],
+                                        dv=param_dict['dv'],
+                                        clf_method=param_dict['clf_method'],
+                                        sigma_clf_c=param_dict['sigma_clf_c'],
+                                        hod_n=param_dict['hod_n'],
+                                        clf_seed=param_dict['clf_seed'],
+                                        return_len=True,
+                                        print_filedir=True)
+    # Reading in DataFrame
+    data_catl_main = cfreaders.read_hdf5_file_to_pandas_DF(catl_arr[0])
+    # Keys for ssfr and mstar
+    mstar_key = cmcu.catl_keys_prop('data', catl_info='members',
+        return_type='dict')['logmstar_key']
+    catl_pd_cols_mod = ['GG_M_group', 'GG_mdyn_rproj', 'M_h_pred', 'index',
+                            'galtype']
+    # Merging the two DataFrames
+    merged_pd = pd.merge(catl_pd.loc[:, catl_pd_cols_mod],
+                        data_catl_main.loc[:, mstar_key].to_frame(),
+                        left_on='index',
+                        right_index=True)
+    merged_pd.drop('index', axis=1, inplace=True)
+    merged_pd = merged_pd.loc[merged_pd['galtype'] == 1]
+    merged_pd.dropna(inplace=True)
+    merged_pd.reset_index(inplace=True, drop=True)
+    ##
+    ## Figure details
+    plt.clf()
+    plt.close()
+    fig    = plt.figure(figsize=figsize)
+    gs     = gridspec.GridSpec(1, 2, hspace=0.1, wspace=0.0)
+    ax_arr = [[[],[]] for xx in range(2)]
+    # Figure constants
+    xlim       = (10.9, 15.2)
+    ylim       = (8., 12.)
+    sigma_lims = (0.0, 0.6)
+    # Histogram bins
+    dbin      = 0.1
+    hist_bins = num.arange(xlim[0], xlim[1] + dbin*0.5, dbin)
+    # Ticks
+    xaxis_major_ticker = 1
+    xaxis_minor_ticker = 0.2
+    yaxis_major_ticker = 1
+    yaxis_minor_ticker = 0.2
+    ax_xaxis_major_loc = ticker.MultipleLocator(xaxis_major_ticker)
+    ax_xaxis_minor_loc = ticker.MultipleLocator(xaxis_minor_ticker)
+    ax_yaxis_major_loc = ticker.MultipleLocator(yaxis_major_ticker)
+    ax_yaxis_minor_loc = ticker.MultipleLocator(yaxis_minor_ticker)
+    # Sigma axis ticks
+    ax_yaxis_major_loc_sig = ticker.MultipleLocator(0.5)
+    ax_yaxis_minor_loc_sig = ticker.MultipleLocator(0.1)
+    ## Looping over axes
+    mhalo_axis_arr = ['GG_M_group', 'M_h_pred']
+    for ii, mass_ii in enumerate(mhalo_axis_arr):
+        # Labels
+        x_label = labels_dict[mass_ii]
+        y_label = labels_dict['mstar']
+        # Setting up axes
+        gs_ax = gridspec.GridSpecFromSubplotSpec(1, 1, gs[ii], hspace=0)
+        ax1 = plt.Subplot(fig, gs_ax[0,:], facecolor='white')
+        # Adding plots
+        fig.add_subplot(ax1)
+        if ii != 0:
+            plt.setp(ax1.get_yticklabels(), visible=False)
+        else:
+            ## Y-labels
+            ax1.set_ylabel(y_label, fontsize=plot_dict['size_label'])
+        ax1.set_xlabel(x_label, fontsize=plot_dict['size_label'])
+        ## Ticks
+        # ax1
+        ax1.xaxis.set_major_locator(ax_xaxis_major_loc)
+        ax1.xaxis.set_minor_locator(ax_xaxis_minor_loc)
+        ax1.yaxis.set_major_locator(ax_yaxis_major_loc)
+        ax1.yaxis.set_minor_locator(ax_yaxis_minor_loc)
+        # Axes limits
+        ax1.set_xlim(xlim)
+        ax1.set_ylim(ylim)
+        # Setting up x- and y-arrays
+        x_arr = merged_pd[mass_ii].values
+        y_arr = merged_pd[mstar_key].values
+        # Computing statistic
+        # Computing statistic
+        (   mean_mass_trad_ii,
+            mean_mass_pred   ,
+            mass_pred_std    ,
+            mass_pred_std_err) = cstats.Stats_one_arr(
+                                                x_arr,
+                                                y_arr,
+                                                base=bin_width,
+                                                arr_len=arr_len,
+                                                bin_statval=bin_statval)
+        # Plotting 2D-histogram
+        if (ii == (len(mhalo_axis_arr) - 1)):
+            im = ax1.hist2d(x_arr, y_arr, bins=hist_bins,
+                normed=True, cmap=cmap_opt, vmax=vmax)
+        else:
+            ax1.hist2d(x_arr, y_arr, bins=hist_bins,
+                normed=True, cmap=cmap_opt, vmax=vmax)
+        # One-One-line
+        ax1.plot(one_arr, one_arr, color=one_col, linestyle='--')
+        # Errorbar
+        ax1.errorbar(mean_mass_trad_ii, mean_mass_pred, yerr=mass_pred_std,
+            ecolor=err_color, fmt='--', color=err_color)
+        ## Axes limits
+        ax1.set_xlim(xlim)
+        ax1.set_ylim(ylim)
+        # Adding text
+        if (ii == 0):
+            ax1.text(0.35, 0.9, 'HAM',
+                transform=ax1.transAxes, fontsize=plot_dict['size_legend'])
+        else:
+            ax1.text(0.35, 0.9, 'Machine Learning',
+                transform=ax1.transAxes, fontsize=plot_dict['size_legend'])
+    #
+    # Colorbar
+    cax  = fig.add_axes([0.92, 0.12, 0.03, 0.75])
+    cbar = fig.colorbar(im[3], cax=cax)
+    cbar.set_label('frequency', rotation=270, labelpad=15, weight='bold',
+        size=20)
+    ##
+    ## Saving figure
+    if fig_fmt=='pdf':
+        # plt.savefig(fname, bbox_inches='tight')
+        plt.savefig(fname_paper, bbox_inches='tight')
+    else:
+        # plt.savefig(fname, bbox_inches='tight', dpi=400)
+        plt.savefig(fname_paper, bbox_inches='tight', dpi=400)
+    ##
+    ##
+    # print('{0} Figure saved as: {1}'.format(file_msg, fname))
+    print('{0} Paper Figure saved as: {1}'.format(file_msg, fname_paper))
+    plt.clf()
+    plt.close()
+
+
+
 ## Checks for missing mass columns
 def catl_pd_missing_info(catl_pd, param_dict):
     """
@@ -1827,6 +2035,9 @@ def main(args):
     #
     # Mass comparison
     mass_pred_comparison_plot(catl_pd, param_dict, proj_dict, arr_len=0)
+    # Stellar-Halo mass relation
+    stellar_mass_relation_comparison_plot(catl_pd, param_dict, proj_dict,
+        arr_len=0)
 
 # Main function
 if __name__=='__main__':
