@@ -791,7 +791,7 @@ def score_mass_regimes(true_arr, pred_arr, low_high_cut=12.5,
 # Fractional difference
 def frac_diff_model(models_dict, param_dict, proj_dict, plot_opt='mhalo',
     arr_len=10, bin_statval='average', fig_fmt='pdf', figsize=(8, 8),
-    fig_number=1, type_shade='perc', type_sigma='std', plot_sigma_num=0):
+    fig_number=1, type_shade='std', type_sigma='std', plot_sigma_num=0):
     """
     Plots the fractional difference between `predicted` and `true`
     halo masses.
