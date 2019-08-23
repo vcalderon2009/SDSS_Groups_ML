@@ -790,14 +790,15 @@ class ReadML(object):
             ## top 9 features
             features_cols = [   'M_r',
                                 'GG_mr_brightest',
-                                'g_r',
-                                'logssfr']#,
-                                # 'GG_logssfr',
-                                # 'GG_r_med',
+                                # 'g_r',
+                                # 'logssfr',
+                                'GG_logssfr',
+                                'GG_r_med',
                                 # 'GG_dist_cluster',
                                 # 'GG_sigma_v',
-                                # 'GG_M_r']#,
-                                # 'GG_M_group']
+                                # 'GG_M_r',
+                                # 'GG_M_group'
+                                ]
 
         return features_cols
 
