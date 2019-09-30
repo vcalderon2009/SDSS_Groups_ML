@@ -73,6 +73,9 @@ target/
 /data/
 *__pycache__*
 
+# Mac-related
+*.DS_Store
+
 #### --- Excluded Files --- ####
 Synch_files.sh
 reports/figures/
